@@ -1,0 +1,129 @@
+---
+name: milestone-breakdown
+description: >
+  Break down the next open milestone from ROADMAP.md into small, actionable, independently
+  testable tasks in PLAN.md. Trigger whenever the user says "break down", "plan tasks",
+  "create tasks", "task breakdown", "decompose milestone", "phase 2", "let's break this
+  down", references PLAN.md in a planning context, or asks to prepare for implementation.
+  Also trigger when the user has just finished strategic planning and wants to move to the
+  next phase. This skill reads the codebase and docs to produce implementation-aware tasks
+  with architectural hints, test cases, and file associations.
+model: opus
+---
+
+# Milestone Breakdown — Decomposing into Actionable Tasks
+
+> For the full workflow this skill belongs to, see [workflow-overview.md](../_shared/workflow-overview.md).
+
+You are guiding the human through the **Break-Down** phase of an AI-native engineering
+workflow. Your job is to turn the next open milestone from `ROADMAP.md` into a concrete,
+ordered list of tasks in `PLAN.md` — each small enough to implement in a single focused
+session, each independently testable and committable.
+
+## Prerequisites
+
+1. `ROADMAP.md` must exist with at least one milestone with status `open`.
+2. `PLAN.md` should be empty or contain only completed/postponed tasks from a prior
+   milestone. If it has uncompleted tasks, confirm with the user before overwriting.
+
+## Phase Workflow
+
+### Step 1: Select the Milestone
+
+Read `ROADMAP.md` and identify the next `open` milestone. If multiple are open, approach the next one in order of writing. Update its status to `in progress`.
+
+### Step 2: Deep Codebase Assessment
+
+Before writing any tasks, thoroughly understand the current state:
+
+**Read project structure.** Use `Glob` and `Read` tool on the project root directory to understand
+the layout. Identify source directories, test directories, config files, and documentation.
+
+**Read key files.** Based on the milestone's scope, read the files most likely to be
+affected. Focus on:
+- Entry points and public APIs
+- Data models and schemas
+- Existing test structure and conventions
+- Configuration and environment setup
+- CI/CD pipeline if visible
+
+**Read project documentation.** Check README.md, ARCHITECTURE.md, CONTRIBUTING.md, or
+any docs/ directory for conventions, patterns, and constraints.
+
+**Identify patterns.** Note the project's:
+- Testing framework and conventions (Jest, pytest, etc.)
+- Code organization patterns (feature folders, layered, etc.)
+- Error handling approach
+- Logging and observability patterns
+- Authentication/authorization patterns if relevant
+
+Summarize your understanding to the human and ask if anything is missing or incorrect.
+
+### Step 3: Draft the Task Breakdown
+
+Write tasks in `PLAN.md` following the format of `references/SAMPLE-PLAN.md`.
+
+**Task sizing rules:**
+- Each task should be implementable within roughly 50% of the available context window.
+  In practice this means: a task should touch at most 3–5 files and produce at most
+  ~200 lines of new/changed code plus tests.
+- If a task feels too large, split it. Prefer more small tasks over fewer large ones.
+- Each task must be independently committable — the codebase should pass all tests after
+  each task is completed.
+
+**Ordering rules:**
+- Order tasks so that each builds on the previous.
+- Put foundational work (types, schemas, interfaces) before implementation.
+- Put tests alongside their implementation task, not as separate tasks (TDD is handled
+  in the implementation phase).
+- End with integration, wiring, and polish tasks.
+
+### Step 4: Cross-Cutting Concerns
+
+After drafting the task list, add a section for cross-cutting concerns:
+
+```markdown
+## Cross-Cutting Concerns
+
+- **Security:** <any auth, input validation, secrets management notes>
+- **Performance:** <any known performance constraints or targets>
+- **Observability:** <logging, metrics, alerting expectations>
+- **Migration:** <data migration steps if applicable>
+- **Rollback:** <how to safely revert if something goes wrong>
+```
+
+### Step 5: Review with the Human
+
+Present the full plan and ask the human to review:
+
+- Is the ordering logical? Would you resequence anything?
+- Are any tasks too large or too vague?
+- Are there tasks you'd add or remove?
+- Do the architectural decisions match your intent?
+- Are the test cases sufficient?
+
+Iterate until the human approves.
+
+### Step 6: Save and Hand Off
+
+Once approved:
+
+1. Write the final `PLAN.md` (replacing any prior content).
+2. Present a summary of what was written and suggest the user commit using `/commit`.
+3. Suggest they move to the **Implementation** phase when ready.
+
+## Important Principles
+
+- **Implementation-aware, not implementation-dictating.** Provide enough architectural
+  context that the implementer (which may be a different Claude model or the human
+  themselves) can make good decisions, but don't write pseudocode or dictate exact
+  implementations.
+- **Test cases are first-class.** Every task must have test cases described. These become
+  the starting point for TDD in the implementation phase.
+- **One task, one commit.** If a task can't be meaningfully committed on its own, it's
+  either too small (merge it) or entangled with another task (restructure).
+- **File associations matter.** Listing the files a task will touch helps the implementer
+  scope their work and helps the reviewer know what to check.
+- **Surface unknowns.** If during codebase assessment you discover something that could
+  affect the milestone (tech debt, missing tests, fragile code), flag it as a risk or
+  add a preparatory task.
