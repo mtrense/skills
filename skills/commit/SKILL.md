@@ -2,10 +2,8 @@
 name: commit
 description: >
   Analyse staged and unstaged changes, craft a meaningful commit message, and commit.
-  Trigger whenever the user says "commit", "save this", "commit changes", or asks to
-  commit after completing a workflow phase. Also trigger when another skill suggests
-  committing. This skill is the single point of committing in the workflow — no other
-  skill commits directly.
+disable-model-invocation: true
+argument-hint: Optional guidance on what to commit or how to slice changes
 model: sonnet
 ---
 
@@ -18,6 +16,14 @@ skill commits directly — they all defer to you.
 
 ## Workflow
 
+### Step 0: User Guidance
+
+The user may provide free-text guidance: `$ARGUMENTS`
+
+When provided, use this to decide **which changes to include** and **how to slice them**
+(e.g. "only the tests", "split config from implementation", "everything in src/").
+When empty, commit all related changes as a single logical commit.
+
 ### Step 1: Gather Context
 
 1. Run `git status` to see all staged and unstaged changes.
@@ -25,7 +31,7 @@ skill commits directly — they all defer to you.
 3. Read `ROADMAP.md` and `PLAN.md` if they exist, to understand the current milestone
    and task context.
 
-If there are no changes to commit, tell the user and stop.
+If there are no changes matching the guidance (or no changes at all), tell the user and stop.
 
 ### Step 2: Analyse the Changes
 
@@ -72,23 +78,12 @@ the actual changes diverged from the plan.
 The summary line should be under 72 characters. The body (if needed) should explain
 *why*, not *what* — the diff already shows what changed.
 
-### Step 4: Present for Approval
-
-Show the user:
-- The list of files that will be committed
-- Any files you recommend excluding (with reasons)
-- The proposed commit message
-
-Ask: "Ready to commit, or would you like to adjust anything?"
-
-### Step 5: Commit
-
-Once approved:
+### Step 4: Commit
 
 1. Stage the appropriate files (be specific — avoid `git add -A` unless all changes
-   are intentional).
-2. Commit with the approved message.
-3. Report the commit hash and summary.
+   are intentional). Exclude any suspicious files identified in Step 2.
+2. Commit with the crafted message.
+3. Report the commit hash, summary, and list of files committed.
 
 If relevant, suggest the next workflow step:
 - After a roadmap commit → "Ready for breakdown when you are."
@@ -98,8 +93,8 @@ If relevant, suggest the next workflow step:
 
 ## Important Principles
 
-- **Never commit without showing the user what will be committed.** The user reviews
-  the diff and the message before anything is committed.
+- **Commit immediately — do not ask for approval.** The user can always amend or
+  revert if needed. Stopping to ask defeats the purpose of the skill.
 - **Be specific when staging.** Stage files by name, not with blanket `git add .`.
 - **Respect `.gitignore`.** Don't override it.
 - **One logical change per commit.** If the changes span multiple unrelated concerns,
