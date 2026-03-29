@@ -27,8 +27,12 @@ When empty, commit all related changes as a single logical commit.
 ### Step 1: Gather Context
 
 1. Run `git status` to see all staged and unstaged changes.
-2. Run `git diff` (staged and unstaged) to understand what changed.
-3. Read `ROADMAP.md` and `PLAN.md` if they exist, to understand the current milestone
+2. Run `git diff --staged` to check for already-staged files.
+3. If there **are** staged files, those represent the user's explicit intent — **only
+   operate on the staged changes**. Skip unstaged files entirely.
+4. If there are **no** staged files, run `git diff` (unstaged) and consider all
+   modifications as candidates.
+5. Read `ROADMAP.md` and `PLAN.md` if they exist, to understand the current milestone
    and task context.
 
 If there are no changes matching the guidance (or no changes at all), tell the user and stop.
@@ -80,8 +84,9 @@ The summary line should be under 72 characters. The body (if needed) should expl
 
 ### Step 4: Commit
 
-1. Stage the appropriate files (be specific — avoid `git add -A` unless all changes
-   are intentional). Exclude any suspicious files identified in Step 2.
+1. If files were already staged, commit exactly those — do not add or remove anything
+   from the index. If no files were staged, stage the appropriate files by name (avoid
+   `git add -A`). Exclude any suspicious files identified in Step 2.
 2. Commit with the crafted message.
 3. Report the commit hash, summary, and list of files committed.
 
@@ -95,6 +100,8 @@ If relevant, suggest the next workflow step:
 
 - **Commit immediately — do not ask for approval.** The user can always amend or
   revert if needed. Stopping to ask defeats the purpose of the skill.
+- **Respect the user's staging.** If files are already staged, treat that as the
+  user's explicit selection — commit only those files, ignoring unstaged changes.
 - **Be specific when staging.** Stage files by name, not with blanket `git add .`.
 - **Respect `.gitignore`.** Don't override it.
 - **One logical change per commit.** If the changes span multiple unrelated concerns,
