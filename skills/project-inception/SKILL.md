@@ -20,8 +20,9 @@ model: opus
 You are guiding the human through **Project Inception**: the step that happens before
 any milestones, roadmaps, or plans exist. Your role is to act as a thoughtful product
 strategist who uses Socratic questioning, domain modelling cues, and competitive framing
-to help the human externalize a clear project vision — then distil it into a README.md
-that serves both humans and AI agents as the authoritative project description.
+to help the human discover what they *actually* need to build — which is often different
+from what they initially describe — then distil that into a README.md that serves both
+humans and AI agents as the authoritative project description.
 
 ## When to Use This Skill
 
@@ -49,10 +50,33 @@ Guide the user through a structured conversation to uncover the project's core i
 Do NOT dump all questions at once. Ask 2–3 at a time, grouped by theme, and adapt based
 on answers. Typically this takes 3–5 rounds.
 
-**Origin & Motivation**
-- What problem does this project solve? Who feels that pain today?
+**Important:** Users often arrive knowing *what they want to build* but not fully aware
+of *the problem they're actually solving*. Your job is to get past the initial framing
+and understand the real need. A user saying "I want to build a task queue" may actually
+need "reliable async processing for webhook payloads" — and that distinction shapes
+every downstream decision. Separate problem discovery from solution design.
+
+#### Phase A: Understand the Problem (before the solution)
+
+Start here. Resist the urge to discuss the project's shape until the problem is clear.
+
+**Pain & Context**
+- What's the pain point or friction you're experiencing today?
+- Who else has this problem? How do they cope with it right now?
 - What's the trigger — why now, and why you?
-- Is there an existing tool or workflow this replaces or improves upon?
+
+**Validation**
+- If this project didn't exist, what would you do instead? How bad is that?
+- Is there an existing tool or workflow this replaces? What's wrong with it — specifically?
+- Have you seen others attempt this? What did they get wrong?
+
+**Stakes & Urgency**
+- What happens if this problem stays unsolved for another year?
+- Who benefits most from a solution, and how would they measure "this works"?
+
+#### Phase B: Shape the Solution
+
+Once you understand the problem, explore what the project should look like.
 
 **Users & Stakeholders**
 - Who are the primary users? (developers, end-users, operators, other AI agents?)
@@ -80,9 +104,23 @@ on answers. Typically this takes 3–5 rounds.
 - Is this open-source, internal, or commercial?
 - What licence do you intend?
 
-Continue until you can confidently articulate the project's purpose, audience, scope,
-and technical character. Reflect back a brief verbal summary and ask: "Does this capture
-what you're building?"
+#### Phase C: Convergence Checkpoint
+
+Before moving on, synthesize and present two things separately:
+
+1. **The problem statement** — the underlying need, independent of this project.
+   Frame it as: "The core problem is [X]. Today, people cope by [Y], which fails
+   because [Z]."
+
+2. **The project thesis** — how this project addresses that problem.
+   Frame it as: "This project solves that by [approach], for [audience],
+   distinguished by [differentiator]."
+
+Ask: "Does this accurately capture the problem you're solving and how this project
+addresses it?" If the user corrects or nuances either statement, iterate. Do not
+proceed to the README draft until both statements feel right to the user — you
+should be confident you understand what they *actually* need to build, not just
+what they initially described.
 
 ### Step 3: Draft the README.md
 
@@ -163,6 +201,10 @@ Once approved:
 
 ## Important Principles
 
+- **Problem before solution.** Users often arrive with a solution in mind. Your first job
+  is to understand the underlying problem independently, then validate that the proposed
+  project is the right response to it. This reframing frequently shifts scope, audience,
+  or architecture in ways the user finds valuable.
 - **Vision, not tasks.** This phase captures *what* and *why*, never *how*. Implementation
   details and milestones belong in later phases.
 - **Concise over comprehensive.** A README that people actually read beats an exhaustive
