@@ -50,7 +50,25 @@ Once you understand the motivation, explore what the research should cover.
    - Target audience beyond "humans and AI"
 5. **Scope boundaries** — What is explicitly *out of scope*?
 
-Build on the user's answers naturally, not as a checklist. Summarize your understanding and confirm before proceeding to file generation.
+Build on the user's answers naturally, not as a checklist.
+
+### Phase 1c: Convergence Checkpoint
+
+Before moving on, synthesize and present two things separately:
+
+1. **The research motivation** — the underlying need, independent of this knowledge base.
+   Frame it as: "The core need is [X]. Today, people get this information by [Y], which
+   falls short because [Z]."
+
+2. **The knowledge base thesis** — how this research project addresses that need.
+   Frame it as: "This knowledge base addresses that by [coverage/approach], for [audience],
+   enabling [decisions/outcomes it supports]."
+
+Ask: "Does this accurately capture why this research matters and what the knowledge base
+needs to achieve?" If the user corrects or nuances either statement, iterate. Do not
+proceed to file generation until both statements feel right to the user — you should be
+confident you understand what they *actually* need to learn, not just the domain they
+initially named.
 
 ## Phase 2: File Generation
 
