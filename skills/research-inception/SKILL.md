@@ -12,10 +12,33 @@ You are initializing a new research project. This is an interactive, Socratic ph
 
 ## Phase 1: Discovery (Interactive)
 
-Have a conversation with the user to understand:
+Guide the user through a structured conversation. Do NOT dump all questions at once. Ask 2–3 at a time, grouped by theme, and adapt based on answers. Typically this takes 3–5 rounds.
+
+**Important:** Users often arrive knowing *what domain they want to research* but not fully aware of *why the research matters* or *what decisions it will ultimately inform*. Research without a clear "so what?" tends to drift in scope and depth. Your job is to uncover the real motivation before shaping the knowledge base.
+
+### Phase 1a: Understand the Motivation (before the structure)
+
+Start here. Resist the urge to discuss topics or file structure until the purpose is clear.
+
+**Need & Context**
+- What's driving this research? Is there a decision, project, or problem it needs to inform?
+- Who will use this knowledge base, and what will they do with it?
+- What's the trigger — why now?
+
+**Validation**
+- If this knowledge base didn't exist, how would you (or your team) get the information you need? How well does that work?
+- Have you seen existing resources on this domain? What's missing or wrong about them?
+
+**Stakes & Scope Pressure**
+- What happens if the research stays shallow or incomplete in the wrong areas?
+- Are there time-sensitive decisions this needs to support?
+
+### Phase 1b: Shape the Knowledge Base
+
+Once you understand the motivation, explore what the research should cover.
 
 1. **Research domain** — What broad area are we researching?
-2. **Goals** — What practical outcomes should this knowledge base support?
+2. **Goals** — What practical outcomes should this knowledge base support? (Anchor these to the motivations discovered in Phase 1a.)
 3. **Topics** — What specific topics should be covered? Help the user brainstorm and refine. For each topic, clarify:
    - Is it standalone or part of a group (directory)?
    - What's the expected scope (brief overview vs. deep dive)?
@@ -27,7 +50,7 @@ Have a conversation with the user to understand:
    - Target audience beyond "humans and AI"
 5. **Scope boundaries** — What is explicitly *out of scope*?
 
-Ask these questions naturally, not as a checklist. Build on the user's answers. Summarize your understanding and confirm before proceeding to file generation.
+Build on the user's answers naturally, not as a checklist. Summarize your understanding and confirm before proceeding to file generation.
 
 ## Phase 2: File Generation
 
