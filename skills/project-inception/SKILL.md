@@ -8,6 +8,7 @@ description: >
   planning begins.
 disable-model-invocation: true
 model: opus
+allowed-tools: Read, Glob, Write, Edit
 ---
 
 # Project Inception — Discovering Vision and Producing a README
