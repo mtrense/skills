@@ -3,13 +3,10 @@ name: project-inception
 description: >
   Facilitate project inception for new software projects by discovering the project's
   vision, goals, and planned feature set through Socratic dialogue, then producing a
-  concise README.md. Trigger whenever the user says "new project", "project inception",
-  "start a project", "let's kick this off", "what should this project be", "define the
-  project", "create a README", or describes a brand-new idea they want to turn into a
-  repository. Also trigger when the user is in an empty or freshly initialized repo and
-  asks for help getting started. This skill precedes the four-phase engineering workflow —
+  concise README.md. This skill precedes the four-phase engineering workflow —
   use it once at the very beginning to establish the project's identity before strategic
   planning begins.
+disable-model-invocation: true
 model: opus
 ---
 
