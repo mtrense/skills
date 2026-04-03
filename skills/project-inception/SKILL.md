@@ -9,6 +9,7 @@ description: >
 disable-model-invocation: true
 model: opus
 allowed-tools: Read, Glob, Write, Edit
+argument-hint: <optional one-line project description>
 ---
 
 # Project Inception — Discovering Vision and Producing a README
@@ -43,6 +44,12 @@ Share your observations with the user. If there's existing material, acknowledge
 ask whether this inception should build on what's there or start from a blank slate.
 
 ### Step 2: Discover the Vision — Socratic Dialogue
+
+If `$ARGUMENTS` is provided, the user has given a one-line project description. Acknowledge
+it — "It sounds like you're thinking about [paraphrase]" — and use it to seed Phase A with
+more targeted questions. But do NOT skip the Socratic discovery. The description is a starting
+point, not a conclusion. It often captures the *solution* the user has in mind, which makes
+Phase A's problem-first questioning even more important.
 
 Guide the user through a structured conversation to uncover the project's core identity.
 Do NOT dump all questions at once. Ask 2–3 at a time, grouped by theme, and adapt based
