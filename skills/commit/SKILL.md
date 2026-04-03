@@ -43,6 +43,8 @@ If there are no changes matching the guidance (or no changes at all), tell the u
 Determine the nature of the changes:
 
 - **Which workflow phase produced them?** Look for signals:
+  - Foundational files created (`README.md`, `CLAUDE.md`, `INDEX.md`, etc.) in a
+    new or nearly empty project → inception phase
   - Only `ROADMAP.md` changed → strategic planning phase
   - `PLAN.md` written/rewritten + `ROADMAP.md` status update → breakdown phase
   - Source code + test files + `PLAN.md` task status update → implementation phase
@@ -68,6 +70,7 @@ Write a commit message following conventional commit format:
 ```
 
 **Type selection:**
+- `init:` — project inception (initial project structure and foundational files)
 - `roadmap:` — milestone added or updated in `ROADMAP.md`
 - `plan:` — task breakdown written to `PLAN.md`
 - `feat:` — new feature or capability (implementation phase)

@@ -199,8 +199,6 @@ After generating all files, present:
 ## Git
 
 Do NOT commit. The user will review and use `/commit` when ready.
-The expected commit message format for this phase is:
-`research(inception): initialize project structure`
 
 ## Important Principles
 

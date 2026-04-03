@@ -202,7 +202,7 @@ Iterate until the human approves.
 Once approved:
 
 1. Write the final README.md to the project root.
-2. Present a summary of what was created and suggest the user commit using `/commit`.
+2. Do NOT commit. The user will review and use `/commit` when ready.
 3. Suggest they move to **Strategic Planning** (`/strategic-planning`) to define their
    first milestone in `ROADMAP.md`.
 
