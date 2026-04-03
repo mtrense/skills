@@ -202,6 +202,28 @@ Do NOT commit. The user will review and use `/commit` when ready.
 The expected commit message format for this phase is:
 `research(inception): initialize project structure`
 
+## Important Principles
+
+- **Motivation before structure.** Users often arrive with a domain in mind but not a clear
+  reason the research matters. Your first job is to understand the underlying need independently,
+  then validate that the proposed knowledge base is the right response to it. This reframing
+  frequently shifts scope, depth, or topic selection in ways the user finds valuable.
+- **Scope, not sections.** This phase captures *what* to research and *why*, never *how* to
+  structure individual topics. Section outlines and content planning belong in the inquiry phase.
+- **Concise over comprehensive.** An INDEX.md that people actually read beats an exhaustive
+  taxonomy that nobody navigates. Aim for the smallest set of topics that covers the real need.
+- **Dual audience.** Every description should be clear to a human reader AND parseable by an
+  AI agent building context about the research. Avoid ambiguity, jargon without definition,
+  and vague hand-waving.
+- **Socratic, not interrogative.** Frame questions as collaborative exploration. Explain *why*
+  you're asking when it's not obvious. Offer your own hypotheses when the user seems stuck —
+  "It sounds like this research is mainly to inform a build-vs-buy decision — is that right?"
+- **Respect the human's expertise.** They know the domain. You're helping them articulate and
+  structure what they already know, and occasionally surfacing blind spots in coverage.
+- **No premature commitment.** If the user is unsure about a topic's scope or placement, mark
+  it as provisional rather than forcing a decision. The inquiry and restructure phases exist
+  precisely for refinement.
+
 ## Important Rules
 
 - Do NOT create a root `CLAUDE.md` — that is out of scope for this skill.
