@@ -78,6 +78,7 @@ Write a commit message following conventional commit format:
 - `test:` — test-only changes
 - `refactor:` — code restructuring without behavior change
 - `milestone:` — milestone closing
+- `improve:` — enhancement or refinement to existing functionality
 - `chore:` — tooling, config, or maintenance
 
 If the task in `PLAN.md` specifies a commit message, use it as the basis but adjust if
