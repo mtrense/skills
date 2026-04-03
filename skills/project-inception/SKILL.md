@@ -102,6 +102,15 @@ Once you understand the problem, explore what the project should look like.
 - Is this open-source, internal, or commercial?
 - What licence do you intend?
 
+**Conventions & Preferences**
+- What tone should documentation and code comments use? (technical, friendly, terse, etc.)
+- Are there naming conventions you care about? (file naming, variable style, module structure)
+- Any domain-specific terminology that should be used consistently across the project?
+- What does your target audience already know — what can you assume vs. what needs explaining?
+
+These conventions propagate through downstream skills (strategic planning, task implementation,
+commit messages), so capturing them early prevents repeated correction later.
+
 #### Phase C: Convergence Checkpoint
 
 Before moving on, synthesize and present two things separately:
@@ -184,7 +193,7 @@ Ask the human to review:
 - Are the goals and non-goals correctly scoped?
 - Is anything important missing — something a new team member or an AI agent would
   need to know?
-- Is the tone right? (technical, friendly, formal, etc.)
+- Do the tone and conventions match what you discussed earlier?
 
 Iterate until the human approves.
 
