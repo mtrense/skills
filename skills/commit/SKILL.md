@@ -5,7 +5,7 @@ description: >
 disable-model-invocation: true
 argument-hint: Optional guidance on what to commit or how to slice changes
 model: sonnet
-allowed-tools: Bash(git status *), Bash(git diff *), Bash(git add *), Bash(git commit *), Bash(git log *), Bash(git rm *), Read, Glob
+allowed-tools: Bash(git status *), Bash(git diff *), Bash(git add *), Bash(git commit *), Bash(git log *), Bash(git rm *), Bash(echo *), Read, Glob
 ---
 
 # Commit — Analyse Changes and Craft a Meaningful Commit
