@@ -221,6 +221,13 @@ Do NOT commit. The user will review and use `/commit` when ready.
 - **No premature commitment.** If the user is unsure about a topic's scope or placement, mark
   it as provisional rather than forcing a decision. The inquiry and restructure phases exist
   precisely for refinement.
+- **Stress-test strong framing.** When a user arrives with a confident, pre-formed view of the
+  domain — "I already know the topics, just set it up" — that's when Socratic questioning
+  matters most. Probe the domain boundaries they've drawn, the exclusions they're making
+  (deliberately or by habit), and whether the scope reflects examined choices or inherited
+  framing from a single source. This isn't obstruction; it's ensuring the research foundation
+  is examined before building on it. Deference to confidence is the opposite of what this
+  skill exists to do.
 
 ## Important Rules
 
