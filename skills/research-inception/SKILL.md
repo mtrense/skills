@@ -4,6 +4,7 @@ description: "Initialize a research project structure with CLAUDE.md, INDEX.md, 
 disable-model-invocation: true
 model: opus
 allowed-tools: Read, Glob, Write, Edit
+argument-hint: <optional domain name>
 ---
 
 # Research Inception
@@ -17,6 +18,12 @@ Guide the user through a structured conversation. Do NOT dump all questions at o
 **Important:** Users often arrive knowing *what domain they want to research* but not fully aware of *why the research matters* or *what decisions it will ultimately inform*. Research without a clear "so what?" tends to drift in scope and depth. Your job is to uncover the real motivation before shaping the knowledge base.
 
 ### Phase 1a: Understand the Motivation (before the structure)
+
+If `$ARGUMENTS` is provided, the user has named the domain up front. Acknowledge it —
+"So you're looking to build a knowledge base around [paraphrase]" — and use it to skip the
+"what domain?" opener and go straight to probing motivation and scope. But do NOT skip the
+Socratic discovery. The domain name tells you *what*, not *why* — which makes the motivation
+questions even more important.
 
 Start here. Resist the urge to discuss topics or file structure until the purpose is clear.
 
