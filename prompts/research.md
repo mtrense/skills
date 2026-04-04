@@ -15,12 +15,17 @@ Everything is placed in a `/research/` folder to later be able to use the same r
 │   ├── glossary.md
 │   ├── content/
 │   │   ├── authentication.md          ← standalone topic
+│   │   ├── authentication_references.yaml ← references for authentication.md
 │   │   ├── data-pipelines/            ← hierarchical topic
 │   │   │   ├── batch-processing.md
-│   │   │   └── stream-processing.md
+│   │   │   ├── batch-processing_references.yaml
+│   │   │   ├── stream-processing.md
+│   │   │   └── stream-processing_references.yaml
 │   │   ├── api-design/
 │   │   │   ├── rest-conventions.md
-│   │   │   └── versioning.md
+│   │   │   ├── rest-conventions_references.yaml
+│   │   │   ├── versioning.md
+│   │   │   └── versioning_references.yaml
 │   │   └── ...
 ├── src/
 │   ├── CLAUDE.md
@@ -35,7 +40,7 @@ The root `CLAUDE.md` file is relevant for the entire project (which is out of sc
 Further customizations to these skills (directory organization, )
 
 # Source Verification
-All URLs in references must be verified via web fetch before a section can advance to `audit` status. Each reference carries a `verified` field (`true` or `false`). During investigation, newly added references default to `verified: false`. The investigation skill should attempt to fetch and verify each URL; if verification succeeds, set `verified: true`. Unverified references (`verified: false`) are treated as `CONFIDENCE: low` findings by the audit phase. A section cannot reach `done` status while any reference remains unverified.
+All URLs in references must be verified via web fetch before a section can advance to `audit` status. Each reference in `references.yaml` carries a `verified` field (`true` or `false`). During investigation, newly added references default to `verified: false`. The investigation skill should attempt to fetch and verify each URL; if verification succeeds, set `verified: true`. Unverified references (`verified: false`) are treated as `CONFIDENCE: low` findings by the audit phase. A section cannot reach `done` status while any reference remains unverified.
 
 # Git Usage
 Git is used to commit research results and later provide meta-data (like at which date/time some research was conducted, ...). Conventional commits provide context to each commit, using the following format per phase:
@@ -91,7 +96,7 @@ When a skill cannot complete its task, it must not silently fail or produce part
 - **Scope mismatch**: If investigation discovers that a section's RESEARCH query is ill-defined, overlaps with another section, or requires structural changes, the skill should leave a `<!-- AUDIT: type: gap, severity: major, detail: "..." -->` comment explaining the problem, write best-effort content, and proceed. It must not restructure the topic.
 - **Missing prerequisites**: If a skill is invoked on a section whose status does not meet the required precondition (e.g., running investigation on a `stub` section that has no RESEARCH directive), the skill should abort with a clear error message stating what is missing and which phase should run first.
 - **Contradictory directives**: If a section contains directives that conflict with each other or with `INDEX.md` (e.g., status says `done` but AUDIT comments are present), the skill should flag the inconsistency to the user and not proceed until resolved.
-- **Source verification failure**: If a URL cannot be fetched or returns content that does not match the cited claim, the reference must be marked `verified: false` and a `<!-- CONFIDENCE: low -->` marker placed on the associated claim.
+- **Source verification failure**: If a URL cannot be fetched or returns content that does not match the cited claim, the reference must be marked `verified: false` in `references.yaml` and a `<!-- CONFIDENCE: low -->` marker placed on the associated claim.
 - **Unrecoverable errors**: If a skill encounters an error it cannot handle (e.g., file not found, permission denied), it should report the error clearly and make no changes to any files.
 
 # Files
@@ -148,15 +153,46 @@ The `AUDIT` directives are structured like:
 -->
 ```
 
-References are kept under a per-section `### References` subheading. Each reference is a structured block:
+## References
 
+References are split between two locations:
+
+### `<topic>_references.yaml` — Full Reference Data
+
+Each topic file `<name>.md` has a sibling `<name>_references.yaml` in the same directory. The YAML file maps citation keys to structured metadata:
+
+```yaml
+vaswani-2017:
+  title: "Attention Is All You Need"
+  authors: Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, Illia Polosukhin
+  url: https://arxiv.org/abs/1706.03762
+  published: 2017-06-12
+  last-checked: 2026-04-04
+  verified: true
 ```
-- **title**: "Name of the resource"
-  **url**: <link>
-  **published**: <date>
-  **last-checked**: <date>
-  **verified**: true | false
-  **takeaway**: "One-sentence conclusion relevant to this section"
+
+Fields are all optional beyond `title`. Common fields: `title`, `authors`, `url` (for URLs/blogs/documentation), `isbn` (for books), `published`, `last-checked`, `verified`. The `verified` field defaults to `false` if omitted.
+
+Citation keys should be descriptive and stable — typically `author-year` or `slug-year` (e.g., `vaswani-2017`, `react-docs-2024`, `rfc-7519`).
+
+### Markdown — Short-Form References and In-Text Citations
+
+Each section in a topic file ends with a `### References` subheading listing the references used in that section:
+
+```markdown
+### References
+
+- [vaswani-2017] "Attention Is All You Need" ("Introduced the transformer, demonstrating that self-attention alone — without recurrence or convolution — achieves state-of-the-art translation quality with dramatically less training time.")
+- [dean-2004] "MapReduce: Simplified Data Processing on Large Clusters" ("Established the programming model for distributed batch processing at scale.")
+```
+
+Each entry has the format: `- [citation-key] "Title" ("Takeaway relevant to this section.")`
+
+In-text citations use `[citation-key]` or `[citation-key, pp. 12-15]` for page ranges:
+
+```markdown
+The transformer architecture [vaswani-2017] replaced recurrence with self-attention.
+As shown in the original paper [vaswani-2017, pp. 5-6], multi-head attention allows...
 ```
 
 ## `INDEX.md`
@@ -217,3 +253,5 @@ When sources directly contradict each other, the handling policy is:
 
 ## Assets
 Assets are co-located with their topic file. When a topic `<name>.md` has assets, they go in a sibling `<name>_assets/` directory and are referenced using relative paths (e.g., `![diagram](authentication_assets/flow.png)`). Do not create a central `assets/` directory.
+
+Similarly, references are co-located: `<name>.md` has a sibling `<name>_references.yaml`. See the References section above for the full format.

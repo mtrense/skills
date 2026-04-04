@@ -3,7 +3,7 @@ name: research-refine
 description: "Refine a topic file by resolving AUDIT comments or applying content-level corrections. Arguments: topic file path, operation (correct|expand|condense|restructure|cross-reference|update|free-text), optional details."
 argument-hint: "<topic-file> <operation> [\"details\"]"
 disable-model-invocation: true
-allowed-tools: Read, Glob, Grep, Edit, WebSearch, WebFetch
+allowed-tools: Read, Write, Glob, Grep, Edit, WebSearch, WebFetch
 ---
 
 # Research Refine
@@ -32,7 +32,7 @@ You are refining content in a topic file — resolving audit findings, correctin
 - Identify the inaccurate claim (from details or AUDIT comments with `type: contradiction` or `type: weak-source`).
 - Research the correct information using WebSearch and WebFetch.
 - Replace the incorrect content with corrected content.
-- Update or add references to support the correction.
+- Update or add references to support the correction (both `references.yaml` and the markdown `### References` list).
 - Remove the AUDIT comment if it prompted this correction.
 - Add a DECISIONS.md entry if the correction changes a previous decision.
 
@@ -41,7 +41,7 @@ You are refining content in a topic file — resolving audit findings, correctin
 - Identify which section(s) need expansion (from details or AUDIT comments with `type: gap`).
 - Research additional content using WebSearch and WebFetch.
 - Add content following the project's tone and conventions.
-- Add references for new claims.
+- Add references for new claims (both `references.yaml` and the markdown `### References` list).
 - Remove related AUDIT comments.
 
 ### `condense` — Reduce Verbosity
@@ -49,7 +49,7 @@ You are refining content in a topic file — resolving audit findings, correctin
 - Identify which section(s) to condense.
 - Tighten prose, remove redundancy, merge overlapping points.
 - Preserve all referenced claims and their citations.
-- Do NOT remove references.
+- Do NOT remove references (neither from `references.yaml` nor markdown).
 
 ### `restructure` — Reorganize Within the File
 
@@ -70,12 +70,12 @@ You are refining content in a topic file — resolving audit findings, correctin
 - The user provides new information that supersedes existing content.
 - Replace outdated content with the new information.
 - Add a DECISIONS.md entry explaining the update (this is a turning point).
-- Update references — mark old ones and add new ones.
+- Update references — mark old ones and add new ones (both `references.yaml` and the markdown `### References` list).
 - Remove related AUDIT comments.
 
 ### Free-text operation
 
-For any operation not listed above, interpret the user's instruction and apply it. The instruction is scoped to the single topic file. Follow the same patterns: research if needed, update references, resolve related AUDIT comments.
+For any operation not listed above, interpret the user's instruction and apply it. The instruction is scoped to the single topic file. Follow the same patterns: research if needed, update references (both `references.yaml` and markdown), resolve related AUDIT comments.
 
 ## After Refinement
 
@@ -98,5 +98,5 @@ The expected commit message format: `research(refine): <topic-name> <operation>`
 - Only modify ONE topic file per invocation (plus DECISIONS.md and INDEX.md as needed).
 - Do NOT change topic structure (file names, directory layout) — use `/research-restructure` for that.
 - Do NOT add new sections — only modify existing ones. If a new section is needed, note it as a suggestion.
-- Preserve all existing references unless explicitly correcting them.
+- Preserve all existing references (in both `references.yaml` and markdown) unless explicitly correcting them.
 - When correcting, always explain the correction in DECISIONS.md if it reverses a prior stance.

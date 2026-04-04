@@ -4,7 +4,7 @@ description: "Audit research topics for consistency, coverage, quality, and cohe
 argument-hint: "[topic-path] [operation]"
 disable-model-invocation: true
 model: opus
-allowed-tools: Read, Glob, Grep, Edit, WebSearch, WebFetch
+allowed-tools: Read, Write, Glob, Grep, Edit, WebSearch, WebFetch
 ---
 
 # Research Audit
@@ -32,7 +32,7 @@ Before running the selected audit operations, scan all in-scope files for `<!-- 
 
 For each CONFIDENCE marker:
 - Attempt to verify the claim using WebSearch and WebFetch.
-- If verification succeeds: remove the CONFIDENCE marker (the claim is now well-sourced). Add or update the reference.
+- If verification succeeds: remove the CONFIDENCE marker (the claim is now well-sourced). Add or update the reference in both `references.yaml` and the markdown `### References` list.
 - If verification fails or contradicts the claim: convert to an AUDIT comment and leave the CONFIDENCE marker.
 - If verification partially supports: upgrade `low` to `medium` or leave as-is, updating the `reason`.
 
@@ -78,8 +78,8 @@ For each finding:
 
 For each section, assess:
 - Does the depth match the RESEARCH directive's original `scale`? (Read git history or infer from content)
-- Are claims properly sourced with references?
-- Are references verified (`verified: true`)? Flag unverified references.
+- Are claims properly sourced with references? Check both in-text `[citation-key]` citations and the `### References` list.
+- Are references verified (`verified: true` in `references.yaml`)? Flag unverified references.
 - Are examples concrete and relevant?
 - Is the content accurate based on your knowledge?
 
