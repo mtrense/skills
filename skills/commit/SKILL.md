@@ -113,3 +113,5 @@ If relevant, suggest the next workflow step:
   suggest splitting into separate commits.
 - **The message matters.** A good commit message makes `git log` useful months later.
   Take the time to get it right.
+- **Never use `git -C`.** Always run git commands from the current working directory.
+  The `-C` flag breaks Claude Code's permission system.
