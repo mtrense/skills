@@ -92,17 +92,28 @@ This file guides all future research phases. Include:
 - Cross-reference conventions: use `[display text](relative-path.md#heading-slug)` relative to `content/`
 - Any domain-specific rules discovered during the conversation
 
-The reference format for all topic files is:
+References are split between a YAML file and the markdown:
 
+- Each topic `<name>.md` has a sibling `<name>_references.yaml` with full metadata (title, authors, url, isbn, published, last-checked, verified).
+- In markdown, each section ends with a `### References` subheading listing short-form entries: `- [citation-key] "Title" ("Takeaway.")`
+- In-text citations use `[citation-key]` or `[citation-key, pp. N-M]`.
+
+Example `references.yaml` entry:
+```yaml
+vaswani-2017:
+  title: "Attention Is All You Need"
+  authors: Ashish Vaswani, Noam Shazeer, et al.
+  url: https://arxiv.org/abs/1706.03762
+  published: 2017-06-12
+  last-checked: 2026-04-04
+  verified: true
 ```
+
+Example markdown references section:
+```markdown
 ### References
 
-- **title**: "Name of the resource"
-  **url**: <link>
-  **published**: <date>
-  **last-checked**: <date>
-  **verified**: true | false
-  **takeaway**: "One-sentence conclusion relevant to this section"
+- [vaswani-2017] "Attention Is All You Need" ("Introduced the transformer architecture.")
 ```
 
 ### `research/INDEX.md`

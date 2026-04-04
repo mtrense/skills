@@ -4,7 +4,7 @@ description: "Research and write content for a single section of a topic file ba
 argument-hint: "<topic-file> [\"section-heading\"]"
 disable-model-invocation: true
 model: opus
-allowed-tools: Read, Glob, Grep, Edit, WebSearch, WebFetch
+allowed-tools: Read, Write, Glob, Grep, Edit, WebSearch, WebFetch
 ---
 
 # Research Investigation
@@ -96,22 +96,41 @@ When sources directly contradict each other:
 
 ### Step 5: References
 
-Add a `### References` subheading at the end of the section (before the next `##` section). Each reference:
+References are stored in two places: full metadata in a YAML file, and short-form entries in the markdown.
+
+**5a: Update `references.yaml`**
+
+Add entries to `<topic-name>_references.yaml` (sibling of the topic markdown file). Create the file if it doesn't exist.
+
+```yaml
+citation-key:
+  title: "Name of the resource"
+  authors: Author Name, Another Author
+  url: https://actual-url
+  published: 2024-01-15
+  last-checked: <today>
+  verified: true | false
+```
+
+Fields are optional beyond `title`. Use `url` for web resources, `isbn` for books. Citation keys should be descriptive and stable (e.g., `author-year`, `slug-year`).
+
+**5b: Add in-text citations**
+
+Cite sources inline using `[citation-key]` or `[citation-key, pp. N-M]` for page ranges.
+
+**5c: Add section references list**
+
+Add a `### References` subheading at the end of the section (before the next `##` section):
 
 ```markdown
 ### References
 
-- **title**: "Name of the resource"
-  **url**: <actual-url>
-  **published**: <date or "unknown">
-  **last-checked**: <today>
-  **verified**: true | false
-  **takeaway**: "One-sentence conclusion relevant to this section"
+- [citation-key] "Title" ("One-sentence takeaway relevant to this section.")
 ```
 
 **Verification**: For each URL, attempt to fetch it with WebFetch.
-- If the fetch succeeds and content matches the cited claim: `verified: true`
-- If the fetch fails or content doesn't match: `verified: false`, and add a `<!-- CONFIDENCE: low -->` marker on the associated claim.
+- If the fetch succeeds and content matches the cited claim: set `verified: true` in `references.yaml`
+- If the fetch fails or content doesn't match: set `verified: false` in `references.yaml`, and add a `<!-- CONFIDENCE: low -->` marker on the associated claim.
 
 ### Step 6: Clean Up
 

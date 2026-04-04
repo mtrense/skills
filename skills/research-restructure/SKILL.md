@@ -33,7 +33,7 @@ A single topic file has grown too large and needs to become multiple files.
 3. For each new file:
    - Create the file with proper frontmatter (`created` = today, `updated` = today).
    - Move the relevant content.
-   - Preserve all references and AUDIT/CONFIDENCE markers.
+   - Preserve all references and AUDIT/CONFIDENCE markers. Move relevant entries from the original `references.yaml` to each new file's `_references.yaml`.
    - Maintain the same status as the original file.
 4. If the split creates a group, create a directory and place files inside it.
 5. Delete the original file.
@@ -53,7 +53,7 @@ Two topics overlap too much and should become one.
    - Combine content, eliminating duplication.
    - Use the first file's path as the destination (or a new path if appropriate).
    - Merge frontmatter: use earliest `created`, today for `updated`.
-   - Combine references, deduplicate.
+   - Combine references, deduplicate. Merge both `_references.yaml` files into one and consolidate the markdown `### References` lists.
    - Keep the most advanced status of the two files.
    - Preserve all AUDIT/CONFIDENCE markers.
 4. Delete the second file.
@@ -93,9 +93,10 @@ A directory is too granular and should become a single file.
 
 This is critical. After any restructure:
 
-1. Use Grep to search ALL files in `research/content/` for references to the old path(s).
+1. Use Grep to search ALL files in `research/content/` (including `_references.yaml` files) for references to the old path(s).
 2. Also search `research/INDEX.md`, `research/DECISIONS.md`, and `research/glossary.md`.
 3. Update every reference to use the new path.
+4. Rename `_references.yaml` files to match their new topic filenames.
 4. Verify no broken references remain.
 
 ## Git
@@ -106,7 +107,7 @@ The expected commit message format: `research(restructure): <operation> <topic-p
 ## Rules
 
 - ALWAYS present the plan and get user confirmation before making changes.
-- NEVER lose content — every paragraph, reference, and comment must survive the restructure.
+- NEVER lose content — every paragraph, reference (both `references.yaml` entries and markdown citations), and comment must survive the restructure.
 - NEVER change content during restructure — only move it. Content changes belong in `/research-refine`.
 - Update `updated` dates in all affected files.
 - If a restructure would create conflicts with existing files/directories, abort and explain.
