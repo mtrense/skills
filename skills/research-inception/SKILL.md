@@ -192,10 +192,6 @@ updated: <today>
 
 Create directories as needed for grouped topics. The files are intentionally minimal stubs — the inquiry phase adds structure.
 
-### `research/assets/`
-
-Create this directory (add a `.gitkeep` if empty).
-
 ## Phase 3: Summary
 
 After generating all files, present:

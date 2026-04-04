@@ -22,7 +22,6 @@ Everything is placed in a `/research/` folder to later be able to use the same r
 │   │   │   ├── rest-conventions.md
 │   │   │   └── versioning.md
 │   │   └── ...
-│   └── assets/
 ├── src/
 │   ├── CLAUDE.md
 │   └── ...
@@ -217,4 +216,4 @@ When sources directly contradict each other, the handling policy is:
 3. An `<!-- AUDIT: type: contradiction ... -->` comment is inserted so the audit phase can verify the resolution.
 
 ## Assets
-Any generated or downloaded assets are placed in the `assets/` sub-directory and are referenced in markdown files using standard markdown syntax.
+Assets are co-located with their topic file. When a topic `<name>.md` has assets, they go in a sibling `<name>_assets/` directory and are referenced using relative paths (e.g., `![diagram](authentication_assets/flow.png)`). Do not create a central `assets/` directory.
