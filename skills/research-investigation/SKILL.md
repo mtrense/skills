@@ -22,7 +22,8 @@ You are researching and writing content for a single section of a topic file, gu
    - If status is `audit` or `done`, abort: "This topic has already passed investigation. Use `/research-refine` to make changes."
 2. Read `research/CLAUDE.md` for conventions, tone, citation style.
 3. Read the target topic file at `research/content/<topic-file>`.
-4. Locate the target section and its RESEARCH directive. If a section heading was specified, find that section. Otherwise, find the first section with a `<!-- RESEARCH: ... -->` directive.
+4. Locate the target RESEARCH directive. If a section heading was specified, find the RESEARCH directive under that heading. Otherwise, find the first `<!-- RESEARCH: ... -->` directive in the file.
+   - The **scope** of this invocation is the single heading that directly contains the RESEARCH directive — do NOT expand scope to parent or sibling sections, even if they share a heading hierarchy.
    - If no RESEARCH directive is found, abort: "No sections pending investigation in this file."
 5. Read related topics/sections referenced in the directive's `related` field.
 6. Read `research/DECISIONS.md` for any prior decisions affecting this topic.
@@ -45,7 +46,7 @@ Write the section content following these guidelines:
 
 - **Scale**: Match the `scale` field — `brief` (~1-2 paragraphs), `standard` (~3-5 paragraphs with examples), `deep` (comprehensive, multiple perspectives).
 - **Tone and style**: Follow `research/CLAUDE.md` conventions.
-- **Structure**: Use the existing heading. Add `###` subheadings within the section if needed for deep-scale sections.
+- **Structure**: Write content under the heading that contained the RESEARCH directive. Add subheadings one level deeper if needed for deep-scale content. Do NOT write content under sibling or child headings that have their own RESEARCH directives.
 - **Cross-references**: Link to related topics using `[display text](relative-path.md#heading-slug)` relative to `content/`.
 
 ### Step 3: Confidence Assessment
@@ -153,8 +154,8 @@ The expected commit message format: `research(investigation): <topic-name> <sect
 
 ## Rules
 
-- Only write content for ONE section per invocation.
-- Do NOT modify other sections' content (only remove the directive from the current section).
+- Only write content for ONE RESEARCH directive per invocation. The scope is the single heading that contains that directive — not a parent section, not sibling subsections.
+- Do NOT modify other sections' content (only remove the directive from the investigated heading).
 - Do NOT restructure the topic or change headings — if the section scope is wrong, leave an AUDIT comment.
 - Do NOT fabricate sources. Every URL in references must be real and fetched.
 - If the RESEARCH directive's query is ill-defined or overlaps with another section, leave an AUDIT comment with `type: gap, severity: major` and write best-effort content.
