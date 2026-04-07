@@ -190,11 +190,11 @@ implementation has not yet begun.
 <Licence name, or "TBD">
 ```
 
-Present the draft in the conversation. Do NOT write it to disk yet.
+Write the draft directly to `README.md` in the project root.
 
 ### Step 4: Review and Refine
 
-Ask the human to review:
+Let the user know you've written the README.md and invite them to review it. Ask:
 
 - Does the elevator pitch capture what excites you about this project?
 - Are the goals and non-goals correctly scoped?
@@ -202,15 +202,14 @@ Ask the human to review:
   need to know?
 - Do the tone and conventions match what you discussed earlier?
 
-Iterate until the human approves.
+Apply refinements directly to the file. Iterate until the human is satisfied.
 
-### Step 5: Save and Hand Off
+### Step 5: Hand Off
 
-Once approved:
+Once the user is happy with the README.md:
 
-1. Write the final README.md to the project root.
-2. Do NOT commit. The user will review and use `/commit` when ready.
-3. Suggest they move to **Strategic Planning** (`/strategic-planning`) to define their
+1. Do NOT commit. The user will review the diff and use `/commit` when ready.
+2. Suggest they move to **Strategic Planning** (`/strategic-planning`) to define their
    first milestone in `ROADMAP.md`.
 
 ## Important Principles
