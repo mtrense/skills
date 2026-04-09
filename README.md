@@ -41,6 +41,7 @@ A multi-phase system for building structured knowledge bases with source verific
 |-------|---------|-------------|
 | 1 | `/research-inception` | Create project structure: INDEX.md, DECISIONS.md, glossary, topic stubs |
 | - | `/research-add-topic` | Add a new topic (directory + chapter stubs) to an existing project |
+| - | `/research-add-chapter` | Add new chapter stubs to an existing topic directory |
 | 2 | `/research-inquiry` | Add section outlines with RESEARCH directives to a chapter |
 | 3 | `/research-investigation` | Research and write content for one section using web search |
 | 4 | `/research-audit` | Check consistency, coverage, and quality; insert AUDIT directives |
@@ -86,6 +87,7 @@ skills/
   milestone-breakdown/SKILL.md
   milestone-closing/SKILL.md
   project-inception/SKILL.md
+  research-add-chapter/SKILL.md
   research-add-topic/SKILL.md
   research-audit/SKILL.md
   research-glossary-sync/SKILL.md
