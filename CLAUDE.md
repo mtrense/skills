@@ -33,12 +33,13 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 **Research workflow** — a multi-phase system for building knowledge bases:
 1. `/research-inception` → Creates project structure (INDEX.md, DECISIONS.md, glossary.md, topic stubs)
 2. `/research-add-topic` → Adds a new topic (directory + chapter stubs) to an existing project
-3. `/research-inquiry` → Adds RESEARCH directives (section outlines) to a chapter stub
-4. `/research-investigation` → Writes content for one section using web search, marks confidence levels
-4. `/research-audit` → Checks consistency, coverage, quality; inserts AUDIT directives
-5. `/research-refine` → Resolves AUDIT findings (correct, expand, condense, restructure, etc.)
-6. `/research-restructure` → Structural changes (split, merge, promote, demote) with cross-reference rewriting
-7. `/research-glossary-sync` → Reconciles glossary.md against topic content
+3. `/research-add-chapter` → Adds new chapter stubs to an existing topic directory
+4. `/research-inquiry` → Adds RESEARCH directives (section outlines) to a chapter stub
+5. `/research-investigation` → Writes content for one section using web search, marks confidence levels
+6. `/research-audit` → Checks consistency, coverage, quality; inserts AUDIT directives
+7. `/research-refine` → Resolves AUDIT findings (correct, expand, condense, restructure, etc.)
+8. `/research-restructure` → Structural changes (split, merge, promote, demote) with cross-reference rewriting
+9. `/research-glossary-sync` → Reconciles glossary.md against topic content
 
 The full research specification is in `prompts/research.md`.
 
