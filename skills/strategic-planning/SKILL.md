@@ -10,6 +10,8 @@ description: >
   is the entry point of a four-phase engineering workflow — use it for the strategic/planning
   phase, not for breaking down tasks or implementing code.
 model: opus
+disable-model-invocation: true
+argument-hint: "<feature or capability to plan>"
 ---
 
 # Strategic Planning — Adding Milestones to the Roadmap
