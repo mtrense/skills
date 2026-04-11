@@ -36,10 +36,13 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 3. `/research-add-chapter` → Adds new chapter stubs to an existing topic directory
 4. `/research-inquiry` → Adds RESEARCH directives (section outlines) to a chapter stub
 5. `/research-investigation` → Writes content for one section using web search, marks confidence levels
-6. `/research-audit` → Checks consistency, coverage, quality; inserts AUDIT directives
-7. `/research-refine` → Resolves AUDIT findings (correct, expand, condense, restructure, etc.)
-8. `/research-restructure` → Structural changes (split, merge, promote, demote) with cross-reference rewriting
-9. `/research-glossary-sync` → Reconciles glossary.md against topic content
+6. `/research-audit-consistency` → Checks cross-topic contradictions; inserts AUDIT directives
+7. `/research-audit-coverage` → Checks gaps relative to the research plan; inserts AUDIT directives
+8. `/research-audit-quality` → Checks depth and sourcing adequacy; inserts AUDIT directives
+9. `/research-audit-coherence` → Checks narrative flow; inserts AUDIT directives
+10. `/research-refine` → Resolves AUDIT findings (correct, expand, condense, restructure, etc.)
+11. `/research-restructure` → Structural changes (split, merge, promote, demote) with cross-reference rewriting
+12. `/research-glossary-sync` → Reconciles glossary.md against topic content
 
 The full research specification is in `prompts/research.md`.
 

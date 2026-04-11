@@ -1,19 +1,18 @@
 ---
-name: research-audit
-description: "Audit research topics for consistency, coverage, quality, and coherence. Produces AUDIT directive comments for the refine phase. Arguments: optional topic path, optional operation (consistency|coverage|quality|coherence)."
-argument-hint: "[topic-path] [operation]"
+name: research-audit-coherence
+description: "Audit research topics for narrative flow and coherence. Produces AUDIT directive comments for the refine phase. Arguments: optional topic path."
+argument-hint: "[topic-path]"
 disable-model-invocation: true
 model: opus
 allowed-tools: Read, Write, Glob, Grep, Bash(grep *), Edit, WebSearch, WebFetch
 ---
 
-# Research Audit
+# Research Audit — Coherence
 
-You are auditing research content for quality and correctness. You produce structured AUDIT comments that the refine phase will resolve.
+You are auditing research content for narrative flow and coherence. You produce structured AUDIT comments that the refine phase will resolve.
 
 **Arguments**: `$ARGUMENTS`
 - First argument (optional): topic path relative to `research/content/` — a file or directory. Omit to audit all topics.
-- Second argument (optional): operation — `consistency`, `coverage`, `quality`, `coherence`. Omit to run all checks.
 
 ## Prerequisites
 
@@ -28,7 +27,7 @@ You are auditing research content for quality and correctness. You produce struc
 
 ## Priority: CONFIDENCE Markers
 
-Before running the selected audit operations, scan all in-scope files for `<!-- CONFIDENCE: low -->` and `<!-- CONFIDENCE: medium -->` markers. These are the highest priority items.
+Before running the audit, scan all in-scope files for `<!-- CONFIDENCE: low -->` and `<!-- CONFIDENCE: medium -->` markers. These are the highest priority items.
 
 For each CONFIDENCE marker:
 - Attempt to verify the claim using WebSearch and WebFetch.
@@ -36,64 +35,7 @@ For each CONFIDENCE marker:
 - If verification fails or contradicts the claim: convert to an AUDIT comment and leave the CONFIDENCE marker.
 - If verification partially supports: upgrade `low` to `medium` or leave as-is, updating the `reason`.
 
-## Audit Operations
-
-### `consistency` — Cross-topic Contradictions
-
-Compare claims across all in-scope topics. Look for:
-- Direct contradictions (Topic A says X, Topic B says not-X)
-- Inconsistent terminology (same concept, different names)
-- Conflicting recommendations or best practices
-- Inconsistent use of glossary terms
-
-For each finding:
-```html
-<!-- AUDIT:
-  type: contradiction
-  severity: minor | major
-  detail: "This section claims X, but <other-topic>#<section> states Y"
-  ref: "<other-topic-path>#<section-slug>"
--->
-```
-
-### `coverage` — Gaps Relative to Research Plan
-
-Compare content against the research plan in INDEX.md:
-- Are all planned topics addressed?
-- Are there obvious subtopics missing that related topics reference?
-- Do cross-references point to sections that don't exist or are stubs?
-- Are there areas mentioned in content but not tracked in INDEX.md?
-
-For each finding:
-```html
-<!-- AUDIT:
-  type: gap
-  severity: minor | major
-  detail: "Section references 'caching strategies' but no topic covers this"
-  ref: "<relevant-index-entry-or-topic>"
--->
-```
-
-### `quality` — Depth and Sourcing Adequacy
-
-For each section, assess:
-- Does the depth match the RESEARCH directive's original `scale`? (Read git history or infer from content)
-- Are claims properly sourced with references? Check both in-text `[citation-key]` citations and the `### References` list.
-- Are references verified (`verified: true` in `references.yaml`)? Flag unverified references.
-- Are examples concrete and relevant?
-- Is the content accurate based on your knowledge?
-
-For each finding:
-```html
-<!-- AUDIT:
-  type: weak-source
-  severity: minor | major
-  detail: "Claim about X has no supporting reference"
-  ref: ""
--->
-```
-
-### `coherence` — Narrative Flow
+## Audit Operation: Narrative Flow
 
 Assess within each topic file:
 - Do sections follow a logical progression?
@@ -127,12 +69,12 @@ For each finding:
 ## Git
 
 Do NOT commit. The user will review and use `/commit` when ready.
-The expected commit message format: `research(audit): <scope> <operation>`
+The expected commit message format: `research(audit): <scope> coherence`
 
 ## Rules
 
 - Do NOT modify content — only insert/remove comments and update status/dates.
 - Do NOT resolve AUDIT findings — that is the refine phase's job.
-- Severity guide: `major` = factual errors, missing critical content, direct contradictions. `minor` = style issues, weak but not wrong sourcing, minor gaps.
+- Severity guide: `major` = missing logical progression, content doesn't match heading. `minor` = rough transitions, minor abstraction-level shifts.
 - If an AUDIT comment already exists at a location, do not duplicate it. Update the existing one if new information changes the assessment.
 - A topic can only reach `audit` status when ALL its sections have been reviewed in this invocation.

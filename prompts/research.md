@@ -71,9 +71,15 @@ The third phase is research, where an individual section is researched based on 
 **Invocation**: `/research-investigation <topic-file> [section-heading]` — e.g., `/research-investigation data-pipelines/batch-processing.md "Error Handling"`. If section-heading is omitted, operates on the first section with `inquiry` status in the topic.
 
 ## Audit
-A fourth phase allows to audit and cross-check files against each other, looking for contradictions, gaps and unclear connections. It allows checking for `consistency` (cross-topic contradictions), `coverage` (gaps relative to the research plan), `quality` (depth and sourcing adequacy), and `coherence` (assess the narrative flow). The audit phase prioritizes claims marked with `<!-- CONFIDENCE: low | medium -->`, verifying or upgrading them before auditing unmarked content. The call scopes the audit call to either one file, a directory subtree, a specific operation, or a combination. Audit produces structured comments to be consumed by the `refine` phase (see AUDIT directive format below), removes resolved CONFIDENCE markers, and updates the section status in `INDEX.md` to `audit`. (Skill: `research-audit`)
+A fourth phase allows to audit and cross-check files against each other, looking for contradictions, gaps and unclear connections. Each audit concern has its own skill: `research-audit-consistency` (cross-topic contradictions), `research-audit-coverage` (gaps relative to the research plan), `research-audit-quality` (depth and sourcing adequacy), and `research-audit-coherence` (narrative flow). Each audit skill prioritizes claims marked with `<!-- CONFIDENCE: low | medium -->`, verifying or upgrading them before auditing unmarked content. The call scopes the audit to either one file, a directory subtree, or all topics. Audit produces structured comments to be consumed by the `refine` phase (see AUDIT directive format below), removes resolved CONFIDENCE markers, and updates the section status in `INDEX.md` to `audit`.
 
-**Invocation**: `/research-audit [topic-path] [operation]` — e.g., `/research-audit data-pipelines/batch-processing.md consistency` or `/research-audit api-design/ quality`. Both arguments are optional; omitting the path audits all topics, omitting the operation runs all audit checks. Operations: `consistency`, `coverage`, `quality`, `coherence`.
+**Invocation**: Each audit skill takes an optional topic path:
+- `/research-audit-consistency [topic-path]` — e.g., `/research-audit-consistency data-pipelines/`
+- `/research-audit-coverage [topic-path]` — e.g., `/research-audit-coverage api-design/`
+- `/research-audit-quality [topic-path]` — e.g., `/research-audit-quality data-pipelines/batch-processing.md`
+- `/research-audit-coherence [topic-path]` — e.g., `/research-audit-coherence api-design/versioning.md`
+
+Omitting the path audits all topics.
 
 ## Refine
 A separate phase for refining or adapting any topic based on new information or previous audits. It operates on the currently selected topic file and resolves AUDIT directive comments. It is provided refinement instructions like `correct` (information is inaccurate/wrong), `expand`, `condense`, `restructure`, `cross-reference`, and `update` (new information supersedes old, distinct from `correct`) together with details on the expected refinement. These operations are examples, the skill should be able to handle any content-level correction within a single topic file. Updates the section status in `INDEX.md` after refinement. (Skill: `research-refine` )
