@@ -44,7 +44,10 @@ A multi-phase system for building structured knowledge bases with source verific
 | - | `/research-add-chapter` | Add new chapter stubs to an existing topic directory |
 | 2 | `/research-inquiry` | Add section outlines with RESEARCH directives to a chapter |
 | 3 | `/research-investigation` | Research and write content for one section using web search |
-| 4 | `/research-audit` | Check consistency, coverage, and quality; insert AUDIT directives |
+| 4 | `/research-audit-consistency` | Check cross-topic contradictions; insert AUDIT directives |
+| 4 | `/research-audit-coverage` | Check gaps relative to the research plan; insert AUDIT directives |
+| 4 | `/research-audit-quality` | Check depth and sourcing adequacy; insert AUDIT directives |
+| 4 | `/research-audit-coherence` | Check narrative flow; insert AUDIT directives |
 | 5 | `/research-refine` | Resolve audit findings (correct, expand, condense, restructure) |
 | 6 | `/research-restructure` | Structural changes: split, merge, promote, or demote topics |
 | 7 | `/research-glossary-sync` | Reconcile glossary against current topic content |
@@ -89,7 +92,10 @@ skills/
   project-inception/SKILL.md
   research-add-chapter/SKILL.md
   research-add-topic/SKILL.md
-  research-audit/SKILL.md
+  research-audit-coherence/SKILL.md
+  research-audit-consistency/SKILL.md
+  research-audit-coverage/SKILL.md
+  research-audit-quality/SKILL.md
   research-glossary-sync/SKILL.md
   research-inception/SKILL.md
   research-inquiry/SKILL.md
