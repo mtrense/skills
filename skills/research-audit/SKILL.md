@@ -4,7 +4,7 @@ description: "Audit research topics for consistency, coverage, quality, and cohe
 argument-hint: "[topic-path] [operation]"
 disable-model-invocation: true
 model: opus
-allowed-tools: Read, Write, Glob, Grep, Edit, WebSearch, WebFetch
+allowed-tools: Read, Write, Glob, Grep, Bash(Grep *), Edit, WebSearch, WebFetch
 ---
 
 # Research Audit
