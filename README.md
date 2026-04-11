@@ -52,7 +52,7 @@ A multi-phase system for building structured knowledge bases with source verific
 | 6 | `/research-restructure` | Structural changes: split, merge, promote, or demote topics |
 | 7 | `/research-glossary-sync` | Reconcile glossary against current topic content |
 
-Research skills track topic status through: `stub` -> `inquiry` -> `draft` -> `audit` -> `done`.
+Research skills track topic status through: `stub` -> `inquiry` -> `draft` -> `audited` -> `done`.
 
 ### Utility
 

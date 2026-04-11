@@ -18,7 +18,7 @@ You are refining content in a topic file — resolving audit findings, correctin
 ## Prerequisites
 
 1. Read `research/INDEX.md` and check the topic's status.
-   - Status should be `draft` or `audit`. The refine skill can operate on either.
+   - Status should be `draft` or `audited`. The refine skill can operate on either.
    - If `stub` or `inquiry`, abort: "Content has not been written yet. Run investigation first."
 2. Read `research/CLAUDE.md` for conventions.
 3. Read the target topic file.
@@ -82,8 +82,8 @@ For any operation not listed above, interpret the user's instruction and apply i
 1. **Update the topic file** with refined content.
 2. **Remove resolved AUDIT comments** — only those directly addressed by this refinement.
 3. **Check remaining AUDIT comments** in the file:
-   - If **ALL** AUDIT comments are resolved AND the topic status is `audit`: advance status to `done` in INDEX.md.
-   - If AUDIT comments remain: keep status as `audit`.
+   - If **ALL** AUDIT comments are resolved AND the topic status is `audited`: advance status to `done` in INDEX.md.
+   - If AUDIT comments remain: keep status as `audited`.
    - If status was `draft` (refining without a prior audit): keep as `draft`.
 4. Update `updated` date in frontmatter.
 5. Present a summary of changes to the user.
