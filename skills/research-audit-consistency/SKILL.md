@@ -57,7 +57,7 @@ For each finding:
 
 1. **Insert AUDIT comments** directly into the topic files at the relevant locations (immediately after the problematic content).
 2. **Remove resolved CONFIDENCE markers** (those that were verified).
-3. **Update `research/INDEX.md`**: change status to `audit` for each fully audited topic file (all sections reviewed).
+3. **Update `research/INDEX.md`**: change status to `audit` only if the file's `audit` frontmatter field now contains all four types (`consistency`, `coverage`, `quality`, `coherence`). Otherwise leave the status unchanged.
 4. Update the `updated` date in frontmatter for each modified file.
 5. **Track audit progress in frontmatter**: add or update an `audit` field in each audited file's YAML frontmatter listing completed audit types — e.g. `audit: [consistency]`. If the field already exists, append `consistency` to the list (avoid duplicates).
 6. **Present a summary** to the user:
@@ -77,4 +77,4 @@ The expected commit message format: `research(audit): <scope> consistency`
 - Do NOT resolve AUDIT findings — that is the refine phase's job.
 - Severity guide: `major` = factual errors, direct contradictions. `minor` = inconsistent terminology, style issues.
 - If an AUDIT comment already exists at a location, do not duplicate it. Update the existing one if new information changes the assessment.
-- A topic can only reach `audit` status when ALL its sections have been reviewed in this invocation.
+- A topic can only reach `audit` status in INDEX.md when its frontmatter `audit` field contains all four types: `consistency`, `coverage`, `quality`, `coherence`.
