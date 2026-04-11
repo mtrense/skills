@@ -40,7 +40,7 @@ The root `CLAUDE.md` file is relevant for the entire project (which is out of sc
 Further customizations to these skills (directory organization, )
 
 # Source Verification
-All URLs in references must be verified via web fetch before a section can advance to `audit` status. Each reference in `references.yaml` carries a `verified` field (`true` or `false`). During investigation, newly added references default to `verified: false`. The investigation skill should attempt to fetch and verify each URL; if verification succeeds, set `verified: true`. Unverified references (`verified: false`) are treated as `CONFIDENCE: low` findings by the audit phase. A section cannot reach `done` status while any reference remains unverified.
+All URLs in references must be verified via web fetch before a section can advance to `audited` status. Each reference in `references.yaml` carries a `verified` field (`true` or `false`). During investigation, newly added references default to `verified: false`. The investigation skill should attempt to fetch and verify each URL; if verification succeeds, set `verified: true`. Unverified references (`verified: false`) are treated as `CONFIDENCE: low` findings by the audit phase. A section cannot reach `done` status while any reference remains unverified.
 
 # Git Usage
 Git is used to commit research results and later provide meta-data (like at which date/time some research was conducted, ...). Conventional commits provide context to each commit, using the following format per phase:
@@ -71,7 +71,7 @@ The third phase is research, where an individual section is researched based on 
 **Invocation**: `/research-investigation <topic-file> [section-heading]` — e.g., `/research-investigation data-pipelines/batch-processing.md "Error Handling"`. If section-heading is omitted, operates on the first section with `inquiry` status in the topic.
 
 ## Audit
-A fourth phase allows to audit and cross-check files against each other, looking for contradictions, gaps and unclear connections. Each audit concern has its own skill: `research-audit-consistency` (cross-topic contradictions), `research-audit-coverage` (gaps relative to the research plan), `research-audit-quality` (depth and sourcing adequacy), and `research-audit-coherence` (narrative flow). Each audit skill prioritizes claims marked with `<!-- CONFIDENCE: low | medium -->`, verifying or upgrading them before auditing unmarked content. The call scopes the audit to either one file, a directory subtree, or all topics. Audit produces structured comments to be consumed by the `refine` phase (see AUDIT directive format below), removes resolved CONFIDENCE markers, and updates the section status in `INDEX.md` to `audit`.
+A fourth phase allows to audit and cross-check files against each other, looking for contradictions, gaps and unclear connections. Each audit concern has its own skill: `research-audit-consistency` (cross-topic contradictions), `research-audit-coverage` (gaps relative to the research plan), `research-audit-quality` (depth and sourcing adequacy), and `research-audit-coherence` (narrative flow). Each audit skill prioritizes claims marked with `<!-- CONFIDENCE: low | medium -->`, verifying or upgrading them before auditing unmarked content. The call scopes the audit to either one file, a directory subtree, or all topics. Audit produces structured comments to be consumed by the `refine` phase (see AUDIT directive format below), removes resolved CONFIDENCE markers, and updates the section status in `INDEX.md` to `audited`.
 
 **Invocation**: Each audit skill takes an optional topic path:
 - `/research-audit-consistency [topic-path]` — e.g., `/research-audit-consistency data-pipelines/`
@@ -212,7 +212,7 @@ As shown in the original paper [vaswani-2017, pp. 5-6], multi-head attention all
 <abstract>
 
 ### data-pipelines/batch-processing.md
-**Status**: stub | inquiry | draft | audit | done
+**Status**: stub | inquiry | draft | audited | done
 
 <abstract>
 
@@ -237,14 +237,14 @@ As shown in the original paper [vaswani-2017, pp. 5-6], multi-head attention all
 
 Directory entries (`##`) group their child topics but do not carry a status themselves. Only leaf topic files (`###`) have a status.
 
-Section status lifecycle: `stub` → `inquiry` → `draft` → `audit` → `done`.
+Section status lifecycle: `stub` → `inquiry` → `draft` → `audited` → `done`.
 - `stub`: topic file created during inception, no content yet.
 - `inquiry`: section headings and RESEARCH directives placed by the inquiry phase.
 - `draft`: section content written by the investigation phase.
-- `audit`: section reviewed by the audit phase; may have AUDIT directive comments pending.
+- `audited`: section reviewed by the audit phase; may have AUDIT directive comments pending.
 - `done`: all audit findings resolved, content finalized.
 
-Each skill may only advance status forward (e.g., investigation moves `inquiry` → `draft`). The `refine` skill does not change status unless it resolves all outstanding AUDIT comments, in which case it advances `audit` → `done`.
+Each skill may only advance status forward (e.g., investigation moves `inquiry` → `draft`). The `refine` skill does not change status unless it resolves all outstanding AUDIT comments, in which case it advances `audited` → `done`.
 
 ## `glossary.md`
 Provides a concise and ordered list of all terms used and their brief definitions. Each entry can can contain a reference if the definition within that reference is useful and in line with the research.

@@ -19,7 +19,7 @@ You are researching and writing content for a single section of a topic file, gu
 
 1. Read `research/INDEX.md` and confirm the topic has status `inquiry` or `draft` (partially investigated).
    - If status is `stub`, abort: "Run `/research-inquiry` first to create the section outline."
-   - If status is `audit` or `done`, abort: "This topic has already passed investigation. Use `/research-refine` to make changes."
+   - If status is `audited` or `done`, abort: "This topic has already passed investigation. Use `/research-refine` to make changes."
 2. Read `research/CLAUDE.md` for conventions, tone, citation style.
 3. Read the target topic file at `research/content/<topic-file>`.
 4. Locate the target RESEARCH directive. If a section heading was specified, find the RESEARCH directive under that heading. Otherwise, find the first `<!-- RESEARCH: ... -->` directive in the file.

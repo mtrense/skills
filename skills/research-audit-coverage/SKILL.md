@@ -18,7 +18,7 @@ You are auditing research content for gaps relative to the research plan. You pr
 
 1. Read `research/INDEX.md` to identify which topics are in scope.
    - Topics with status `stub` or `inquiry` are skipped (not yet ready for audit).
-   - Topics with status `draft`, `audit`, or `done` are eligible.
+   - Topics with status `draft`, `audited`, or `done` are eligible.
    - If a specific file is targeted and its status is `stub` or `inquiry`, abort with an error.
 2. Read `research/CLAUDE.md` for project conventions.
 3. Read all in-scope topic files.
@@ -57,7 +57,7 @@ For each finding:
 
 1. **Insert AUDIT comments** directly into the topic files at the relevant locations (immediately after the problematic content).
 2. **Remove resolved CONFIDENCE markers** (those that were verified).
-3. **Update `research/INDEX.md`**: change status to `audit` only if the file's `audit` frontmatter field now contains all four types (`consistency`, `coverage`, `quality`, `coherence`). Otherwise leave the status unchanged.
+3. **Update `research/INDEX.md`**: change status to `audited` only if the file's `audit` frontmatter field now contains all four types (`consistency`, `coverage`, `quality`, `coherence`). Otherwise leave the status unchanged.
 4. Update the `updated` date in frontmatter for each modified file.
 5. **Track audit progress in frontmatter**: add or update an `audit` field in each audited file's YAML frontmatter listing completed audit types — e.g. `audit: [coverage]`. If the field already exists, append `coverage` to the list (avoid duplicates).
 6. **Present a summary** to the user:
@@ -77,4 +77,4 @@ The expected commit message format: `research(audit): <scope> coverage`
 - Do NOT resolve AUDIT findings — that is the refine phase's job.
 - Severity guide: `major` = missing critical content, broken cross-references. `minor` = minor gaps, areas mentioned but not central.
 - If an AUDIT comment already exists at a location, do not duplicate it. Update the existing one if new information changes the assessment.
-- A topic can only reach `audit` status in INDEX.md when its frontmatter `audit` field contains all four types: `consistency`, `coverage`, `quality`, `coherence`.
+- A topic can only reach `audited` status in INDEX.md when its frontmatter `audit` field contains all four types: `consistency`, `coverage`, `quality`, `coherence`.
