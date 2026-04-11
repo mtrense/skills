@@ -59,7 +59,8 @@ For each finding:
 2. **Remove resolved CONFIDENCE markers** (those that were verified).
 3. **Update `research/INDEX.md`**: change status to `audit` for each fully audited topic file (all sections reviewed).
 4. Update the `updated` date in frontmatter for each modified file.
-5. **Present a summary** to the user:
+5. **Track audit progress in frontmatter**: add or update an `audit` field in each audited file's YAML frontmatter listing completed audit types — e.g. `audit: [coverage]`. If the field already exists, append `coverage` to the list (avoid duplicates).
+6. **Present a summary** to the user:
    - Number of findings by type and severity
    - List of major findings requiring attention
    - Which topics had their status advanced
