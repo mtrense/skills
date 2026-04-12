@@ -3,7 +3,7 @@ name: research-refine
 description: "Refine a topic file by resolving AUDIT comments or applying content-level corrections. Arguments: topic file path, operation (correct|expand|condense|restructure|cross-reference|update|free-text), optional details."
 argument-hint: "<topic-file> <operation> [\"details\"]"
 disable-model-invocation: true
-allowed-tools: Read, Write, Glob, Grep, Edit, Bash(curl *), Bash(grep *), Bash(python3 -m json.tool), WebSearch, WebFetch
+allowed-tools: Read, Write, Glob, Grep, Edit, Bash(bash */skills/research-refine/list-audits.sh *), Bash(curl *), Bash(grep *), Bash(python3 -m json.tool), WebSearch, WebFetch
 ---
 
 # Research Refine
@@ -14,6 +14,20 @@ You are refining content in a topic file — resolving audit findings, correctin
 - First argument: topic file path relative to `research/content/`
 - Second argument: operation — `correct`, `expand`, `condense`, `restructure`, `cross-reference`, `update`, or any free-text instruction
 - Third argument (optional, quoted): details about what specifically to refine
+
+## No-Argument Default
+
+If `$ARGUMENTS` is empty, auto-discover the next AUDIT comment to resolve:
+
+1. Run `bash <skill-directory>/list-audits.sh research` to get all AUDIT comments ordered by INDEX.md.
+2. If the list is empty, tell the user "No AUDIT comments found." and stop.
+3. Take the **first** entry (e.g. `patterns/human-ai-collaboration.md:192`). This is the next AUDIT to resolve.
+4. Read the AUDIT comment at that line to determine its `type`.
+5. Map the AUDIT type to an operation:
+   - `contradiction` or `weak-source` → `correct`
+   - `gap` → `expand`
+   - `flow` → `restructure`
+6. Proceed as if the user had invoked: `/research-refine <file> <operation>`, targeting that specific AUDIT comment.
 
 ## Prerequisites
 
