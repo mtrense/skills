@@ -100,24 +100,21 @@ Write a milestone entry following this exact format:
 - <Scope exclusions, dependencies, risks, or architectural considerations>
 ```
 
-Present the draft to the user in the conversation. Do NOT append it to `ROADMAP.md` yet.
+Once all open questions from Step 2 are resolved, append the milestone directly to
+`ROADMAP.md`. Do NOT present it in the conversation first — prefer working on the file.
 
 ### Step 4: Review and Refine
 
-Ask the human to review:
-- Does the outcome match what's in your head?
-- Are the success criteria sufficient — would checking all boxes mean you're done?
-- Is anything missing from the notes?
+After writing to `ROADMAP.md`, briefly note what was added and invite the human to review
+the file. If they request changes, apply edits directly to `ROADMAP.md` — keep the
+feedback loop on the file, not in chat.
 
-Iterate on the draft until the human approves.
+### Step 5: Hand Off
 
-### Step 5: Save and Hand Off
+Once the human is satisfied:
 
-Once approved:
-
-1. Append the milestone to `ROADMAP.md` (never modify existing milestones in this phase).
-2. Present a summary of what was added and suggest the user commit using `/commit`.
-3. Suggest they move to the **Break-Down** phase when ready.
+1. Suggest they commit using `/commit`.
+2. Suggest they move to the **Break-Down** phase when ready.
 
 ## Important Principles
 
