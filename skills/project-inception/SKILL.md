@@ -3,16 +3,16 @@ name: project-inception
 description: >
   Facilitate project inception for new software projects by discovering the project's
   vision, goals, and planned feature set through Socratic dialogue, then producing a
-  concise README.md. This skill precedes the four-phase engineering workflow —
-  use it once at the very beginning to establish the project's identity before strategic
-  planning begins.
+  concise README.md and a CLAUDE.md with project-specific instructions for AI-assisted
+  development. This skill precedes the four-phase engineering workflow — use it once at
+  the very beginning to establish the project's identity before strategic planning begins.
 disable-model-invocation: true
 model: opus
 allowed-tools: Read, Glob, Write, Edit
 argument-hint: <optional one-line project description>
 ---
 
-# Project Inception — Discovering Vision and Producing a README
+# Project Inception — Discovering Vision and Producing README + CLAUDE.md
 
 > For the full workflow this skill belongs to, see [workflow-overview.md](../_shared/workflow-overview.md).
 
@@ -21,13 +21,15 @@ any milestones, roadmaps, or plans exist. Your role is to act as a thoughtful pr
 strategist who uses Socratic questioning, domain modelling cues, and competitive framing
 to help the human discover what they *actually* need to build — which is often different
 from what they initially describe — then distil that into a README.md that serves both
-humans and AI agents as the authoritative project description.
+humans and AI agents as the authoritative project description, and a CLAUDE.md that
+gives Claude Code project-specific instructions and conventions.
 
 ## When to Use This Skill
 
 This skill is for **brand-new projects** or repos that lack a README.md describing their
 purpose. If a README.md already exists with meaningful content, confirm with the user
-whether they want to revise it or start fresh before proceeding.
+whether they want to revise it or start fresh before proceeding. Similarly, check for an
+existing CLAUDE.md — if present, ask whether to revise or replace it.
 
 ## Phase Workflow
 
@@ -36,6 +38,7 @@ whether they want to revise it or start fresh before proceeding.
 Check the current state of the repository:
 
 - Does a README.md exist? If so, read it.
+- Does a CLAUDE.md exist? If so, read it.
 - Is there any existing code, configuration, or documentation? Scan the project root
   and note what's present.
 - Is this a completely empty directory / freshly `git init`-ed repo?
@@ -79,9 +82,12 @@ Start here. Resist the urge to discuss the project's shape until the problem is 
 - What happens if this problem stays unsolved for another year?
 - Who benefits most from a solution, and how would they measure "this works"?
 
-#### Phase B: Shape the Solution
+#### Phase B: Define Goals and Shape the Solution
 
-Once you understand the problem, explore what the project should look like.
+Once you understand the problem, explore *what* this project should achieve — its goals,
+audience, and boundaries. Stay at the level of purpose and outcomes. Do NOT discuss
+technology, architecture, or implementation yet. Those decisions are better made once
+the goals are clear, because goals constrain the solution space.
 
 **Users & Stakeholders**
 - Who are the primary users? (developers, end-users, operators, other AI agents?)
@@ -98,29 +104,14 @@ Once you understand the problem, explore what the project should look like.
 - What's the smallest useful version of this project?
 - Where do you see this in six months vs. day one?
 
-**Technical Shape**
-- What's the primary language or runtime?
-- Are there key technology choices already made (framework, database, platform)?
-- Is this a library, CLI tool, web app, API service, agent, or something else?
-- Are there deployment or distribution constraints?
-
 **Project Identity**
 - Do you have a name in mind? Any naming constraints?
 - Is this open-source, internal, or commercial?
 - What licence do you intend?
 
-**Conventions & Preferences**
-- What tone should documentation and code comments use? (technical, friendly, terse, etc.)
-- Are there naming conventions you care about? (file naming, variable style, module structure)
-- Any domain-specific terminology that should be used consistently across the project?
-- What does your target audience already know — what can you assume vs. what needs explaining?
+#### Phase C: Convergence Checkpoint — Problem and Goals
 
-These conventions propagate through downstream skills (strategic planning, task implementation,
-commit messages), so capturing them early prevents repeated correction later.
-
-#### Phase C: Convergence Checkpoint
-
-Before moving on, synthesize and present two things separately:
+Before discussing any technology, synthesize and present two things separately:
 
 1. **The problem statement** — the underlying need, independent of this project.
    Frame it as: "The core problem is [X]. Today, people cope by [Y], which fails
@@ -132,9 +123,43 @@ Before moving on, synthesize and present two things separately:
 
 Ask: "Does this accurately capture the problem you're solving and how this project
 addresses it?" If the user corrects or nuances either statement, iterate. Do not
-proceed to the README draft until both statements feel right to the user — you
-should be confident you understand what they *actually* need to build, not just
-what they initially described.
+proceed to technology and architecture decisions until both statements feel right
+to the user — you should be confident you understand what they *actually* need to
+build, not just what they initially described.
+
+#### Phase D: Technology and Architecture
+
+Now that the goals are established, use them to guide technology and architecture
+decisions. The questions here should be informed by — and refer back to — the goals
+from Phase B. For example, if the user's primary audience is mobile developers, that
+shapes whether a CLI or REST API makes more sense. If the smallest useful version
+needs to ship in two weeks, that constrains framework choices.
+
+**Technical Shape**
+- Given the goals, what kind of artefact makes the most sense — library, CLI tool,
+  web app, API service, agent, or something else?
+- What's the primary language or runtime? Why that one for this project?
+- Are there key technology choices already made (framework, database, platform)?
+- Are there deployment or distribution constraints?
+
+**Conventions & Preferences**
+- What tone should documentation and code comments use? (technical, friendly, terse, etc.)
+- Are there naming conventions you care about? (file naming, variable style, module structure)
+- Any domain-specific terminology that should be used consistently across the project?
+- What does your target audience already know — what can you assume vs. what needs explaining?
+
+These conventions propagate through downstream skills (strategic planning, task implementation,
+commit messages), so capturing them early prevents repeated correction later.
+
+**AI-Assisted Development**
+- Will Claude Code be used regularly on this project? (If not, CLAUDE.md may be minimal.)
+- Are there patterns or anti-patterns you want Claude to always follow or avoid?
+  (e.g., "never use ORMs", "always use structured logging", "prefer composition over inheritance")
+- Are there specific testing expectations? (e.g., "every public function needs a test",
+  "use integration tests over unit tests", "TDD is mandatory")
+- Are there security or compliance constraints Claude should always respect?
+  (e.g., "never log PII", "all API endpoints need auth middleware")
+- Any files or directories Claude should never modify? (e.g., generated code, vendored deps)
 
 ### Step 3: Draft the README.md
 
@@ -192,21 +217,84 @@ implementation has not yet begun.
 
 Write the draft directly to `README.md` in the project root.
 
-### Step 4: Review and Refine
+### Step 4: Draft the CLAUDE.md
 
-Let the user know you've written the README.md and invite them to review it. Ask:
+After the README, compose a `CLAUDE.md` that gives Claude Code project-specific instructions.
+This file is loaded automatically into every Claude Code conversation in the project, so it
+should contain only durable guidance that applies broadly — not ephemeral task details.
 
+Draw from everything learned during the Socratic dialogue, especially:
+- Conventions & Preferences (Phase D)
+- AI-Assisted Development preferences (Phase D)
+- Technical Shape decisions (Phase D)
+- Non-goals and scope boundaries (Phase B)
+
+Use the following structure (omit sections that are empty or not yet decided):
+
+```markdown
+# <Project Name>
+
+<One-line description of what this project is — enough for Claude to orient itself.>
+
+## Tech Stack
+
+<Language, framework, key dependencies, runtime — the essentials Claude needs to
+generate correct code.>
+
+## Project Structure
+
+<Brief description of directory layout and where things live. At inception this may
+be aspirational — mark undecided structure as "planned".>
+
+## Conventions
+
+<Coding style, naming conventions, file organization rules, import ordering,
+error handling patterns — anything that should be consistent across the codebase.>
+
+## Testing
+
+<Testing philosophy, framework, expectations (e.g., "test-first", "integration over
+unit"), how to run tests.>
+
+## Instructions
+
+<Direct behavioural instructions for Claude. These are imperative rules, not
+descriptions. Examples:
+- "Always use structured logging via the `log` package — never `fmt.Println`."
+- "Never modify files under `generated/`."
+- "Run `make lint` before considering any task complete."
+- "Prefer returning errors over panicking."
+>
+```
+
+Keep it concise — CLAUDE.md is read on every conversation, so verbosity has a cost.
+Focus on rules that prevent repeated corrections: things the user would otherwise have
+to say in every conversation. If the user hasn't expressed strong opinions on a section,
+omit it rather than filling it with generic advice.
+
+Write the draft directly to `CLAUDE.md` in the project root.
+
+### Step 5: Review and Refine
+
+Let the user know you've written both files and invite them to review. Ask:
+
+**For README.md:**
 - Does the elevator pitch capture what excites you about this project?
 - Are the goals and non-goals correctly scoped?
 - Is anything important missing — something a new team member or an AI agent would
   need to know?
-- Do the tone and conventions match what you discussed earlier?
 
-Apply refinements directly to the file. Iterate until the human is satisfied.
+**For CLAUDE.md:**
+- Do the conventions and instructions match what you discussed earlier?
+- Are there any rules you want to add — things you'd otherwise have to repeat in
+  every conversation with Claude?
+- Is anything too restrictive or too vague?
 
-### Step 5: Hand Off
+Apply refinements directly to both files. Iterate until the human is satisfied.
 
-Once the user is happy with the README.md:
+### Step 6: Hand Off
+
+Once the user is happy with both README.md and CLAUDE.md:
 
 1. Do NOT commit. The user will review the diff and use `/commit` when ready.
 2. Suggest they move to **Strategic Planning** (`/strategic-planning`) to define their
