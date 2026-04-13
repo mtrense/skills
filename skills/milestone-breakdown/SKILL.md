@@ -57,11 +57,15 @@ any docs/ directory for conventions, patterns, and constraints.
 - Logging and observability patterns
 - Authentication/authorization patterns if relevant
 
-Summarize your understanding to the human and ask if anything is missing or incorrect.
+If anything is unclear or ambiguous about the milestone's scope — ask the human now,
+before writing. Keep clarification questions focused and minimal. Once open questions are
+resolved, move directly to writing the plan.
 
-### Step 3: Draft the Task Breakdown
+### Step 3: Write PLAN.md
 
-Write tasks in `PLAN.md` following the format of `references/SAMPLE-PLAN.md`.
+**Write the plan to `PLAN.md` immediately** after resolving any open questions. Do not
+present the plan in chat first — the file is the artifact. Follow the format of
+`references/SAMPLE-PLAN.md`.
 
 **Task sizing rules:**
 - Each task should be implementable within roughly 50% of the available context window.
@@ -78,9 +82,7 @@ Write tasks in `PLAN.md` following the format of `references/SAMPLE-PLAN.md`.
   in the implementation phase).
 - End with integration, wiring, and polish tasks.
 
-### Step 4: Cross-Cutting Concerns
-
-After drafting the task list, add a section for cross-cutting concerns:
+**Cross-cutting concerns** — include a section at the end of the plan:
 
 ```markdown
 ## Cross-Cutting Concerns
@@ -92,25 +94,18 @@ After drafting the task list, add a section for cross-cutting concerns:
 - **Rollback:** <how to safely revert if something goes wrong>
 ```
 
-### Step 5: Review with the Human
+### Step 4: Review on File
 
-Present the full plan and ask the human to review:
+After writing `PLAN.md`, tell the human the plan is ready for review and point them to
+the file. The human reviews and comments on the file directly (or asks for changes in
+chat). Iterate by editing `PLAN.md` until the human approves.
 
-- Is the ordering logical? Would you resequence anything?
-- Are any tasks too large or too vague?
-- Are there tasks you'd add or remove?
-- Do the architectural decisions match your intent?
-- Are the test cases sufficient?
-
-Iterate until the human approves.
-
-### Step 6: Save and Hand Off
+### Step 5: Hand Off
 
 Once approved:
 
-1. Write the final `PLAN.md` (replacing any prior content).
-2. Present a summary of what was written and suggest the user commit using `/commit`.
-3. Suggest they move to the **Implementation** phase when ready.
+1. Present a brief summary and suggest the user commit using `/commit`.
+2. Suggest they move to the **Implementation** phase when ready.
 
 ## Important Principles
 
