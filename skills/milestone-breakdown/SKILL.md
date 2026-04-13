@@ -9,6 +9,7 @@ description: >
   next phase. This skill reads the codebase and docs to produce implementation-aware tasks
   with architectural hints, test cases, and file associations.
 model: opus
+allowed-tools: Read, Glob, Grep, Edit, Write
 ---
 
 # Milestone Breakdown — Decomposing into Actionable Tasks
