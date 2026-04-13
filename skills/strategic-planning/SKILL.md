@@ -11,6 +11,7 @@ description: >
   phase, not for breaking down tasks or implementing code.
 model: opus
 disable-model-invocation: true
+allowed-tools: Read, Glob, Grep, Edit, Write
 argument-hint: "<feature or capability to plan>"
 ---
 
