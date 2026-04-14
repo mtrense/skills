@@ -1,7 +1,7 @@
 ---
 name: research-add-topic
-description: "Add a new topic (directory + chapter stubs) to an existing research project. Use when the project already exists and you want to introduce a new top-level topic area. Argument: topic name (will become the directory name under research/content/)."
-argument-hint: "<topic-name>"
+description: "Add a new topic (directory + chapter stubs) to an existing research project. Use when the project already exists and you want to introduce a new top-level topic area. Arguments: topic name (required), optional summary to seed scoping."
+argument-hint: "<topic-name> [summary of the topic]"
 disable-model-invocation: true
 model: opus
 allowed-tools: Read, Glob, Write, Edit
@@ -11,7 +11,14 @@ allowed-tools: Read, Glob, Write, Edit
 
 You are adding a new topic to an existing research project. A topic is a directory under `research/content/` containing chapter files (`.md` stubs). This skill bridges the gap between project inception and chapter-level inquiry.
 
-**Topic name**: `$ARGUMENTS`
+## Argument Parsing
+
+`$ARGUMENTS` contains the topic name as the first word, and an optional free-text summary after it.
+
+- **Topic name**: the first whitespace-delimited token (becomes the directory name under `research/content/`)
+- **Topic summary** (optional): everything after the first token — a brief description of what the topic should cover
+
+If a summary is provided, use it as the starting point for scoping: propose chapters, boundaries, and relationships that align with the summary rather than asking open-ended questions. The Socratic exchange then refines and validates your proposal instead of starting from scratch.
 
 ## Prerequisites
 
@@ -24,7 +31,15 @@ You are adding a new topic to an existing research project. A topic is a directo
 
 This is a brief Socratic exchange — typically 2-3 rounds, not a full inception. The project's motivation and conventions are already established; you're scoping one new topic within that frame.
 
-Explore with the user:
+### If a summary was provided
+
+Use the summary as a seed: read it alongside the existing INDEX.md, then **lead with a concrete proposal** covering all four scoping dimensions below. Frame it as "Here's what I'd suggest based on your summary — let's refine." This collapses the exchange from exploratory to confirmatory, often converging in 1-2 rounds.
+
+### If no summary was provided
+
+Explore openly with the user across the same dimensions.
+
+### Scoping dimensions
 
 1. **Purpose** — Why does this topic belong in the knowledge base? What gap does it fill relative to existing topics?
 2. **Chapters** — What chapters (markdown files) should this topic contain? For each chapter:
