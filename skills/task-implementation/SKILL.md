@@ -30,13 +30,9 @@ test-driven development: tests first, then just enough code to pass them.
 Read `PLAN.md`. Find the first task with status `todo`, unless the user specifies
 a different task by number or name.
 
-Display the task to the human:
-- Task title and description
-- Files to be touched
-- Test cases to implement
-- Architectural decisions and constraints
-
-Ask: "Ready to implement this task, or do you want to adjust anything first?"
+Display the task briefly (title, files, test cases) and proceed directly to
+implementation. Any adjustments should have been made to `PLAN.md` before invoking
+this skill.
 
 ### Step 2: Understand the Context
 
@@ -70,8 +66,8 @@ This is the core TDD discipline. Before writing any production code:
 After writing the tests, run them. They should **fail** — this confirms they're testing
 something meaningful and that you haven't accidentally written tautological tests.
 
-Show the human the test file(s) and the failing test output. Ask: "Tests are written and
-failing as expected. Ready for me to write the implementation?"
+Show the human the test file(s) and the failing test output, then proceed directly
+to writing the implementation.
 
 ### Step 4: Write Just Enough Code
 
@@ -108,24 +104,14 @@ Show the human a summary:
 - Any lint warnings
 - Anything you noticed that's worth discussing
 
-### Step 6: Human Review
+### Step 6: Update Plan and Hand Off
 
-Present the changes for review. Be specific about what you'd like them to look at:
-
-- "The test for <edge case> covers <scenario> — does that match your expectations?"
-- "I followed the existing <pattern> from <file> — is that the right approach here?"
-- "I made a judgment call on <thing> — here's my reasoning: <why>."
-
-If the human requests changes, make them and re-run the tests. Iterate until approved.
-
-### Step 7: Update Plan and Hand Off
-
-Once approved:
+Once verification passes:
 
 1. Update `PLAN.md`: change the task's status from `[ ]` to `[x]`.
-2. Present a summary of all changes and suggest the user commit using `/commit`.
-3. If there are remaining `[ ]` tasks, mention how many are left and suggest continuing
-   when ready.
+2. Present a summary of all changes, noting any judgment calls or points worth reviewing.
+3. Suggest the user commit using `/commit`.
+4. If there are remaining `[ ]` tasks, mention how many are left.
 
 ## Handling Common Situations
 
