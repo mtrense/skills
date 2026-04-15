@@ -8,6 +8,7 @@ description: >
   and the user wants to finalize. Also trigger when the user asks to document what was
   built, write demo steps, or prepare for the next planning cycle.
 model: opus
+allowed-tools: Read, Write, Glob, Grep, Edit, Bash(grep *), Bash(git log:*), Bash(head:*), Bash(cargo build:*), Bash(cargo test:*), Bash(cargo clippy:*), Bash(pnpm install:*), Bash(pnpm run:*)
 ---
 
 # Milestone Closing — Documentation, Verification, and Reset
