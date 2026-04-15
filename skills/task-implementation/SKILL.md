@@ -9,7 +9,7 @@ description: >
   to make them pass, and prepares the result for human review and commit. It operates at
   the individual task level — one task per invocation.
 model: sonnet
-allowed-tools: Read, Write, Glob, Grep, Edit, Bash(grep *), Bash(cargo build:*), Bash(cargo test:*), Bash(cargo clippy:*), Bash(pnpm install:*), Bash(pnpm run:*), Bash(mkdir:*)
+allowed-tools: Read, Write, Glob, Grep, Edit, Bash(grep *), Bash(git status:*), Bash(cargo build:*), Bash(cargo test:*), Bash(cargo clippy:*), Bash(pnpm install:*), Bash(pnpm run:*), Bash(mkdir:*)
 ---
 
 # Task Implementation — Strict TDD, One Task at a Time
@@ -22,7 +22,10 @@ test-driven development: tests first, then just enough code to pass them.
 
 ## Prerequisites
 
-`PLAN.md` must exist with at least one task marked `todo`.
+1. The git working tree must be clean (no uncommitted changes). Run `git status --porcelain`
+   to check. If the tree is dirty, stop immediately and ask the human to commit or stash
+   their changes before proceeding.
+2. `PLAN.md` must exist with at least one task marked `todo`.
 
 ## Phase Workflow
 
