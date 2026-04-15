@@ -9,6 +9,7 @@ description: >
   to make them pass, and prepares the result for human review and commit. It operates at
   the individual task level — one task per invocation.
 model: sonnet
+allowed-tools: Read, Write, Glob, Grep, Edit, Bash(grep *), Bash(cargo build:*), Bash(cargo test:*), Bash(cargo clippy:*), Bash(pnpm install:*), Bash(pnpm run:*), Bash(mkdir:*)
 ---
 
 # Task Implementation — Strict TDD, One Task at a Time
