@@ -65,8 +65,8 @@ resolved, move directly to writing the plan.
 ### Step 3: Write PLAN.md
 
 **Write the plan to `PLAN.md` immediately** after resolving any open questions. Do not
-present the plan in chat first — the file is the artifact. Follow the format of
-`references/SAMPLE-PLAN.md`.
+present the plan in chat first — the file is the artifact. Follow the format in the
+appendix at the end of this document.
 
 **Task sizing rules:**
 - Each task should be implementable within roughly 50% of the available context window.
@@ -125,6 +125,8 @@ Once approved:
   add a preparatory task.
 
 ---
+
+## Appendix: PLAN.md Format Reference
 
 # Plan: <Milestone Title>
 
