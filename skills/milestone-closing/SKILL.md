@@ -36,41 +36,30 @@ Read `PLAN.md` and `ROADMAP.md`. Verify:
 
 2. **Success criteria met.** Read the milestone's success criteria from `ROADMAP.md`.
    For each criterion, assess whether the implemented tasks collectively satisfy it.
-   Present a checklist:
-
-   ```
-   Success Criteria Assessment:
-   - [x] Criterion 1 — satisfied by tasks 2, 3
-   - [x] Criterion 2 — satisfied by task 5
-   - [ ] Criterion 3 — partially addressed, see notes
-   ```
-
-   If any criteria are not fully met, discuss with the human: is this acceptable, or
-   does it need more work?
 
 3. **Postponed tasks.** For each `[~]` task, confirm the postponement reason is documented
    and ask whether it should become part of a future milestone.
 
-### Step 2: Discrepancy and Discovery Notes
+If any tasks are unresolved or criteria are not fully met, discuss with the human before
+proceeding.
 
-During implementation, things rarely go exactly as planned. Document what diverged:
+### Step 2: Write Closing Notes to ROADMAP.md
 
-- **Scope changes:** Did any tasks grow, shrink, split, or get added mid-milestone?
-- **Architectural surprises:** Did you discover tech debt, unexpected coupling, or
-  performance issues that weren't anticipated?
-- **Decision changes:** Were any of the original architectural decisions revised during
-  implementation? Why?
-- **Postponed work:** Summarize what was deferred and why.
+Once all tasks are resolved, write the closing content **directly to the milestone entry
+in `ROADMAP.md`**. Do not compose it in chat first — the file is the artifact.
 
-Present these notes to the human for review. They'll be appended to the milestone entry
-in `ROADMAP.md`.
-
-### Step 3: Manual Testing and Demo Steps
-
-Write a section documenting how to manually verify and demonstrate the milestone's
-outcomes. This serves two purposes: immediate verification and future reference.
+Update the milestone's status from `in progress` to `completed` and append:
 
 ```markdown
+**Status:** completed
+**Completed:** <date>
+
+**Closing Notes:**
+- <Scope changes: tasks that grew, shrunk, split, or were added mid-milestone>
+- <Architectural surprises: tech debt, unexpected coupling, performance issues>
+- <Decision changes: original decisions revised during implementation, and why>
+- <Postponed items summary: what was deferred and why>
+
 ### Manual Testing & Demo
 
 **Prerequisites:**
@@ -89,31 +78,16 @@ outcomes. This serves two purposes: immediate verification and future reference.
 3. <Point out what changed / what's new>
 ```
 
-Ask the human to actually walk through these steps and confirm everything works. If
+### Step 3: Review on File
+
+After writing to `ROADMAP.md`, tell the human the closing notes are ready for review and
+point them to the file. Apply any requested changes directly to `ROADMAP.md` — keep the
+feedback loop on the file, not in chat.
+
+Ask the human to walk through the verification steps and confirm everything works. If
 anything doesn't work, flag it — this may require going back to implementation.
 
-### Step 4: Update ROADMAP.md
-
-Once the human confirms the milestone is complete:
-
-Append the following to the milestone entry in `ROADMAP.md`:
-
-```markdown
-**Status:** completed
-**Completed:** <date>
-
-**Closing Notes:**
-- <Discrepancy and discovery notes from Step 2>
-- <Postponed items summary>
-- <Any other observations>
-
-**Verification:**
-<Manual testing and demo steps from Step 3>
-```
-
-Update the milestone's status from `in progress` to `completed`.
-
-### Step 5: Reset PLAN.md
+### Step 4: Reset PLAN.md
 
 Truncate `PLAN.md` to prepare for the next cycle. Replace its contents with:
 
@@ -127,15 +101,9 @@ Truncate `PLAN.md` to prepare for the next cycle. Replace its contents with:
 This keeps a breadcrumb of what came before while making the file clean for the next
 breakdown phase.
 
-### Step 6: Present Summary and Hand Off
+### Step 5: Hand Off
 
-Present a summary to the human:
-
-- What was delivered
-- What was postponed (if anything)
-- How many milestones remain open in `ROADMAP.md`
-
-Suggest the user commit using `/commit`, then:
+Briefly note what was delivered and suggest the user commit using `/commit`, then:
 - Move to **Strategic Planning** if there's no next open milestone, or
 - Move to **Break-Down** if there is one ready.
 
