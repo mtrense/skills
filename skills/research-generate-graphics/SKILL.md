@@ -1,5 +1,5 @@
 ---
-name: research-graphics
+name: research-generate-graphics
 description: "Generate graphics (SVG diagrams, charts, tables, schematics) from AUDIT comments with type: graphics. Creates assets in the topic's _assets folder. Arguments: optional topic path or specific file:line."
 argument-hint: "[topic-path | file:line]"
 disable-model-invocation: true
