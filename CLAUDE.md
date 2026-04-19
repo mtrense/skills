@@ -65,6 +65,14 @@ Each `SKILL.md` has YAML frontmatter controlling behavior:
 
 Reference files (like `skills/milestone-breakdown/references/SAMPLE-PLAN.md`) sit alongside SKILL.md and are loaded as context.
 
+### When Adding a New Skill
+
+After creating a new skill under `skills/<skill-name>/`, register it in both:
+- `CLAUDE.md` — add it to the appropriate workflow family list under "Workflow Families" (or create a new family if it doesn't fit)
+- `README.md` — add it to the user-facing skill listing
+
+Keep the one-line description consistent across both files.
+
 ### Key Documents Referenced by Skills
 
 Skills expect these files to exist in target projects:
