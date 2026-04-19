@@ -20,7 +20,7 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 
 ## Skill Architecture
 
-### Two Workflow Families
+### Workflow Families
 
 **Engineering workflow** — a four-phase cycle for building software:
 1. `/project-inception` → Socratic dialogue producing README.md (one-time, precedes the cycle)
@@ -45,6 +45,14 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 12. `/research-glossary-sync` → Reconciles glossary.md against topic content
 
 The full research specification is in `prompts/research.md`.
+
+**Comparison workflow** — builds side-by-side comparison datasets for Lineup projects:
+1. `/comparison-new-type` → Socratic scoping; produces `data/<type>/RESEARCH.md` (scope, attributes, sources, initial candidates)
+2. `/comparison-scaffold-type` → Derives `data/<type>/attributes.json`, empty `index.json`, and registers the type in top-level `data/index.json`
+3. `/comparison-add-candidate` → Adds a candidate stub (`data/<type>/<candidate>.json`) with empty values
+4. `/comparison-gather-data` → Researches and populates attribute values for a candidate using web search; records `{value, source, comment}` per attribute
+
+Comparison projects expect a `data/` directory with a top-level `index.json` registering each comparison type.
 
 ### Skill File Conventions
 

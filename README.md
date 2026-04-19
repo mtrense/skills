@@ -54,6 +54,17 @@ A multi-phase system for building structured knowledge bases with source verific
 
 Research skills track topic status through: `stub` -> `inquiry` -> `draft` -> `audited` -> `done`.
 
+### Comparison Workflow
+
+A workflow for building side-by-side comparison datasets (databases, hosting providers, etc.) for [Lineup](https://github.com/mtrense/lineup) projects. Each comparison type gets a `RESEARCH.md` guide that drives schema generation and candidate research.
+
+| Phase | Command | What it does | Produces |
+|-------|---------|-------------|----------|
+| 1 | `/comparison-new-type` | Socratic scoping of a new comparison type (attributes, sources, initial candidates) | `data/<type>/RESEARCH.md` |
+| 2 | `/comparison-scaffold-type` | Derive schema files from RESEARCH.md and register the type | `data/<type>/attributes.json`, `index.json` entries |
+| 3 | `/comparison-add-candidate` | Add a candidate stub (empty values) to a comparison type | `data/<type>/<candidate>.json` |
+| 4 | `/comparison-gather-data` | Research attribute values for a candidate with web search and source citations | Populated candidate JSON |
+
 ### Utility
 
 | Command | What it does |
@@ -86,6 +97,10 @@ For the full specification of skill frontmatter and capabilities, see the [Anthr
 ```
 skills/
   commit/SKILL.md
+  comparison-add-candidate/SKILL.md
+  comparison-gather-data/SKILL.md
+  comparison-new-type/SKILL.md
+  comparison-scaffold-type/SKILL.md
   deckset/SKILL.md
   milestone-breakdown/SKILL.md
   milestone-closing/SKILL.md
