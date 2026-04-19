@@ -1,22 +1,17 @@
 ---
 name: comparison-new-type
-description: "Create a new Lineup comparison type: generate data/<type>/RESEARCH.md, attributes.json, and update data/index.json. Use when adding a new side-by-side comparison (databases, hosting providers, etc.) to a Lineup project. Arguments: comparison type id (kebab-case, required), optional free-text seed."
+description: "Draft data/<type>/RESEARCH.md for a new Lineup comparison type through Socratic scoping. Writes only the research guide so the user can iterate on scope, attributes, and sources before schema files are generated. Use when adding a new side-by-side comparison (databases, hosting providers, etc.) to a Lineup project. Arguments: comparison type id (kebab-case, required), optional free-text seed."
 disable-model-invocation: true
 model: opus
-allowed-tools: Read, Glob, Write, Edit
+allowed-tools: Read, Glob, Write
 argument-hint: "<comparison-type-id> [free-text seed]"
 ---
 
 # Comparison: New Type
 
-You are creating a new comparison type in a Lineup project. A comparison type lives under `data/<type>/` and consists of:
+You are drafting the research guide for a new comparison type in a Lineup project. A comparison type lives under `data/<type>/`; this skill produces only the authoritative `RESEARCH.md` (scope, attributes, sources, assessment, initial candidates) so you and the user can collaborate on it before the structural JSON files are generated.
 
-- `RESEARCH.md` — authoritative research guide (scope, attributes, sources, assessment, initial candidates)
-- `attributes.json` — schema derived from RESEARCH.md
-- `index.json` — (empty) candidate list, created by this skill
-- plus an entry in the top-level `data/index.json`
-
-This skill covers only the *type* — candidates are added later via `/comparison-add-candidate` and researched via `/comparison-gather-data`.
+Once RESEARCH.md is in a shape the user is happy with, they run `/comparison-scaffold-type <type>` to derive `attributes.json`, create the empty `index.json`, and register the type in the top-level `data/index.json`. Candidates are added later via `/comparison-add-candidate` and researched via `/comparison-gather-data`.
 
 ## Argument Parsing
 
@@ -30,8 +25,8 @@ If the id is missing or not kebab-case, ask the user to provide one before proce
 
 1. Read `CLAUDE.md` at the project root to confirm this is a Lineup project and to pick up local conventions (commit format, etc.).
 2. Read `data/index.json` to see existing comparison types and their shapes.
-3. Confirm `data/<type>/` does NOT already exist — if it does, abort and point the user to `/comparison-add-candidate` or direct editing.
-4. Skim 1–2 existing `data/*/RESEARCH.md` and `data/*/attributes.json` files to internalize the in-project tone and depth before generating new ones.
+3. Confirm `data/<type>/` does NOT already exist — if it does, abort and point the user to `/comparison-scaffold-type` (if RESEARCH.md exists but schema doesn't), `/comparison-add-candidate`, or direct editing.
+4. Skim 1–2 existing `data/*/RESEARCH.md` files to internalize the in-project tone and depth before drafting a new one.
 
 ## Phase 1: Socratic Scoping (Interactive)
 
@@ -52,40 +47,40 @@ Cover these dimensions:
    - **Tier 2 (Should Have)** — important contenders
    - **Tier 3 (Nice to Have)** — niche or emerging
 
-Refer to `/Users/mx/projects/lineup/CLAUDE.md` (or the project's own CLAUDE.md) for the exact `ValueType` schema; the cheatsheet below summarizes the common cases.
+### Attribute Type Cheatsheet (for RESEARCH.md tables)
 
-### Attribute ValueType Cheatsheet
+Human labels to use in the `Type` column of the attribute tables. The `/comparison-scaffold-type` skill translates these into the machine schema; you don't need to write JSON here.
 
-| Human label                 | `valueType` in `attributes.json`                                                                         |
-|-----------------------------|----------------------------------------------------------------------------------------------------------|
-| Freeform text               | `"text"`                                                                                                 |
-| Yes/no                      | `"boolean"`                                                                                              |
-| Clickable URL               | `"link"`                                                                                                 |
-| Count of things             | `{ "type": "integer", "direction": "ascending" \| "descending" \| "neutral" }`                           |
-| Decimal measure             | `{ "type": "decimal", "direction": "ascending" \| "descending" \| "neutral" }`                           |
-| Percentage (0–100 or 0–1)   | `{ "type": "percentage", "direction": "ascending" \| "descending" }`                                     |
-| File size                   | `{ "type": "filesize", "direction": "ascending" \| "descending" }`                                       |
-| Time duration (ms)          | `{ "type": "duration", "direction": "ascending" \| "descending" }`                                       |
-| Release year                | `{ "type": "date", "direction": "ascending", "format": "year" }`                                         |
-| Release month+year          | `{ "type": "date", "direction": "ascending", "format": "month-year" }`                                   |
-| Full date                   | `{ "type": "date", "direction": "ascending", "format": "full" }`                                         |
-| Date + time                 | `{ "type": "datetime", "direction": "ascending" }`                                                       |
-| Star rating (1–5)           | `{ "lower": 1, "upper": 5, "direction": "ascending", "symbols": { "empty": "☆", "full": "★" } }`         |
-| Tag set (license, category) | `{ "type": "tags", "defaultColor": "gray", "tags": [{ "id": "...", "value": "...", "color": "..." }] }` |
-| Font Awesome icon           | `{ "type": "icon-fontawesome", "name": "..." }`                                                          |
+| Label                        | Use for                                        |
+|------------------------------|------------------------------------------------|
+| `text`                       | Freeform text                                  |
+| `boolean`                    | Yes/no                                         |
+| `link`                       | Clickable URL                                  |
+| `integer` / `decimal`        | Counts or decimal measures (note direction)   |
+| `percentage`                 | 0–100 or 0–1 (note direction)                  |
+| `filesize` / `duration`      | Ranked quantities (note direction)             |
+| `date (year)`                | Release year                                   |
+| `date (month-year)`          | Release month + year                           |
+| `date (full)`                | Full calendar date                             |
+| `datetime`                   | Date + time                                    |
+| `rating (1–5)`               | Star rating                                    |
+| `tags`                       | Tag set (list the expected tags in the note)  |
+| `icon`                       | Font Awesome icon                              |
 
-Rating `symbols.half` is optional for half-stars. Tag IDs are kebab-case; the `value` is the display label.
+For ranked types, state direction in the research note (e.g. "higher is better", "lower is better", "neutral"). For tag types, list the expected tag set inline in the research note (e.g. "tags: MIT, Apache-2.0, GPL-3.0, proprietary").
 
 ### Convergence Checkpoint
 
-Before generating files, present a compact summary:
+Before generating the file, present a compact summary:
 - Comparison type id + display name + one-line description
 - Attribute groups with attributes and value types (bulleted, not the full table)
 - Initial candidates by tier
 
-Ask: "Ready to generate the files?" Only proceed on explicit confirmation.
+Ask: "Ready to generate RESEARCH.md?" Only proceed on explicit confirmation.
 
 ## Phase 2: File Generation
+
+Generate **only** `data/<type>/RESEARCH.md`. Do NOT create `attributes.json`, do NOT create `index.json`, and do NOT touch the top-level `data/index.json` — those belong to `/comparison-scaffold-type` and should wait until RESEARCH.md is finalized.
 
 ### `data/<type>/RESEARCH.md`
 
@@ -93,7 +88,7 @@ Include ALL seven required sections:
 
 1. **Overview** — one paragraph: purpose and what users learn.
 2. **Scope** — `**Included:**` and `**Excluded:**` bullet lists. Be specific.
-3. **Attribute Groups** — one `### <N>. Group Name` per group, each followed by a markdown table with columns `Attribute | Type | Research Notes`. Type column uses human labels (`text`, `boolean`, `rating (1–5)`, `tags`, etc.) — the machine-readable form goes in `attributes.json`.
+3. **Attribute Groups** — one `### <N>. Group Name` per group, each followed by a markdown table with columns `Attribute | Type | Research Notes`. Type column uses human labels from the cheatsheet above.
 4. **Research Sources** — two subsections: `### Primary Sources (Preferred)` and `### Secondary Sources`. Numbered lists, each entry naming the source and what it's useful for.
 5. **Assessment Guidelines** — bullet list, one per ambiguous attribute or threshold (`**Attribute Name**: specific criteria`). Explicitly state when `null` is preferable to a guessed value.
 6. **Initial Candidates** — `### Tier 1 (Must Have)`, `### Tier 2 (Should Have)`, `### Tier 3 (Nice to Have)`. Each candidate as `- [ ] <Name> — <reason for inclusion>`. Checkboxes get ticked later when data is gathered.
@@ -101,83 +96,23 @@ Include ALL seven required sections:
 
 Match the tone and depth of existing `data/*/RESEARCH.md` files in the project.
 
-### `data/<type>/attributes.json`
-
-Derive directly from the attribute tables in RESEARCH.md. Structure:
-
-```json
-{
-  "name": "<Display Name>",
-  "description": "<one-sentence what this comparison covers>",
-  "groups": [
-    {
-      "id": "<group-id>",
-      "name": "<Group Display Name>",
-      "description": "<optional>",
-      "expandedByDefault": true,
-      "attributes": [
-        { "id": "<attr-id>", "name": "<Display>", "valueType": "text", "description": "<optional tooltip>" }
-      ]
-    }
-  ]
-}
-```
-
-- `id` fields are kebab-case.
-- First 1–2 groups should have `expandedByDefault: true`; deeper groups can default to `false`.
-- For tag attributes, seed a sensible initial tag list derived from the RESEARCH.md notes; users can add more later.
-- Every attribute needs a `valueType`. Every ranked type needs a `direction`.
-
-### `data/<type>/index.json`
-
-Create as:
-
-```json
-{
-  "candidates": []
-}
-```
-
-Empty — candidates are added via `/comparison-add-candidate`.
-
-### Update `data/index.json`
-
-Append a single entry at the end of the `comparisons` (or top-level) array, preserving all existing entries and whitespace:
-
-```json
-{
-  "id": "<type>",
-  "name": "<Display Name>",
-  "description": "<one-sentence description>"
-}
-```
-
 ## Phase 3: Summary
 
 Present:
-- Tree of created files under `data/<type>/`.
-- Confirmation that `data/index.json` was updated.
-- The expected commit command, multi-`-m` format (per the project's CLAUDE.md):
+- Path of the created file: `data/<type>/RESEARCH.md`.
+- A compact recap of the scope (included / excluded), attribute groups, and initial candidates so the user can eyeball the draft without re-reading the whole file.
+- **Next step**: collaborate with the user to refine RESEARCH.md as needed. Once it reads well, run `/comparison-scaffold-type <type>` to generate `attributes.json`, the empty `index.json`, and the entry in `data/index.json`.
 
-```bash
-git add data/index.json data/<type>/
-git commit -m "data(<type>): RESEARCH" \
-  -m "<1–2 sentence summary of the comparison and its intended audience>" \
-  -m "🤖 Generated with [Claude Code](https://claude.com/claude-code)" \
-  -m "Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
-```
-
-Remind the user that the next step is `/comparison-add-candidate <type> <candidate-id>` for each initial candidate they want to track.
+Do NOT print a commit command here — the type is not yet usable (no schema, not registered in `data/index.json`). The commit pattern is `/comparison-scaffold-type`'s concern.
 
 ## Git
 
-Do NOT commit. Print the exact command the user can run (or they can use the project's `/commit` skill if one is installed).
+Do NOT commit.
 
 ## Rules
 
-- Do NOT create candidate JSON files — that's `/comparison-add-candidate`.
+- Do NOT create `attributes.json`, `index.json`, or modify the top-level `data/index.json` — those belong to `/comparison-scaffold-type`.
 - Do NOT invent candidates the user didn't discuss; keep the initial list aligned with Phase 1.
-- JSON output MUST be valid: ASCII quotes, no trailing commas, no comments inside `.json` files.
-- kebab-case for all `id` fields (comparison type, group, attribute, tag).
-- Match existing project style: indentation, attribute ordering within groups (generic → specific), tone in RESEARCH.md.
+- kebab-case for the comparison type id.
+- Match existing project style: tone and depth in RESEARCH.md.
 - If a required file or directory is missing (no `data/`, no `CLAUDE.md`), abort and explain rather than improvising.
