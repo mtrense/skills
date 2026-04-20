@@ -114,7 +114,11 @@ Once verification passes:
 
 1. Update `PLAN.md`: change the task's status from `[ ]` to `[x]`.
 2. Present a summary of all changes, noting any judgment calls or points worth reviewing.
-3. Suggest the user commit using `/commit`.
+3. Suggest the user commit using `/commit`. **NEVER run `git commit` or `git add` yourself
+   — not now, not ever in this skill.** Committing is exclusively the user's action,
+   performed via the `/commit` skill. Do not stage files, do not create commits, do not
+   amend commits, even if the user's intent seems obvious or they appear to expect it.
+   Stop at the hand-off.
 4. If there are remaining `[ ]` tasks, mention how many are left.
 
 ## Handling Common Situations
@@ -143,6 +147,9 @@ explaining why. Move to the next `[ ]` task.
 - **Tests first, always.** Never write production code before the test that demands it.
   This isn't a guideline — it's the core discipline of this phase.
 - **One task, one commit.** Each task produces exactly one atomic, meaningful commit.
+- **Never commit yourself.** Do not run `git commit` or `git add` under any circumstances.
+  Committing is the user's job, performed via `/commit`. Your responsibility ends at
+  updating `PLAN.md` and handing off with a summary.
 - **Match the codebase.** Your code should look like it was written by the same team that
   wrote the rest of the project. Adapt to their style, not yours.
 - **The plan is the contract.** Implement what the plan says. If the plan is wrong, change
