@@ -1,10 +1,10 @@
 ---
 name: comparison-gather-data
-description: "Research and populate attribute values for a Lineup candidate using the comparison type's RESEARCH.md as the guide. Actively searches the web for authoritative sources and records {value, source, comment} per attribute. Use for initial research or to refresh stale values. Arguments: comparison type, candidate id, optional attribute id or group id to scope the work."
+description: "Research and populate attribute values for a Lineup candidate using the comparison type's RESEARCH.md as the guide. Actively searches the web for authoritative sources and records {value, source, comment} per attribute. Use for initial research or to refresh stale values. Arguments: comparison type (required), optional candidate id (auto-picked as the next under-researched candidate when omitted), optional attribute id or group id to scope the work."
 disable-model-invocation: true
 model: opus
 allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Bash
-argument-hint: "<comparison-type> <candidate> [attribute-id-or-group]"
+argument-hint: "<comparison-type> [candidate] [attribute-id-or-group]"
 ---
 
 # Comparison: Gather Data
@@ -16,10 +16,21 @@ You are researching attribute values for a single Lineup candidate and writing t
 `$ARGUMENTS` (positional):
 
 1. **comparison type id** — must match an existing `data/<type>/` directory.
-2. **candidate id** — must match an existing `data/<type>/<candidate>.json` file.
+2. **candidate id** (optional) — must match an existing `data/<type>/<candidate>.json` file. When omitted, auto-pick the next under-researched candidate (see **Auto-Pick** below).
 3. **scope filter** (optional) — either an attribute id (`license`, `horizontal-scaling`) or a group id (`general`, `performance`). When omitted, research every attribute defined in `attributes.json`.
 
-If the first two tokens are missing, ask the user. If the scope filter doesn't match any known attribute or group, list the valid options and ask.
+If the comparison type is missing, ask the user. If the scope filter doesn't match any known attribute or group, list the valid options and ask. When the candidate is omitted, the scope filter is ignored (auto-pick always runs a full initial pass — pass the candidate explicitly if you want to scope).
+
+## Auto-Pick (when candidate id is omitted)
+
+Select the next candidate that needs research from `data/<type>/index.json`, in listed order:
+
+1. **Primary signal**: the candidate's `data/<type>/<id>.json` has an empty `values` object, OR is missing values for most attributes defined in `attributes.json` (rough threshold: fewer than half the attributes populated). These are the initial-mode candidates.
+2. **Secondary signal** (only when no primary candidates remain): RESEARCH.md has a `- [ ] <Name>` entry matching the candidate's display name or id, meaning the checkbox was never flipped. Treat as initial-mode.
+3. **Announce the pick** to the user: `"Auto-picked <candidate-id> — <N>/<M> attributes populated"`. Proceed in initial mode without further Socratic exchange (the user can interrupt if the pick is wrong).
+4. **Nothing to pick**: if every registered candidate has substantially complete values, report "all candidates appear fully researched" and stop. Suggest the user pass a candidate id explicitly to force a refresh, or scaffold a new candidate via `/comparison-add-candidate`.
+
+Refresh of an already-researched candidate always requires an explicit candidate id — auto-pick never runs refresh mode, to avoid churning fresh data.
 
 ## Prerequisites
 
@@ -29,10 +40,11 @@ If the first two tokens are missing, ask the user. If the scope filter doesn't m
    - **Research Sources** (Primary > Secondary — prioritize accordingly)
    - **Assessment Guidelines** (thresholds, when to use `null`)
 3. Read `data/<type>/attributes.json` — authoritative for attribute ids, types, and tag sets.
-4. Read `data/<type>/<candidate>.json` — existing metadata and any previously gathered values.
-5. Determine **mode**:
-   - `initial` — if `values` is empty or missing most attributes.
-   - `refresh` — if the file already contains substantive values. In refresh mode, prefer updating values with newer sources and explicitly note in a `comment` when a value changed significantly.
+4. Read `data/<type>/index.json` — needed for auto-pick AND to sanity-check that the target candidate is registered.
+5. Read `data/<type>/<candidate>.json` — existing metadata and any previously gathered values (after the candidate is resolved, explicitly or via auto-pick).
+6. Determine **mode**:
+   - `initial` — if `values` is empty or missing most attributes. Always the mode under auto-pick.
+   - `refresh` — if the file already contains substantive values AND the candidate was passed explicitly. In refresh mode, prefer updating values with newer sources and explicitly note in a `comment` when a value changed significantly.
 
 ## Phase 1: Plan the Research Pass
 

@@ -1,10 +1,10 @@
 ---
 name: comparison-add-candidate
-description: "Add a candidate stub to a Lineup comparison type: create data/<type>/<candidate>.json with empty values and register it in data/<type>/index.json. Use when declaring a new item to compare (e.g. adding PostgreSQL to databases) without researching its attribute values yet. Arguments: comparison type id, candidate id, optional display name."
+description: "Add a candidate stub to a Lineup comparison type: create data/<type>/<candidate>.json with empty values and register it in data/<type>/index.json. Use when declaring a new item to compare (e.g. adding PostgreSQL to databases) without researching its attribute values yet. Arguments: comparison type id (required), optional candidate id (auto-picked from RESEARCH.md when omitted), optional display name."
 disable-model-invocation: true
 model: sonnet
 allowed-tools: Read, Glob, Write, Edit
-argument-hint: "<comparison-type> <candidate-id> [display-name]"
+argument-hint: "<comparison-type> [candidate-id] [display-name]"
 ---
 
 # Comparison: Add Candidate
@@ -16,19 +16,29 @@ You are adding a new candidate to an existing Lineup comparison type. This skill
 `$ARGUMENTS` format (positional, whitespace-delimited):
 
 1. **comparison type id** — kebab-case, must match an existing `data/<type>/` directory.
-2. **candidate id** — kebab-case file stem; becomes `<candidate>.json`.
-3. **display name** (optional, remainder of the line) — if omitted, infer or ask.
+2. **candidate id** (optional) — kebab-case file stem; becomes `<candidate>.json`. When omitted, auto-pick the next unscaffolded Tier entry from `RESEARCH.md` (see **Auto-Pick** below).
+3. **display name** (optional, remainder of the line) — if omitted, infer or ask. Ignored under auto-pick (the display name comes from RESEARCH.md).
 
-If fewer than two tokens are provided, ask the user for what's missing before proceeding.
+If the comparison type id is missing, ask for it before proceeding. If only the comparison type is provided, run auto-pick.
 
 ## Prerequisites
 
 1. Read the project root `CLAUDE.md` to confirm this is a Lineup project.
 2. Confirm `data/<type>/` exists. If not, abort and suggest `/comparison-new-type`.
-3. Read `data/<type>/RESEARCH.md` — in particular the **Scope** and **Initial Candidates** sections.
+3. Read `data/<type>/RESEARCH.md` — in particular the **Scope** and **Initial Candidates** sections (needed for auto-pick AND for scope-fit checks under explicit mode).
 4. Read `data/<type>/attributes.json` — you need the full attribute id list for the scaffold.
-5. Confirm `data/<type>/<candidate>.json` does NOT already exist. If it does, abort and suggest `/comparison-gather-data <type> <candidate>` for a refresh instead.
-6. Read `data/<type>/index.json` to confirm the candidate id is not already registered.
+5. Read `data/<type>/index.json` — needed to detect already-scaffolded candidates.
+6. Under explicit mode only: confirm `data/<type>/<candidate>.json` does NOT already exist. If it does, abort and suggest `/comparison-gather-data <type> <candidate>` for a refresh instead.
+
+## Auto-Pick (when candidate id is omitted)
+
+Scan `RESEARCH.md`'s `### Tier N` lists for the first `- [ ] <Name> — …` entry whose derived candidate id is NOT already present in `data/<type>/index.json` and has no `data/<type>/<id>.json` file. Priority order: Tier 1 → Tier 2 → Tier 3, preserving in-tier order.
+
+- **Deriving the candidate id**: kebab-case of the display name — lowercase, ASCII, spaces and punctuation → hyphens, collapse runs, trim leading/trailing hyphens. `PostgreSQL` → `postgresql`; `Amazon RDS` → `amazon-rds`; `MySQL / MariaDB` → choose ONE and surface the ambiguity to the user.
+- **Presenting the pick**: show the Tier, display name, derived id, and the line's rationale. Then ask the user to confirm (or override the id). Do not proceed without confirmation — the id becomes the filename and is expensive to change later.
+- **Nothing to pick**: if every Tier entry in RESEARCH.md is already scaffolded (or the Tier lists are empty), report the state and stop. Suggest the user either add a new Tier entry to RESEARCH.md or pass an explicit candidate id.
+
+Once the user confirms the pick, continue as if it had been passed explicitly. Skip scope-fit confirmation in Phase 1 (the Tier listing already asserts scope fit).
 
 ## Phase 1: Quick Scoping (Interactive, Minimal)
 
