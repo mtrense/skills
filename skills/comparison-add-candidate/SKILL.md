@@ -3,7 +3,7 @@ name: comparison-add-candidate
 description: "Add a candidate stub to a Lineup comparison type: create data/<type>/<candidate>.json with empty values and register it in data/<type>/index.json. Use when declaring a new item to compare (e.g. adding PostgreSQL to databases) without researching its attribute values yet. Arguments: comparison type id (required), optional candidate id (auto-picked from RESEARCH.md when omitted), optional display name."
 disable-model-invocation: true
 model: sonnet
-allowed-tools: Read, Glob, Write, Edit
+allowed-tools: Read, Glob, Write, Edit, Bash
 argument-hint: "<comparison-type> [candidate-id] [display-name]"
 ---
 
@@ -51,6 +51,7 @@ Do NOT run a full Socratic dialogue — the comparison scope is already defined.
    - **URL** — Official website or primary repository.
    - **Icon** — Optional. Either an existing icon id used elsewhere in the project, a Font Awesome name, or omit.
    - **Shown by default?** — Default `true`. Set `false` for niche entries that shouldn't clutter the initial view.
+3. **Tier assignment** (explicit mode only, and only when the candidate is NOT already listed in RESEARCH.md) — Propose a tier (1/2/3) and ask the user to confirm. Default to Tier 3 (Nice to Have) unless the candidate is clearly a reference point (→ Tier 1) or a well-known contender (→ Tier 2). Under auto-pick, skip this step — the candidate's tier comes from its existing RESEARCH.md entry.
 
 If the user provided enough via `$ARGUMENTS` and RESEARCH.md mentions the candidate by name, propose all of the above in one shot and ask for confirmation — don't drag out the exchange.
 
@@ -84,18 +85,23 @@ Append a new candidate entry at the end of the `candidates` array, preserving ex
 
 Do NOT reorder existing entries.
 
-### Optional: RESEARCH.md checkbox
+### Update RESEARCH.md
 
-If the candidate appears in `data/<type>/RESEARCH.md` under any `### Tier N` list (e.g. `- [ ] PostgreSQL — reference open-source RDBMS`), leave the checkbox as `- [ ]`. It gets ticked by `/comparison-gather-data` when data is actually gathered, not here.
+- **If the candidate is already listed** under any `### Tier N` list (e.g. `- [ ] PostgreSQL — reference open-source RDBMS`): leave the line untouched. The checkbox stays `- [ ]` — it gets ticked by `/comparison-gather-data` when data is actually gathered, not here.
+- **If the candidate is NOT listed** (explicit mode, scope-fit confirmed, tier assigned in Phase 1): append a new entry to the end of the selected `### Tier N` list using the format:
 
-If the candidate is *not* listed in RESEARCH.md but the user is adding it anyway, do NOT silently modify RESEARCH.md. Mention this in the summary so the user can decide whether to update RESEARCH.md separately.
+  ```
+  - [ ] <Display Name> — <one-sentence description> (added <YYYY-MM-DD>)
+  ```
+
+  Fetch today's date via Bash (`date +%Y-%m-%d`) — do not hand-type it. The `(added <date>)` suffix records the post-scoping addition so future audits can distinguish these from candidates that came out of the initial scoping dialogue.
 
 ## Phase 3: Summary
 
 Present:
 - Path of the scaffold file created.
 - The new entry added to `data/<type>/index.json`.
-- Whether the candidate was already listed in RESEARCH.md (and which tier).
+- RESEARCH.md status: either "already listed under Tier N (untouched)" or "appended to Tier N with `(added <date>)` suffix".
 - **Next step**: `/comparison-gather-data <type> <candidate-id>` to research and fill in attribute values.
 
 No commit is created by this skill. Suggest the commit pattern the user should run after gathering data, so that declaration and initial research land in one commit:
@@ -115,6 +121,7 @@ Do NOT commit.
 
 - Do NOT populate any `values` — that's `/comparison-gather-data`.
 - Do NOT reorder entries in `data/<type>/index.json`; append only.
-- Do NOT modify `attributes.json` or `RESEARCH.md` except for the explicit RESEARCH.md checkbox case noted above (and that is reserved for `/comparison-gather-data`).
+- Do NOT modify `attributes.json`.
+- Do NOT tick an existing RESEARCH.md checkbox (`- [ ]` → `- [x]`); that's `/comparison-gather-data`'s job. The only RESEARCH.md edit this skill performs is appending a new `- [ ]` line for candidates not yet listed.
 - Filenames: lowercase, hyphens, no spaces, no underscores, no numeric prefixes.
 - If the JSON you write would break the project's build, abort and report which file is malformed before overwriting anything.
