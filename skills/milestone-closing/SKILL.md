@@ -34,8 +34,13 @@ Read `PLAN.md` and `ROADMAP.md`. Verify:
    ask the human: "Task N is still open — should we implement it, postpone it, or drop
    it before closing?"
 
-2. **Success criteria met.** Read the milestone's success criteria from `ROADMAP.md`.
-   For each criterion, assess whether the implemented tasks collectively satisfy it.
+2. **Success criteria met.** Read the milestone's success criteria from `ROADMAP.md`
+   (formatted as `- [ ]` checkboxes by `strategic-planning`). For each criterion, assess
+   whether the implemented tasks collectively satisfy it, then **edit `ROADMAP.md` to
+   tick the box** (`- [ ]` → `- [x]`) for every met criterion. Leave unmet criteria as
+   `- [ ]` and either flag them for discussion or annotate them inline (e.g.,
+   `- [ ] <criterion> — descoped, see closing notes`). Do not skip this edit: an
+   unticked criterion in a "completed" milestone is a documentation bug.
 
 3. **Postponed tasks.** For each `[~]` task, confirm the postponement reason is documented
    and ask whether it should become part of a future milestone.
