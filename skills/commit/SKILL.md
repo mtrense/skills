@@ -2,7 +2,14 @@
 name: commit
 description: >
   Analyse staged and unstaged changes, craft a meaningful commit message, and commit.
-disable-model-invocation: true
+  Trigger whenever the user says "commit", "create a commit", "make a commit", "commit
+  these changes", "commit the work", "commit and push", "/commit", or otherwise asks to
+  persist current git changes. Also trigger after task-implementation, milestone-closing,
+  milestone-breakdown, strategic-planning, or project-inception completes and the user
+  signals readiness to commit (e.g. "looks good, commit it", "ship it", "save this").
+  This is the ONLY commit point in the engineering workflow — all other skills defer
+  commit creation to this skill. Do NOT trigger for purely exploratory git questions
+  ("what's changed?", "show me the diff") that do not request a commit.
 argument-hint: Optional guidance on what to commit or how to slice changes
 model: sonnet
 allowed-tools: Bash(git status *), Bash(git diff *), Bash(git add *), Bash(git commit *), Bash(git log *), Bash(git rm *), Bash(git init *), Bash(echo *), Read, Glob
