@@ -4,9 +4,15 @@ description: >
   Implement the next unfinished task from PLAN.md using strict test-driven development.
   Writes tests first, then writes just enough code to make them pass, and prepares the
   result for human review and commit. Operates at the individual task level — one task
-  per invocation.
+  per invocation. Trigger whenever the user says "implement the next task", "next task",
+  "do the next task", "work on the next task", "implement task N", "let's implement",
+  "start implementing", "TDD this task", "/task-implementation", "phase 3", or asks to
+  begin coding the current PLAN.md task. Also trigger when the user has just finished
+  milestone-breakdown and signals readiness to start building (e.g. "let's start coding",
+  "build the first task", "go ahead and implement"). Do NOT trigger for ad-hoc code
+  changes unrelated to PLAN.md, for planning/breakdown work, or when PLAN.md does not
+  exist — those belong to other skills.
 model: sonnet
-disable-model-invocation: true
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash(grep *), Bash(git status:*), Bash(cargo build:*), Bash(cargo test:*), Bash(cargo clippy:*), Bash(pnpm install:*), Bash(pnpm run:*), Bash(mkdir:*)
 ---
 
