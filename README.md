@@ -28,6 +28,7 @@ A phased cycle for building software, from idea through implementation to closeo
 | 1 | `/strategic-planning` | Sharpen ideas into well-defined, testable milestones | `ROADMAP.md` entries |
 | 2 | `/milestone-breakdown` | Decompose a milestone into ordered, independently testable tasks | `PLAN.md` |
 | 3 | `/task-implementation` | Implement one task using strict TDD (tests first, then code) | Passing code + tests |
+| 3 | `/implementation-cycle` | Run task-implementation + commit in fresh subagents per task to keep the main session clean | Passing code + commits |
 | 4 | `/milestone-closing` | Verify success criteria, document results, reset for next cycle | Updated `ROADMAP.md` |
 | - | `/commit` | Craft a conventional commit from staged/unstaged changes | Git commit |
 
@@ -104,6 +105,7 @@ skills/
   research-restructure/SKILL.md
   strategic-planning/SKILL.md
   task-implementation/SKILL.md
+  implementation-cycle/SKILL.md
 prompts/
   research.md              # full research workflow specification
 documentation/
