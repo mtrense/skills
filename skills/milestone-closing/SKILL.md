@@ -89,10 +89,29 @@ After writing to `ROADMAP.md`, tell the human the closing notes are ready for re
 point them to the file. Apply any requested changes directly to `ROADMAP.md` — keep the
 feedback loop on the file, not in chat.
 
-Ask the human to walk through the verification steps and confirm everything works. If
-anything doesn't work, flag it — this may require going back to implementation.
+Ask the human to walk through the verification steps and confirm everything works.
 
-### Step 4: Reset PLAN.md
+### Step 4: Re-iterate on Deviations
+
+If verification surfaces **deviations from the success criteria** or **missing pieces /
+errors that block shippable user value**, do not proceed to reset. Instead, add one or
+more tasks to `PLAN.md` so the human can re-iterate via `task-implementation`:
+
+- Phrase each task in the same format as `milestone-breakdown` produces (`- [ ] <task>`
+  with a brief description, file hints if known, and acceptance criteria).
+- Group them under a heading like `## Re-iteration: <milestone title>` so they're
+  distinguishable from the original breakdown.
+- After tasks are added, hand back to the human: they run `task-implementation` until
+  all new tasks are `[x]`, then re-invoke `milestone-closing`, which restarts at Step 1.
+
+**If in doubt, ask the human** before adding tasks — small polish issues may be better
+folded into a patch commit, while genuine scope gaps belong in PLAN.md. Borderline cases
+(e.g., "is this a bug or a future enhancement?") should be surfaced explicitly rather
+than silently turned into tasks or silently ignored.
+
+Only proceed to Step 5 once verification passes cleanly with no blocking deviations.
+
+### Step 5: Reset PLAN.md
 
 Truncate `PLAN.md` to prepare for the next cycle. Replace its contents with:
 
@@ -106,7 +125,7 @@ Truncate `PLAN.md` to prepare for the next cycle. Replace its contents with:
 This keeps a breadcrumb of what came before while making the file clean for the next
 breakdown phase.
 
-### Step 5: Hand Off
+### Step 6: Hand Off
 
 Briefly note what was delivered and suggest the user commit using `/commit`, then:
 - Move to **Strategic Planning** if there's no next open milestone, or
@@ -120,8 +139,12 @@ why. Suggest creating a follow-up milestone for the remaining criteria if they'r
 important.
 
 **Human discovers a bug during manual testing:**
-If it's small, fix it and add it as a patch commit. If it's significant, discuss whether
-to reopen the milestone or create a new one.
+Use Step 4's re-iteration path: add a task (or a small cluster of tasks) to `PLAN.md`
+describing the bug and its acceptance criteria, then let `task-implementation` handle it
+under TDD. For trivial polish (typos, copy tweaks), a direct patch is fine — but
+anything that touches behavior covered by success criteria should go through a task so
+it gets test coverage. If unsure whether something is a "bug now" vs. "future
+enhancement", ask the human before deciding.
 
 **Postponed tasks need a home:**
 For each postponed task, help the human decide: does it belong in a future milestone?
