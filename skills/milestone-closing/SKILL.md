@@ -110,8 +110,27 @@ folded into a patch commit, while genuine scope gaps belong in PLAN.md. Borderli
 than silently turned into tasks or silently ignored.
 
 Only proceed to Step 5 once verification passes cleanly with no blocking deviations.
+Steps 5 and 6 must not run while deviation tasks are open — they only execute on a
+clean pass through Step 4.
 
-### Step 5: Reset PLAN.md
+### Step 5: Update README.md
+
+With the milestone verified and closed, bring `README.md` up to date so it reflects the
+project's current state. Read the existing `README.md` and reconcile it against what
+was actually shipped in this milestone:
+
+- Update feature lists, capability descriptions, or status claims that are now stale.
+- Add documentation for newly shipped capabilities (commands, flags, configuration,
+  endpoints, etc.) where the README is the right home for them.
+- Remove or rewrite sections describing behavior that was changed or replaced.
+- Refresh examples, screenshots references, or quickstart steps if they no longer
+  match reality.
+
+Keep edits scoped to what changed in this milestone — do not rewrite unrelated parts of
+the README. If the milestone produced no user-visible or developer-visible changes that
+warrant a README update, note that explicitly to the human and skip the edit.
+
+### Step 6: Reset PLAN.md
 
 Truncate `PLAN.md` to prepare for the next cycle. Replace its contents with:
 
@@ -125,7 +144,7 @@ Truncate `PLAN.md` to prepare for the next cycle. Replace its contents with:
 This keeps a breadcrumb of what came before while making the file clean for the next
 breakdown phase.
 
-### Step 6: Hand Off
+### Step 7: Hand Off
 
 Briefly note what was delivered and suggest the user commit using `/commit`, then:
 - Move to **Strategic Planning** if there's no next open milestone, or
