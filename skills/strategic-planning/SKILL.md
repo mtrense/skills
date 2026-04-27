@@ -77,9 +77,13 @@ Continue asking until you feel confident you can write a milestone that the huma
 recognize as a faithful, sharpened version of their intent. Typically this takes 2–4
 rounds of questions.
 
-### Step 3: Draft the Milestone
+### Step 3: Write the Milestone to ROADMAP.md
 
-Write a milestone entry following this exact format:
+Once all open questions from Step 2 are resolved, append the milestone directly to
+`ROADMAP.md` using Edit/Write. Do NOT paste the milestone into chat for the user to
+approve — review happens on the file in Step 4, not in chat.
+
+Use this exact format:
 
 ```markdown
 ## Milestone: <short descriptive title>
@@ -101,13 +105,10 @@ Write a milestone entry following this exact format:
 - <Scope exclusions, dependencies, risks, or architectural considerations>
 ```
 
-Once all open questions from Step 2 are resolved, append the milestone directly to
-`ROADMAP.md`. Do NOT present it in the conversation first — prefer working on the file.
-
 ### Step 4: Review and Refine
 
-After writing to `ROADMAP.md`, briefly note what was added and invite the human to review
-the file. If they request changes, apply edits directly to `ROADMAP.md` — keep the
+Tell the user the milestone was appended to `ROADMAP.md` and ask them to review the
+file. If they request changes, apply edits directly to `ROADMAP.md` — keep the
 feedback loop on the file, not in chat.
 
 ### Step 5: Hand Off
