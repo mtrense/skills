@@ -27,8 +27,9 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 2. `/strategic-planning` → Socratic dialogue adding milestones to ROADMAP.md
 3. `/milestone-breakdown` → Decomposes a milestone into ordered tasks in PLAN.md
 4. `/task-implementation` → Strict TDD: one task per invocation, tests first
-5. `/milestone-closing` → Verifies criteria, documents results, resets PLAN.md
-6. `/commit` → The single commit point; no other skill commits directly
+5. `/implementation-cycle` → Sequentially runs task-implementation + commit in fresh subagents (one per task) to keep the main session clean
+6. `/milestone-closing` → Verifies criteria, documents results, resets PLAN.md
+7. `/commit` → The single commit point; no other skill commits directly
 
 **Research workflow** — a multi-phase system for building knowledge bases:
 1. `/research-inception` → Creates project structure (INDEX.md, DECISIONS.md, glossary.md, topic stubs)
