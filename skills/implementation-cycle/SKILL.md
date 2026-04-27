@@ -61,8 +61,27 @@ must be self-contained — it has none of your conversation context. Use this
 template (substitute the task title; keep everything else verbatim):
 
 ```
-You are a worker spawned by the implementation-cycle orchestrator. Your job is
-to run TWO skills in sequence on the current repository, then exit.
+You are a worker spawned by the implementation-cycle orchestrator.
+
+CONTRACT — read this before anything else:
+  You MUST invoke BOTH `task-implementation` AND `commit` in this run.
+  A run that ends without a commit hash is INCOMPLETE and will be REJECTED
+  by the orchestrator. "Tests pass" is not "task complete" — the task is
+  only complete when a commit exists. Do not stop after task-implementation.
+
+Your final message MUST end with a single fenced block in this exact form
+(the orchestrator parses it; missing or malformed → rejection):
+
+  ```report
+  Task: <title>
+  Tests: <pass/fail summary, e.g. "42 passing, 0 failing">
+  Commit: <hash> <subject line>
+  Remaining: <count of [ ] tasks left in PLAN.md after this run>
+  Notes: <one short line, or "—" if nothing notable>
+  ```
+
+The `Commit:` line is mandatory on success. `<hash>` must be a real git
+commit hash (7–40 hex chars) that exists in `git log` after your run.
 
 The next [ ] task in PLAN.md is: "<TASK TITLE>"
 
@@ -72,18 +91,13 @@ Step A — invoke `task-implementation`:
     - Write tests first (strict TDD), then implementation.
     - Run the test suite and verify it's green.
     - Update PLAN.md, flipping the task from [ ] to [x].
-  task-implementation will NOT commit — that's Step B.
+  task-implementation will NOT commit — that's Step B. You are NOT done
+  after Step A. Proceed immediately to Step B.
 
 Step B — invoke `commit`:
   Call Skill(skill="commit"). It will analyse the staged/unstaged changes and
-  create a single conventional commit.
-
-When both succeed, report back in this exact shape (≤ 6 lines, no preamble):
-  Task: <title>
-  Tests: <pass/fail summary, e.g. "42 passing, 0 failing">
-  Commit: <hash> <subject line>
-  Remaining: <count of [ ] tasks left in PLAN.md after this run>
-  Notes: <one short line, or "—" if nothing notable>
+  create a single conventional commit. Capture the resulting commit hash for
+  the report block.
 
 HALT INSTEAD OF PUSHING THROUGH if any of these happen:
   - The working tree is already dirty when you start.
@@ -93,10 +107,13 @@ HALT INSTEAD OF PUSHING THROUGH if any of these happen:
   - The commit step refuses or aborts (suspicious files, no changes, etc.).
   - Anything else that would normally cause you to ask the human a question.
 
-When you halt, report:
+When you halt, your final message MUST end with this fenced block instead:
+
+  ```report
   HALTED
   Reason: <one or two sentences>
   State: <what's on disk — uncommitted changes? failing tests? unmodified PLAN.md?>
+  ```
 
 Do not loop. Do not attempt the next task. Run exactly the two skills above
 (or fewer, if you halt) and exit.
@@ -107,18 +124,29 @@ its result before continuing.
 
 ### Step 4: Post-flight Check
 
-After the subagent returns, verify:
+After the subagent returns, verify in order. Any failure → halt the loop.
 
-1. **PLAN.md moved.** Re-read PLAN.md. The task you sent in must now be `[x]`
+1. **Report block present and well-formed.** The subagent's final message must
+   end with a fenced ` ```report ` block. If the block is missing or malformed,
+   halt with reason `subagent omitted required report block`. Do not infer
+   success from a clean tree alone — a missing report is itself the bug.
+2. **Subagent didn't report HALTED.** If the report block is the HALTED variant,
+   halt the loop and surface the reason verbatim.
+3. **Commit line present and valid.** The success report must contain a line
+   matching `^Commit: [0-9a-f]{7,40} `. If absent, halt with reason
+   `subagent skipped commit step` — even if PLAN.md was updated and tests pass.
+   Do not auto-recover by spawning a commit-only subagent; hand back to the human.
+4. **PLAN.md moved.** Re-read PLAN.md. The task you sent in must now be `[x]`
    (or `[~]` if the subagent legitimately postponed it and reported so). If it's
-   still `[ ]`, something went wrong — halt the loop.
-2. **Tree is clean.** Run `git status --porcelain`. If it's not clean, the commit
-   step didn't fire (or fired only partially). Halt the loop.
-3. **Subagent didn't report HALTED.** If it did, halt the loop and surface the
-   reason verbatim.
-4. **Cap not yet hit.** If `$ARGUMENTS` specified a max and you've reached it, exit.
+   still `[ ]`, halt.
+5. **Tree is clean.** Run `git status --porcelain`. If it's not clean, the commit
+   step didn't fire (or fired only partially). Halt.
+6. **Commit hash exists.** Run `git log -1 --format=%H` and confirm it matches
+   (by prefix) the hash from the report. If not, the subagent fabricated or
+   misreported the hash — halt.
+7. **Cap not yet hit.** If `$ARGUMENTS` specified a max and you've reached it, exit.
 
-If all four checks pass, log a one-line progress note for the human (e.g.
+If all checks pass, log a one-line progress note for the human (e.g.
 `✓ Task 3/8 done — feat(parser): handle nested groups (a1b2c3d)`) and loop back
 to Step 1.
 
