@@ -60,6 +60,7 @@ Research skills track topic status through: `stub` -> `inquiry` -> `draft` -> `a
 | Command | What it does |
 |---------|-------------|
 | `/deckset` | Generate [Deckset](https://www.deckset.com/) presentations from markdown content |
+| `/audit-context` | Diagnose contradictions, ambiguities, and irrelevance in the current session context (or a given file list) |
 
 ## How Skills Work
 
@@ -106,6 +107,7 @@ skills/
   strategic-planning/SKILL.md
   task-implementation/SKILL.md
   implementation-cycle/SKILL.md
+  audit-context/SKILL.md
 prompts/
   research.md              # full research workflow specification
 documentation/

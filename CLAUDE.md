@@ -47,6 +47,9 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 
 The full research specification is in `prompts/research.md`.
 
+**Utility skills** — standalone tools that don't belong to a workflow family:
+- `/audit-context` → Diagnoses contradictions, ambiguities, and irrelevance in the current session context (or a given file list); read-only, produces a line-cited severity-ranked report
+
 ### Skill File Conventions
 
 Each `SKILL.md` has YAML frontmatter controlling behavior:
