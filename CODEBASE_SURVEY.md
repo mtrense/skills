@@ -10,7 +10,7 @@ Five narrow skills (multiple narrow skills > one mega-skill). Only the entry poi
 2. **`/codebase-survey-module <path>`** — *model-invocable*. Deep-dive into one module. Spawns 2–3 specialized subagents (see below) in parallel, then assembles the module's `CODEBASE.md`. Idempotent — re-running rewrites the file. Model-invocable so a burndown orchestrator can iterate it across modules.
 3. **`/codebase-architecture-assessment`** — *user-only*. Cross-cutting pass after modules are documented: domain-boundary leaks, coupling hotspots, deviations between stated and actual architecture. Writes to `docs/codebase/assessment.md`.
 4. **`/codebase-survey-update [commit-range|PR#]`** — *model-invocable*. Incremental refresh. Argument is optional: with no argument, each module is diffed from its own recorded `surveyed_sha` (see below) to `HEAD`; with an argument, that range is used uniformly. Reads the diff, maps changed paths to affected module docs, dispatches narrowly-scoped subagents to only those modules, then bumps each touched module's `surveyed_sha`. Model-invocable so it can be wired to a post-merge hook later.
-5. **`/codebase-derive-instructions`** — *user-only*. Reads the assembled docs and produces/updates `CLAUDE.md` (root + per-module if warranted) with conventions, gotchas, build/test commands actually used.
+5. **`/codebase-derive-instructions`** — *user-only*. Reads the assembled survey docs and writes/updates `CLAUDE.md` at the repo root and one per module (mirroring the `CODEBASE.md` placement). Lean, verifiable, source-anchored. See **Derive-Instructions Requirements** below.
 
 ## Subagents (Delegation Layer)
 
@@ -22,6 +22,8 @@ Each subagent has a tight remit and is told which native tools to prefer. Return
 - **wire-api-extractor** — external/network API layers, distinct from the language-level surface above. Prefers spec artifacts and framework introspection: OpenAPI/Swagger (`/openapi.json` from FastAPI, NestJS, Spring; `swagger-cli bundle`), gRPC (`buf ls-files`, `.proto` service/method enumeration), GraphQL (`.graphql` schemas, introspection), AsyncAPI (`.asyncapi.yml`), message-broker topic/queue configs. Falls back to grepping route registrations (`@app.route`, `@RestController`, `app.get`, `http.HandleFunc`, `gin.GET`, etc.). Reports protocol, endpoint/topic list, auth scheme hints, and where the contract lives (generated vs. hand-written).
 - **test-auditor** — runs the project's test/coverage tooling (`pytest --collect-only`, `cargo test --list`, `vitest --reporter=json`, `nyc`, `go test -list`), counts unit vs integration vs e2e by directory convention, reports test-pyramid shape and coverage if available.
 - **ops-detective** — scans `.github/workflows`, `.gitlab-ci.yml`, `Dockerfile*`, `docker-compose*`, `k8s/`, `helm/`, `terraform/`, `.env.example`, secret-management hints, observability configs (OTel, Sentry, Datadog), logging libs.
+
+The architecture-assessment skill must tag each finding it writes to `docs/codebase/assessment.md` with a `kind:` field — either `rule` (actionable always/never guidance) or `observation` (backlog, debt, "we should fix"). `derive-instructions` only lifts `kind: rule` findings into the root CLAUDE.md.
 
 The orchestrating skill spawns these in parallel, collects their reports, and writes the final markdown — so the main session never sees raw `cargo tree` output.
 
@@ -64,6 +66,86 @@ The same front-matter keys appear on the top-level `CODEBASE.md` and `docs/codeb
 
 Filename `CODEBASE.md` (not `README.md`) so we don't fight existing human-facing READMEs. The name signals "AI-consumable codebase doc" without overloading conventions.
 
+## Derive-Instructions Requirements
+
+Grounded in Anthropic's official memory docs, HumanLayer's CLAUDE.md guidance, and GitHub's empirical study of 2,500+ AGENTS.md files. The skill consumes structured survey output, so it can be more mechanical and source-anchored than a hand-written CLAUDE.md.
+
+### Output layout
+
+- **Root** `./CLAUDE.md` — loaded at every session start.
+- **Per-module** `<module>/CLAUDE.md` — mirrors `<module>/CODEBASE.md`. Loaded lazily by Claude Code when it reads files in that subtree.
+- User-level (`~/.claude/CLAUDE.md`) is out of scope.
+- If `AGENTS.md` exists at repo root, derive into `AGENTS.md` instead and write a thin `CLAUDE.md` that does `@AGENTS.md` plus a `## Claude Code` section for Claude-specific addenda. (Anthropic's documented interop pattern.)
+
+### Length and budget
+
+- Root CLAUDE.md: target **≤ 200 lines** (Anthropic's stated adherence threshold).
+- Per-module CLAUDE.md: target **≤ 80 lines**.
+- Total launch-context bytes (root + everything its `@imports` expand) must fit comfortably under ~10 KB.
+- Total instruction count across all loaded files should stay well under ~150 (frontier-model adherence ceiling).
+
+### Root CLAUDE.md template (fixed sections, fixed order)
+
+1. **Project identity** — 1–2 lines, plus `@README.md` and `@CODEBASE.md` imports.
+2. **Build & test commands** — verbatim, with HTML-comment source pointer per command.
+3. **Where things live** — one-line module map; link to `@CODEBASE.md` for detail.
+4. **Boundaries** — three subsections: `Always`, `Ask first`, `Never`. Sourced from `kind: rule` findings in `docs/codebase/assessment.md`. Findings tagged `kind: observation` are excluded.
+5. **Git workflow** — only if non-default; otherwise omit.
+6. **Pointers** — `@docs/codebase/architecture.md`, `@docs/codebase/operations.md`, etc., for on-demand reads.
+
+### Per-module CLAUDE.md template
+
+- Module-specific commands (if any beyond the root set).
+- **Boundaries** — pulled verbatim from that module's `Architectural Deviations` section.
+- Pointer to `@<module>/CODEBASE.md`.
+
+### Content discipline
+
+| Survey input | Derived? | Notes |
+|---|---|---|
+| Build/test commands (manifests, CI) | Yes, verbatim | Highest signal, universally applicable |
+| Project map / module boundaries | Pointer only | Don't duplicate `CODEBASE.md` |
+| Tech stack rationale | No | Lives in `docs/codebase/tech-stack.md` |
+| Architectural Deviations (per-module) | Yes, as module Boundaries | Exactly the gotchas CLAUDE.md exists for |
+| Assessment findings | Only `kind: rule` | `kind: observation` stays in assessment.md |
+| Open Questions | No | Not yet decided → not a rule |
+| Code style | No | Linter's job; point at lint config instead |
+| API surface | No | Discoverable on demand |
+| Operations / secrets | Only "always do X before commit" subset | Rest stays in `docs/codebase/operations.md` |
+
+### Source anchoring
+
+Every derived rule carries a block-level HTML comment naming its source and the surveyed SHA, e.g. `<!-- from: package.json scripts.test, surveyed_sha=abc123 -->`. Anthropic strips these before context injection (zero token cost) but the survey-update skill can grep them to detect when a derived rule's source has moved.
+
+### Front-matter
+
+Both root and per-module CLAUDE.md carry:
+
+```
+---
+derived_from_survey_sha: <git SHA of CODEBASE.md sources at derivation>
+derived_at: <ISO date>
+derive_schema: 1
+---
+```
+
+`/codebase-survey-update` uses these to detect when re-derivation is needed.
+
+### Verification before write
+
+- All `@imports` resolve to existing files.
+- Total expanded launch-context size under threshold (warn otherwise).
+- No rule textually duplicates content already in the corresponding `CODEBASE.md` (similarity check; warn).
+- Code-style heuristic scan: matches against "spaces", "indentation", "camelCase", "naming convention", etc. → flag for human review (these usually shouldn't be in CLAUDE.md).
+
+### Write strategy
+
+In-place write to `CLAUDE.md` (and per-module files). Review happens via `git diff` / PR — the skill never produces `.proposed` sidecars. Idempotent: re-running with unchanged sources is a no-op (modulo `derived_at`).
+
+### Lifecycle
+
+Re-runs after every meaningful `/codebase-survey-update`. The `derived_from_survey_sha` front-matter lets the update skill detect drift between CLAUDE.md and the CODEBASE.md sources it was derived from.
+
 ## Process
 
 1. **Bootstrap** — `/codebase-survey-init` (once).
@@ -77,7 +159,6 @@ Filename `CODEBASE.md` (not `README.md`) so we don't fight existing human-facing
 - **Module-local vs. centralized docs.** Local matches Claude Code's CLAUDE.md loading model and keeps docs near code; centralized (mirror under `docs/codebase/<module>/`) is easier to read as one document.
 - **`CODEBASE.md` filename.** Could be `ARCHITECTURE.md`, `.codebase.md`, or `docs/CODEBASE.md`. Pick early — the update skill greps for it.
 - **Module identification heuristic.** Default: workspace members (Cargo/pnpm/yarn workspaces), top-level packages, or top-level directories with their own manifest. Monoliths without clear boundaries need a fallback (e.g., top-level dirs in `src/`). Could make module boundaries human-confirmed in `init` rather than auto-detected.
-- **Scope of `derive-instructions`.** Overwrite existing `CLAUDE.md`, append, or produce a diff for review? Default proposed: write `CLAUDE.md.proposed` and let the user merge.
 - **Five skills vs. fewer.** Could collapse `architecture-assessment` into `init` and `derive-instructions` into `update`, leaving three. The five-skill split mirrors research-workflow granularity — useful if assessments need to be re-run without redoing surveys.
 
 ## Suggested First Slice
