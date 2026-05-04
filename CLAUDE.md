@@ -44,7 +44,7 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 11. `/research-restructure` → Structural changes (split, merge, promote, demote) with cross-reference rewriting
 12. `/research-glossary-sync` → Reconciles glossary.md against topic content
 
-The full research specification is in `prompts/research.md`.
+The full research specification is in `RESEARCH.md`.
 
 **Codebase-survey workflow** — bootstraps and maintains an AI-consumable map of an existing codebase, with detail co-located alongside code:
 1. `/codebase-survey-init` → Bootstrap; delegates raw discovery to the structural-discovery subagent, synthesizes the module map in the main session, writes top-level `CODEBASE.md` plus per-module stubs
