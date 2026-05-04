@@ -47,6 +47,15 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 
 The full research specification is in `prompts/research.md`.
 
+**Codebase-survey workflow** — bootstraps and maintains an AI-consumable map of an existing codebase, with detail co-located alongside code:
+1. `/codebase-survey-init` → Bootstrap; delegates raw discovery to the structural-discovery subagent, synthesizes the module map in the main session, writes top-level `CODEBASE.md` plus per-module stubs
+2. `/codebase-survey-module <path>` → Per-module deep-dive; spawns five subagents (dep-grapher, api-surface-extractor, wire-api-extractor, test-auditor, ops-detective) in parallel and assembles `<path>/CODEBASE.md`
+3. `/codebase-architecture-assessment` → Cross-cutting pass; writes `docs/codebase/assessment.md` with each finding tagged `kind: rule` or `kind: observation`
+4. `/codebase-survey-update [commit-range|PR#]` → Incremental refresh driven by per-module `surveyed_sha` deltas; flags `CLAUDE.md` drift but does not rewrite
+5. `/codebase-derive-instructions` → Lifts `kind: rule` findings into `CLAUDE.md` (or `AGENTS.md` if present) with source-anchor comments; verifies length, imports, and rule count before writing
+
+The subagents live in `agents/` and are installed alongside skills by `install.sh`.
+
 **Utility skills** — standalone tools that don't belong to a workflow family:
 - `/audit-context` → Diagnoses contradictions, ambiguities, and irrelevance in the current session context (or a given file list); read-only, produces a line-cited severity-ranked report
 
@@ -69,6 +78,10 @@ After creating a new skill under `skills/<skill-name>/`, register it in both:
 
 Keep the one-line description consistent across both files.
 
+### Subagents
+
+Custom subagents live in `agents/<name>.md` (a single file per agent, not a directory) and are installed via symlink to `~/.claude/agents/` (or `<project>/.claude/agents/` for project installs) by the same `install.sh`. Skills invoke them via the `Agent` tool with `subagent_type: <name>`. Use a custom subagent when a skill needs to delegate a deterministic, structured task (e.g., extracting an API surface, running a dependency grapher) so the orchestrating skill never sees raw tool output.
+
 ### Key Documents Referenced by Skills
 
 Skills expect these files to exist in target projects:
@@ -77,6 +90,12 @@ Skills expect these files to exist in target projects:
 - `PLAN.md` — task list for current milestone (managed by milestone-breakdown, consumed by task-implementation)
 
 Research skills expect an `research/` directory with `INDEX.md`, `DECISIONS.md`, `glossary.md`, and `content/` subdirectory.
+
+Codebase-survey skills produce and consume:
+- `CODEBASE.md` at the repo root (top-level survey, module map, tech stack)
+- `<module>/CODEBASE.md` per module (purpose, FRs/NFRs, deps, API, tests, deviations, ops)
+- `docs/codebase/architecture.md`, `tech-stack.md`, `operations.md`, `assessment.md`
+- All survey files carry front-matter: `surveyed_sha`, `surveyed_at`, `survey_schema`. Derived `CLAUDE.md` carries `derived_from_survey_sha`, `derived_at`, `derive_schema`.
 
 ## Reference Documentation
 
