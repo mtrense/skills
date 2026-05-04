@@ -55,6 +55,20 @@ A multi-phase system for building structured knowledge bases with source verific
 
 Research skills track topic status through: `stub` -> `inquiry` -> `draft` -> `audited` -> `done`.
 
+### Codebase Survey Workflow
+
+A workflow for bootstrapping and maintaining an AI-consumable map of an existing codebase. Documentation is module-local so partial loading works: top-level `CODEBASE.md` plus `<module>/CODEBASE.md` per module, with derived `CLAUDE.md` files lifted from rule-tagged findings.
+
+| Phase | Command | What it does |
+|-------|---------|-------------|
+| 1 | `/codebase-survey-init` | Bootstrap: discover structure, synthesize module map, write top-level `CODEBASE.md` + per-module stubs |
+| 2 | `/codebase-survey-module <path>` | Deep-dive one module via parallel subagents (deps, API surface, wire API, tests, ops) |
+| 3 | `/codebase-architecture-assessment` | Cross-cutting findings written to `docs/codebase/assessment.md`; tagged `kind: rule` or `kind: observation` |
+| 4 | `/codebase-derive-instructions` | Lift `kind: rule` findings into `CLAUDE.md` (or `AGENTS.md`); source-anchored, verified for length and rule count |
+| - | `/codebase-survey-update [range|PR#]` | Incremental refresh driven by per-module `surveyed_sha`; only re-surveys modules whose code changed |
+
+The workflow uses six bundled subagents (`structural-discovery`, `dep-grapher`, `api-surface-extractor`, `wire-api-extractor`, `test-auditor`, `ops-detective`) that live in `agents/` and are installed alongside skills.
+
 ### Utility
 
 | Command | What it does |
@@ -87,8 +101,15 @@ For the full specification of skill frontmatter and capabilities, see the [Anthr
 
 ```
 skills/
+  audit-context/SKILL.md
+  codebase-architecture-assessment/SKILL.md
+  codebase-derive-instructions/SKILL.md
+  codebase-survey-init/SKILL.md
+  codebase-survey-module/SKILL.md
+  codebase-survey-update/SKILL.md
   commit/SKILL.md
   deckset/SKILL.md
+  implementation-cycle/SKILL.md
   milestone-breakdown/SKILL.md
   milestone-closing/SKILL.md
   project-inception/SKILL.md
@@ -106,11 +127,16 @@ skills/
   research-restructure/SKILL.md
   strategic-planning/SKILL.md
   task-implementation/SKILL.md
-  implementation-cycle/SKILL.md
-  audit-context/SKILL.md
+agents/
+  api-surface-extractor.md
+  dep-grapher.md
+  ops-detective.md
+  structural-discovery.md
+  test-auditor.md
+  wire-api-extractor.md
 prompts/
   research.md              # full research workflow specification
 documentation/
   anthropic/skills.md      # official Anthropic skills docs
-install.sh                 # symlink installer
+install.sh                 # symlink installer (skills + agents)
 ```
