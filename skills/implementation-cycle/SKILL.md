@@ -56,71 +56,30 @@ yourself — that's the human's call.
 
 ### Step 3: Spawn a Subagent
 
-Use the `Agent` tool with `subagent_type: general-purpose`. The subagent's prompt
-must be self-contained — it has none of your conversation context. Use this
-template (substitute the task title; keep everything else verbatim):
+Use the `Agent` tool with `subagent_type: task-worker`. The subagent's full
+contract — invoke `task-implementation`, then `commit`, return a fenced
+`report` block, halt instead of pushing through ambiguity — lives in
+`agents/task-worker.md`. Your prompt only needs to name the task and pass any
+context the worker can't infer from PLAN.md itself.
+
+Use this template:
 
 ```
-You are a worker spawned by the implementation-cycle orchestrator.
-
-CONTRACT — read this before anything else:
-  You MUST invoke BOTH `task-implementation` AND `commit` in this run.
-  A run that ends without a commit hash is INCOMPLETE and will be REJECTED
-  by the orchestrator. "Tests pass" is not "task complete" — the task is
-  only complete when a commit exists. Do not stop after task-implementation.
-
-Your final message MUST end with a single fenced block in this exact form
-(the orchestrator parses it; missing or malformed → rejection):
-
-  ```report
-  Task: <title>
-  Tests: <pass/fail summary, e.g. "42 passing, 0 failing">
-  Commit: <hash> <subject line>
-  Remaining: <count of [ ] tasks left in PLAN.md after this run>
-  Notes: <one short line, or "—" if nothing notable>
-  ```
-
-The `Commit:` line is mandatory on success. `<hash>` must be a real git
-commit hash (7–40 hex chars) that exists in `git log` after your run.
-
 The next [ ] task in PLAN.md is: "<TASK TITLE>"
 
-Step A — invoke `task-implementation`:
-  Call Skill(skill="task-implementation"). It will:
-    - Read PLAN.md and identify the same task.
-    - Write tests first (strict TDD), then implementation.
-    - Run the test suite and verify it's green.
-    - Update PLAN.md, flipping the task from [ ] to [x].
-  task-implementation will NOT commit — that's Step B. You are NOT done
-  after Step A. Proceed immediately to Step B.
-
-Step B — invoke `commit`:
-  Call Skill(skill="commit"). It will analyse the staged/unstaged changes and
-  create a single conventional commit. Capture the resulting commit hash for
-  the report block.
-
-HALT INSTEAD OF PUSHING THROUGH if any of these happen:
-  - The working tree is already dirty when you start.
-  - task-implementation surfaces a design problem, scope split, or any condition
-    that asks for human input rather than continuing on its own.
-  - Tests cannot be made green inside this task's scope.
-  - The commit step refuses or aborts (suspicious files, no changes, etc.).
-  - Anything else that would normally cause you to ask the human a question.
-
-When you halt, your final message MUST end with this fenced block instead:
-
-  ```report
-  HALTED
-  Reason: <one or two sentences>
-  State: <what's on disk — uncommitted changes? failing tests? unmodified PLAN.md?>
-  ```
-
-Do not loop. Do not attempt the next task. Run exactly the two skills above
-(or fewer, if you halt) and exit.
+Run your standard contract: invoke `task-implementation`, then `commit`, then
+return your report block. Halt instead of asking questions — the orchestrator
+will surface anything you halt on.
 ```
 
 Run the Agent call **synchronously** — do not use `run_in_background`. Wait for
 its result before continuing.
+
+If the `task-worker` subagent isn't available in this environment (e.g.,
+`agents/` wasn't installed), fall back to `subagent_type: general-purpose` and
+inline the contract from `agents/task-worker.md` into the prompt. This is a
+fallback, not the default — running on `task-worker` keeps the contract in one
+place.
 
 ### Step 4: Post-flight Check
 

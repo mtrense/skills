@@ -9,7 +9,7 @@ description: >
   next phase. This skill reads the codebase and docs to produce implementation-aware tasks
   with architectural hints, test cases, and file associations.
 model: opus
-allowed-tools: Read, Glob, Grep, Edit, Write
+allowed-tools: Read, Glob, Grep, Edit, Write, Agent
 ---
 
 # Milestone Breakdown — Decomposing into Actionable Tasks
@@ -33,33 +33,52 @@ session, each independently testable and committable.
 
 Read `ROADMAP.md` and identify the next `open` milestone. If multiple are open, approach the next one in order of writing. Update its status to `in progress`.
 
-### Step 2: Deep Codebase Assessment
+### Step 2: Codebase Reconnaissance — Delegate to `milestone-scout`
 
-Before writing any tasks, thoroughly understand the current state:
+Before writing any tasks, you need a structured picture of the part of the
+codebase the milestone touches: relevant files, conventions to match, test
+posture, risks. **Delegate this discovery to the `milestone-scout` subagent**
+rather than reading the codebase yourself — that keeps your opus session
+focused on synthesis instead of file paging.
 
-**Read project structure.** Use `Glob` and `Read` tool on the project root directory to understand
-the layout. Identify source directories, test directories, config files, and documentation.
+Spawn the scout with `subagent_type: milestone-scout` and a self-contained
+prompt:
 
-**Read key files.** Based on the milestone's scope, read the files most likely to be
-affected. Focus on:
-- Entry points and public APIs
-- Data models and schemas
-- Existing test structure and conventions
-- Configuration and environment setup
-- CI/CD pipeline if visible
+```
+Milestone (verbatim from ROADMAP.md):
 
-**Read project documentation.** Check README.md, ARCHITECTURE.md, CONTRIBUTING.md, or
-any docs/ directory for conventions, patterns, and constraints.
+<paste the full milestone block — title, value/impact, outcome, success
+criteria, notes>
 
-**Identify patterns.** Note the project's:
-- Testing framework and conventions (Jest, pytest, etc.)
-- Code organization patterns (feature folders, layered, etc.)
-- Error handling approach
-- Logging and observability patterns
-- Authentication/authorization patterns if relevant
+Repo root: <absolute path, or "current working directory">
 
-If anything is unclear or ambiguous about the milestone's scope — ask the human now,
-before writing. Keep clarification questions focused and minimal. Once open questions are
+Hint: <if a top-level CODEBASE.md or specific <module>/CODEBASE.md is
+relevant, name it; otherwise omit this line>
+
+Follow your standard report format.
+```
+
+The scout returns a structured report covering:
+- **Orientation** — language, framework, layout shape, dominant conventions.
+- **Relevant files** — capped at ~20, each with a one-line "why".
+- **Conventions to match** — tests, code organization, error handling,
+  logging, config, async — each cited to a concrete file.
+- **Risks** — tech debt, fragile coupling, missing coverage, migration
+  implications.
+- **Preparatory work suggestions** — things that ought to happen before the
+  main tasks. These are *suggestions*; you decide whether they make it into
+  PLAN.md.
+- **Sources used** and **tooling notes** (so you know the report's accuracy
+  ceiling).
+
+If the scout subagent isn't available in this environment, fall back to
+reading the codebase yourself: project root layout (`Glob`), key affected
+files, README/ARCHITECTURE/CONTRIBUTING docs, and existing test conventions.
+Note the same categories the scout would have produced.
+
+After the scout returns: if anything about the milestone's scope is unclear
+or contradicts what the scout found, ask the human now, before writing. Keep
+clarification questions focused and minimal. Once open questions are
 resolved, move directly to writing the plan.
 
 ### Step 3: Write PLAN.md

@@ -32,7 +32,9 @@ A phased cycle for building software, from idea through implementation to closeo
 | 4 | `/milestone-closing` | Verify success criteria, document results, reset for next cycle | Updated `ROADMAP.md` |
 | - | `/commit` | Craft a conventional commit from staged/unstaged changes | Git commit |
 
-**Typical flow:** `inception` (once) -> `planning` -> `breakdown` -> `implementation` (repeat per task) -> `closing` -> back to `planning.
+**Typical flow:** `inception` (once) -> `planning` -> `breakdown` -> `implementation` (repeat per task) -> `closing` -> back to `planning`.
+
+The engineering workflow uses two bundled subagents: `milestone-scout` (delegated codebase reconnaissance for `milestone-breakdown`) and `task-worker` (per-task `task-implementation` + `commit` worker for `implementation-cycle`). Both live in `agents/` and are installed alongside skills.
 
 ### Research Workflow
 
@@ -130,8 +132,10 @@ skills/
 agents/
   api-surface-extractor.md
   dep-grapher.md
+  milestone-scout.md
   ops-detective.md
   structural-discovery.md
+  task-worker.md
   test-auditor.md
   wire-api-extractor.md
 CODEBASE_SURVEY.md         # full codebase-survey workflow specification
