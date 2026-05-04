@@ -4,7 +4,7 @@ description: "Audit research topics for gaps relative to the research plan. Prod
 argument-hint: "[topic-path]"
 disable-model-invocation: true
 model: opus
-allowed-tools: Read, Write, Glob, Grep, Bash(grep *), Edit, WebSearch, WebFetch
+allowed-tools: Read, Write, Glob, Grep, Bash(grep *), Edit, Agent, WebFetch
 ---
 
 # Research Audit — Coverage
@@ -27,13 +27,34 @@ You are auditing research content for gaps relative to the research plan. You pr
 
 ## Priority: CONFIDENCE Markers
 
-Before running the audit, scan all in-scope files for `<!-- CONFIDENCE: low -->` and `<!-- CONFIDENCE: medium -->` markers. These are the highest priority items.
+Before running the audit, resolve outstanding `<!-- CONFIDENCE: low -->` and `<!-- CONFIDENCE: medium -->` markers in the in-scope files. These are the highest priority items.
 
-For each CONFIDENCE marker:
-- Attempt to verify the claim using WebSearch and WebFetch.
-- If verification succeeds: remove the CONFIDENCE marker (the claim is now well-sourced). Add or update the reference in both `references.yaml` and the markdown `### References` list.
-- If verification fails or contradicts the claim: convert to an AUDIT comment and leave the CONFIDENCE marker.
-- If verification partially supports: upgrade `low` to `medium` or leave as-is, updating the `reason`.
+### Step P1 — collect markers
+
+Scan the in-scope files (use Grep for `<!-- CONFIDENCE:`) and build a marker list. For each match capture:
+- `file`, `line`, `level` (`low`/`medium`), and the marker's existing `reason:` text.
+- The 1–3 sentences of `claim` text the marker qualifies (typically the lines immediately above the marker, within the same paragraph).
+- Any `[citation-key]` slugs already cited in that claim, plus the matching entries from the relevant `<topic>_references.yaml` (URL, title, authors, published, `verified`).
+
+If the list is empty, skip to the gap audit.
+
+### Step P2 — delegate verification
+
+Spawn the `confidence-verifier` subagent via the `Agent` tool with the marker list as input. Pass it the `research/CLAUDE.md` path and the relevant `<topic>_references.yaml` paths so it can reuse existing citation keys.
+
+For very large batches (>30 markers spread across many topics), split by topic file and spawn multiple `confidence-verifier` subagents in parallel — one per topic, each receiving only that file's markers.
+
+### Step P3 — apply decisions
+
+Apply the subagent's `recommended-action` per marker:
+- `remove marker; set verified: true on <key>` — delete the marker; update `references.yaml` (`verified: true`, `last-checked: <today>`); ensure the key is in the section's `### References` list.
+- `remove marker; add new citation <key> + section reference` — delete the marker; add the new entry to `references.yaml`; add the in-text `[citation-key]` and the `### References` line.
+- `keep marker; downgrade low→medium` or `update reason:` — edit the marker in place.
+- `convert marker to AUDIT type: contradiction; ref: <URL>` — leave the CONFIDENCE marker; insert an AUDIT comment immediately after the claim. Severity is the audit skill's call (see this skill's severity guide).
+- `convert marker to AUDIT type: weak-source` — leave the CONFIDENCE marker; insert an AUDIT comment.
+- `skipped` — leave as-is and note in the user-facing summary.
+
+Spot-check with WebFetch only when a `recommended-action` carries unusually high weight (e.g., a contradiction that would force a DECISIONS.md entry).
 
 ## Audit Operation: Gaps Relative to Research Plan
 

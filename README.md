@@ -46,16 +46,18 @@ A multi-phase system for building structured knowledge bases with source verific
 | - | `/research-add-topic` | Add a new topic (directory + chapter stubs) to an existing project |
 | - | `/research-add-chapter` | Add new chapter stubs to an existing topic directory |
 | 2 | `/research-inquiry` | Add section outlines with RESEARCH directives to a chapter |
-| 3 | `/research-investigation` | Research and write content for one section using web search |
+| 3 | `/research-investigation` | Write content for one section; delegates the search-fetch-verify loop to the `source-investigator` subagent |
 | 4 | `/research-audit-consistency` | Check cross-topic contradictions; insert AUDIT directives |
 | 4 | `/research-audit-coverage` | Check gaps relative to the research plan; insert AUDIT directives |
-| 4 | `/research-audit-quality` | Check depth and sourcing adequacy; insert AUDIT directives |
-| 4 | `/research-audit-coherence` | Check narrative flow; insert AUDIT directives |
+| 4 | `/research-audit-quality` | Check depth and sourcing adequacy; insert AUDIT directives. Fans out per-topic analysis to `quality-auditor` in parallel |
+| 4 | `/research-audit-coherence` | Check narrative flow; insert AUDIT directives. Fans out per-topic analysis to `coherence-auditor` in parallel |
 | 5 | `/research-refine` | Resolve audit findings (correct, expand, condense, restructure) |
 | 6 | `/research-restructure` | Structural changes: split, merge, promote, or demote topics |
-| 7 | `/research-glossary-sync` | Reconcile glossary against current topic content |
+| 7 | `/research-glossary-sync` | Reconcile glossary against current topic content. Fans out per-topic candidate extraction to `term-extractor` in parallel |
 
 Research skills track topic status through: `stub` -> `inquiry` -> `draft` -> `audited` -> `done`.
+
+The research workflow uses five bundled subagents: `source-investigator` (web search-fetch-verify loop for `research-investigation`), `confidence-verifier` (CONFIDENCE-marker verifier shared by all four `research-audit-*` skills), `quality-auditor` (per-topic depth/sourcing audit, spawned in parallel by `research-audit-quality`), `coherence-auditor` (per-topic narrative-flow audit, spawned in parallel by `research-audit-coherence`), and `term-extractor` (per-topic glossary-candidate extraction, spawned in parallel by `research-glossary-sync`). All live in `agents/` and are installed alongside skills.
 
 ### Codebase Survey Workflow
 
@@ -67,7 +69,7 @@ A workflow for bootstrapping and maintaining an AI-consumable map of an existing
 | 2 | `/codebase-survey-module <path>` | Deep-dive one module via parallel subagents (deps, API surface, wire API, tests, ops) |
 | 3 | `/codebase-architecture-assessment` | Cross-cutting findings written to `docs/codebase/assessment.md`; tagged `kind: rule` or `kind: observation` |
 | 4 | `/codebase-derive-instructions` | Lift `kind: rule` findings into `CLAUDE.md` (or `AGENTS.md`); source-anchored, verified for length and rule count |
-| - | `/codebase-survey-update [range|PR#]` | Incremental refresh driven by per-module `surveyed_sha`; only re-surveys modules whose code changed |
+| - | `/codebase-survey-update [range\|PR#]` | Incremental refresh driven by per-module `surveyed_sha`; only re-surveys modules whose code changed |
 
 The workflow uses six bundled subagents (`structural-discovery`, `dep-grapher`, `api-surface-extractor`, `wire-api-extractor`, `test-auditor`, `ops-detective`) that live in `agents/` and are installed alongside skills.
 
@@ -131,11 +133,16 @@ skills/
   task-implementation/SKILL.md
 agents/
   api-surface-extractor.md
+  coherence-auditor.md
+  confidence-verifier.md
   dep-grapher.md
   milestone-scout.md
   ops-detective.md
+  quality-auditor.md
+  source-investigator.md
   structural-discovery.md
   task-worker.md
+  term-extractor.md
   test-auditor.md
   wire-api-extractor.md
 CODEBASE_SURVEY.md         # full codebase-survey workflow specification
