@@ -1,15 +1,17 @@
 ---
 name: research-investigation
-description: "Research and write content for a single section of a topic file based on its RESEARCH directive. Actively searches the web for sources. Arguments: topic file path, optional section heading (defaults to first inquiry-status section)."
+description: "Research and write content for a single section of a topic file based on its RESEARCH directive. Delegates web search and source verification to the source-investigator subagent (optionally several in parallel), then synthesizes the section from its structured report. Arguments: topic file path, optional section heading (defaults to first inquiry-status section)."
 argument-hint: "<topic-file> [\"section-heading\"]"
 disable-model-invocation: true
 model: opus
-allowed-tools: Read, Write, Glob, Grep, Edit, WebSearch, WebFetch
+allowed-tools: Read, Write, Glob, Grep, Edit, Agent, WebFetch
 ---
 
 # Research Investigation
 
 You are researching and writing content for a single section of a topic file, guided by its RESEARCH directive.
+
+You orchestrate one or more `source-investigator` subagents to do the actual web search-fetch-verify loop, then synthesize the section's prose from their structured reports. You never see raw page payloads in your own context — only the distilled report(s).
 
 **Arguments**: `$ARGUMENTS`
 - First argument: topic file path relative to `research/content/`
@@ -27,51 +29,70 @@ You are researching and writing content for a single section of a topic file, gu
    - If no RESEARCH directive is found, abort: "No sections pending investigation in this file."
 5. Read related topics/sections referenced in the directive's `related` field.
 6. Read `research/DECISIONS.md` for any prior decisions affecting this topic.
+7. If a sibling `<topic-name>_references.yaml` exists, read it so existing citation keys can be reused by the subagent(s).
 
 ## Research Process
 
-### Step 1: Web Research
+### Step 1: Spawn source-investigator subagent(s)
 
-Actively search the web based on the RESEARCH directive's `query`, `sources`, and `scale` fields.
+Use the `Agent` tool with `subagent_type: source-investigator`. Hand each spawn a self-contained prompt containing:
 
-- Use WebSearch to find relevant sources.
-- Use WebFetch to read and verify promising results.
-- Target the source types specified in the `sources` field.
-- Respect `sources_detail` constraints (e.g., "post-2023", "peer-reviewed").
-- Gather enough material to meet the `scale` requirement.
+- The full RESEARCH directive verbatim (`query`, `scale`, `scale_detail`, `sources`, `sources_detail`, `related`).
+- The path to `research/CLAUDE.md` and the parent topic file path (so the subagent can read conventions and ground cross-references).
+- The path to `<topic-name>_references.yaml` if it exists, so the subagent can reuse existing citation keys.
 
-### Step 2: Write Content
+**Parallelism rule**:
+
+- If `sources: any`, spawn **two or three** subagents in a single message — one biased toward `academic`, one toward `industry`, optionally one toward `primary`. Pass the bias in the prompt explicitly (e.g., "Prioritise academic sources for this run").
+- If `sources` is a single class, spawn **one** subagent.
+- If the directive's `scale` is `brief`, always spawn one — extra parallelism is wasted on small scopes.
+
+If a subagent returns an under-scaled report (its `Coverage vs. Scale` section says it couldn't reach the target), you may spawn one follow-up subagent with a refined prompt — never more than once.
+
+### Step 2: Merge subagent reports
+
+You receive one or more structured reports. Merge them:
+
+- **Citation keys**: deduplicate by URL. If two subagents proposed different keys for the same URL, prefer the one already present in `<topic-name>_references.yaml`; otherwise prefer the more descriptive of the two.
+- **Quotes**: keep all distinct quotes. Quotes from different sources that support the same claim become evidence for a `well-sourced` claim.
+- **Contradictions**: union both lists; do not silently drop any.
+- **Confidence**: a claim's overall confidence is the highest level supported across all reports (e.g., if one subagent rates it `medium` and another `well-sourced`, treat it as `well-sourced`).
+
+If two reports disagree on a citation's `verified` status, prefer `false` — re-check with WebFetch yourself only if the citation will carry significant weight in the prose.
+
+### Step 3: Write Content
 
 Write the section content following these guidelines:
 
-- **Scale**: Match the `scale` field — `brief` (~1-2 paragraphs), `standard` (~3-5 paragraphs with examples), `deep` (comprehensive, multiple perspectives).
+- **Scale**: Match the `scale` field — `brief` (~1-2 paragraphs), `standard` (~3-5 paragraphs with examples), `deep` (comprehensive, multiple perspectives). If the merged report's `Coverage vs. Scale` notes that target scale was unachievable, lean toward the next-smaller scale and note the limitation in an Open Question or DECISIONS entry.
 - **Tone and style**: Follow `research/CLAUDE.md` conventions.
 - **Structure**: Write content under the heading that contained the RESEARCH directive. Add subheadings one level deeper if needed for deep-scale content. Do NOT write content under sibling or child headings that have their own RESEARCH directives.
 - **Cross-references**: Link to related topics using `[display text](relative-path.md#heading-slug)` relative to `content/`.
+- **Cite from the report only**: every in-text `[citation-key]` must correspond to an entry in the merged report's `Sources` section. Do not invent claims that no quote in the report supports.
 
-### Step 3: Confidence Assessment
+### Step 4: Confidence Assessment
 
-For each claim in your content:
+Use the per-claim confidence levels from the merged report:
 
-- **Well-sourced claims** (strong direct evidence): No marker needed.
-- **Partially supported claims** (plausible but incomplete evidence):
+- **Well-sourced claims**: No marker needed.
+- **Medium-confidence claims**:
   ```
   <!-- CONFIDENCE: medium
     reason: "Description of why evidence is incomplete"
   -->
   ```
-- **Speculative or weakly sourced claims** (inferred, single weak source):
+- **Low-confidence claims**:
   ```
   <!-- CONFIDENCE: low
     reason: "Description of why this is uncertain"
   -->
   ```
 
-Place confidence markers immediately after the claim they apply to.
+Place confidence markers immediately after the claim they apply to. Use the report's `note:` fields for unverified citations as the basis for the `reason` text.
 
-### Step 4: Source Contradictions
+### Step 5: Source Contradictions
 
-When sources directly contradict each other:
+For each entry in the merged report's `Contradictions` section:
 
 1. Present both positions in the section text.
 2. Add a `DECISIONS.md` entry:
@@ -95,13 +116,13 @@ When sources directly contradict each other:
    -->
    ```
 
-### Step 5: References
+### Step 6: References
 
 References are stored in two places: full metadata in a YAML file, and short-form entries in the markdown.
 
-**5a: Update `references.yaml`**
+**6a: Update `references.yaml`**
 
-Add entries to `<topic-name>_references.yaml` (sibling of the topic markdown file). Create the file if it doesn't exist.
+For each citation actually used in the prose, write/update an entry in `<topic-name>_references.yaml`. Take the metadata directly from the merged report's `Sources` section:
 
 ```yaml
 citation-key:
@@ -113,13 +134,13 @@ citation-key:
   verified: true | false
 ```
 
-Fields are optional beyond `title`. Use `url` for web resources, `isbn` for books. Citation keys should be descriptive and stable (e.g., `author-year`, `slug-year`).
+Fields are optional beyond `title`. Use `url` for web resources, `isbn` for books. Reuse stable keys from the report (which themselves reuse keys already in this file when available).
 
-**5b: Add in-text citations**
+**6b: Add in-text citations**
 
 Cite sources inline using `[citation-key]` or `[citation-key, pp. N-M]` for page ranges.
 
-**5c: Add section references list**
+**6c: Add section references list**
 
 Add a `### References` subheading at the end of the section (before the next `##` section):
 
@@ -129,16 +150,19 @@ Add a `### References` subheading at the end of the section (before the next `##
 - [citation-key] "Title" ("One-sentence takeaway relevant to this section.")
 ```
 
-**Verification**: For each URL, attempt to fetch it with WebFetch.
-- If the fetch succeeds and content matches the cited claim: set `verified: true` in `references.yaml`
-- If the fetch fails or content doesn't match: set `verified: false` in `references.yaml`, and add a `<!-- CONFIDENCE: low -->` marker on the associated claim.
+**Verification**: trust the subagent's `verified` status by default. Spot-check with WebFetch only when:
 
-### Step 6: Clean Up
+- The citation carries a load-bearing claim (e.g., the only source for a contradiction's resolution), or
+- The merged report flagged conflicting `verified` values across subagents.
+
+If a spot-check fails, set `verified: false` in `references.yaml` and add a `<!-- CONFIDENCE: low -->` marker on the associated claim.
+
+### Step 7: Clean Up
 
 - **Remove** the `<!-- RESEARCH: ... -->` directive from the investigated section.
 - **Preserve** RESEARCH directives in all other sections.
 
-### Step 7: Status Update
+### Step 8: Status Update
 
 After writing the section, check if ALL sections in the file have been investigated (no remaining `<!-- RESEARCH: ... -->` directives).
 
@@ -157,6 +181,8 @@ The expected commit message format: `research(investigation): <topic-name> <sect
 - Only write content for ONE RESEARCH directive per invocation. The scope is the single heading that contains that directive — not a parent section, not sibling subsections.
 - Do NOT modify other sections' content (only remove the directive from the investigated heading).
 - Do NOT restructure the topic or change headings — if the section scope is wrong, leave an AUDIT comment.
-- Do NOT fabricate sources. Every URL in references must be real and fetched.
-- If the RESEARCH directive's query is ill-defined or overlaps with another section, leave an AUDIT comment with `type: gap, severity: major` and write best-effort content.
+- Do NOT fabricate sources. Every citation must come from a subagent's `Sources` section. URL spot-checks are by WebFetch only.
+- If the RESEARCH directive's query is ill-defined or overlaps with another section, leave an AUDIT comment with `type: gap, severity: major` and write best-effort content from whatever the subagent could surface.
 - Do NOT advance status beyond `draft`.
+- **Do not** call WebSearch yourself. The subagent owns search; you own synthesis.
+- **Tolerate subagent under-scaling.** A `Coverage vs. Scale` shortfall is a footnote in the prose (and possibly an Open Question), not a fatal error. The section is still useful at a smaller scale.
