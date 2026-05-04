@@ -29,7 +29,6 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 4. `/task-implementation` → Strict TDD: one task per invocation, tests first
 5. `/implementation-cycle` → Sequentially runs task-implementation + commit in fresh subagents (one per task) to keep the main session clean
 6. `/milestone-closing` → Verifies criteria, documents results, resets PLAN.md
-7. `/commit` → The single commit point; no other skill commits directly
 
 **Research workflow** — a multi-phase system for building knowledge bases:
 1. `/research-inception` → Creates project structure (INDEX.md, DECISIONS.md, glossary.md, topic stubs)
@@ -55,6 +54,9 @@ The full research specification is in `prompts/research.md`.
 5. `/codebase-derive-instructions` → Lifts `kind: rule` findings into `CLAUDE.md` (or `AGENTS.md` if present) with source-anchor comments; verifies length, imports, and rule count before writing
 
 The subagents live in `agents/` and are installed alongside skills by `install.sh`.
+
+**Common skills** — used across multiple workflow families:
+- `/commit` → Crafts a conventional commit from staged/unstaged changes; the single commit point for all workflows (engineering, research, codebase-survey) — no other skill commits directly
 
 **Utility skills** — standalone tools that don't belong to a workflow family:
 - `/audit-context` → Diagnoses contradictions, ambiguities, and irrelevance in the current session context (or a given file list); read-only, produces a line-cited severity-ranked report
