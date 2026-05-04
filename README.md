@@ -134,8 +134,8 @@ agents/
   structural-discovery.md
   test-auditor.md
   wire-api-extractor.md
-prompts/
-  research.md              # full research workflow specification
+CODEBASE_SURVEY.md         # full codebase-survey workflow specification
+RESEARCH.md                # full research workflow specification
 documentation/
   anthropic/skills.md      # official Anthropic skills docs
 install.sh                 # symlink installer (skills + agents)
