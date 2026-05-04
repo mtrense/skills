@@ -69,7 +69,7 @@ A workflow for bootstrapping and maintaining an AI-consumable map of an existing
 | 2 | `/codebase-survey-module <path>` | Deep-dive one module via parallel subagents (deps, API surface, wire API, tests, ops) |
 | 3 | `/codebase-architecture-assessment` | Cross-cutting findings written to `docs/codebase/assessment.md`; tagged `kind: rule` or `kind: observation` |
 | 4 | `/codebase-derive-instructions` | Lift `kind: rule` findings into `CLAUDE.md` (or `AGENTS.md`); source-anchored, verified for length and rule count |
-| - | `/codebase-survey-update [range\|PR#]` | Incremental refresh driven by per-module `surveyed_sha`; only re-surveys modules whose code changed |
+| - | `/codebase-survey-update [range/PR#]` | Incremental refresh driven by per-module `surveyed_sha`; only re-surveys modules whose code changed |
 
 The workflow uses six bundled subagents (`structural-discovery`, `dep-grapher`, `api-surface-extractor`, `wire-api-extractor`, `test-auditor`, `ops-detective`) that live in `agents/` and are installed alongside skills.
 
