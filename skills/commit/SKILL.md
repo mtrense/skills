@@ -4,12 +4,14 @@ description: >
   Analyse staged and unstaged changes, craft a meaningful commit message, and commit.
   Trigger whenever the user says "commit", "create a commit", "make a commit", "commit
   these changes", "commit the work", "commit and push", "/commit", or otherwise asks to
-  persist current git changes. Also trigger after task-implementation, milestone-closing,
-  milestone-breakdown, strategic-planning, or project-inception completes and the user
-  signals readiness to commit (e.g. "looks good, commit it", "ship it", "save this").
-  This is the ONLY commit point in the engineering workflow — all other skills defer
-  commit creation to this skill. Do NOT trigger for purely exploratory git questions
-  ("what's changed?", "show me the diff") that do not request a commit.
+  persist current git changes. Also trigger after any workflow skill completes (e.g.
+  task-implementation, milestone-closing, milestone-breakdown, strategic-planning,
+  project-inception, research-investigation, research-refine, codebase-survey-module,
+  codebase-derive-instructions) and the user signals readiness to commit (e.g. "looks
+  good, commit it", "ship it", "save this"). This is the ONLY commit point across all
+  workflows — every other skill defers commit creation to this skill. Do NOT trigger
+  for purely exploratory git questions ("what's changed?", "show me the diff") that do
+  not request a commit.
 argument-hint: Optional guidance on what to commit or how to slice changes
 model: sonnet
 allowed-tools: Bash(git status *), Bash(git diff *), Bash(git add *), Bash(git commit *), Bash(git log *), Bash(git rm *), Bash(git init *), Bash(echo *), Read, Glob
@@ -17,10 +19,9 @@ allowed-tools: Bash(git status *), Bash(git diff *), Bash(git add *), Bash(git c
 
 # Commit — Analyse Changes and Craft a Meaningful Commit
 
-> For the full workflow this skill belongs to, see [workflow-overview.md](../_shared/workflow-overview.md).
-
-You are responsible for the **only** commit step in the engineering workflow. No other
-skill commits directly — they all defer to you.
+You are responsible for the **only** commit step across all workflows (engineering,
+research, codebase-survey, ad-hoc). No other skill commits directly — they all defer
+to you.
 
 ## Workflow
 
