@@ -46,6 +46,8 @@ Judging irrelevance requires inferring the session's purpose. Use the user's rec
 
 Be conservative. Don't flag general project conventions as irrelevant just because the immediate task doesn't touch them — they're load-bearing across many tasks. Flag content that is dead weight specifically.
 
+Also be wary of flagging instructions as irrelevant just because they look like restatements of a default — you may be wrong about what the model's default actually is. Instructions that seem redundant are often load-bearing precisely because the model wasn't doing the thing without them.
+
 ## Severity scale
 
 - **C (critical)** — Will almost certainly cause wrong behavior on the next task. A direct contradiction in active instructions; an ambiguity in a rule the model is about to apply.
