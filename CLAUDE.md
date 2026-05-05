@@ -2,21 +2,24 @@
 
 ## What This Repo Is
 
-A test-bed for developing, improving, and deploying Claude Code skills. Skills are prompt-based plugins — markdown files with YAML frontmatter that Claude loads and follows as playbooks. Each skill lives in `skills/<skill-name>/SKILL.md`.
+A test-bed for developing, improving, and deploying Claude Code skills. Skills are prompt-based plugins — markdown files with YAML frontmatter that Claude loads and follows as playbooks. Skills are grouped by workflow family at the repo root: each top-level directory (`engineering/`, `research/`, `codebase-survey/`, `common/`) contains its own `skills/` and `agents/` subdirectories. A skill therefore lives at `<workflow>/skills/<skill-name>/SKILL.md` and a custom subagent at `<workflow>/agents/<name>.md`.
 
 When working in this repo, the goal is typically to iterate on skill prompts, test them against real usage, and prepare them for deployment to other projects via `install.sh` (symlinks) or manual copy.
 
 ## Installation
 
 ```bash
-# Install all skills globally (symlinks to ~/.claude/skills/)
-./install.sh
+# Install every workflow globally (~/.claude/skills/ + ~/.claude/agents/)
+./install.sh all
 
-# Install to a specific project
-./install.sh /path/to/project
+# Install one workflow globally
+./install.sh engineering
+
+# Install one workflow into a specific project
+./install.sh research /path/to/project
 ```
 
-`install.sh` installs all skills from `skills/` via symlinks.
+`install.sh` takes the workflow name (or `all`) as the first argument and an optional target directory as the second. All selected skills are symlinked into `<target>/.claude/skills/` and agents into `<target>/.claude/agents/` — the flat layout Claude Code expects — so workflow grouping exists only at the source. Two workflows that ship a skill or agent with the same filename will shadow each other when installed together; this is intentional, so a workflow can re-define a skill by name when installed alone.
 
 ## Skill Architecture
 
@@ -30,7 +33,7 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 5. `/implementation-cycle` → Sequentially spawns one `task-worker` subagent per task (which invokes task-implementation + commit) to keep the main session clean
 6. `/milestone-closing` → Verifies criteria, documents results, resets PLAN.md
 
-The engineering workflow ships two custom subagents (`milestone-scout`, `task-worker`) under `agents/`, installed alongside skills by `install.sh`.
+The engineering workflow ships two custom subagents (`milestone-scout`, `task-worker`) under `engineering/agents/`, installed alongside skills by `install.sh`.
 
 **Research workflow** — a multi-phase system for building knowledge bases:
 1. `/research-inception` → Creates project structure (INDEX.md, DECISIONS.md, glossary.md, topic stubs)
@@ -46,14 +49,14 @@ The engineering workflow ships two custom subagents (`milestone-scout`, `task-wo
 11. `/research-restructure` → Structural changes (split, merge, promote, demote) with cross-reference rewriting
 12. `/research-glossary-sync` → Reconciles glossary.md against topic content. Fans out per-topic candidate extraction to `term-extractor` subagents in parallel.
 
-The research workflow ships five custom subagents under `agents/`, installed alongside skills by `install.sh`:
+The research workflow ships five custom subagents under `research/agents/`, installed alongside skills by `install.sh`:
 - `source-investigator` — search-fetch-verify worker for `research-investigation`.
 - `confidence-verifier` — shared CONFIDENCE-marker verifier for all four `research-audit-*` skills.
 - `quality-auditor` — per-topic depth/sourcing auditor spawned in parallel by `research-audit-quality`.
 - `coherence-auditor` — per-topic narrative-flow auditor spawned in parallel by `research-audit-coherence`.
 - `term-extractor` — per-topic glossary-candidate extractor spawned in parallel by `research-glossary-sync`.
 
-The full research specification is in `RESEARCH.md`.
+The full research specification is in `research/README.md`.
 
 **Codebase-survey workflow** — bootstraps and maintains an AI-consumable map of an existing codebase, with detail co-located alongside code:
 1. `/codebase-survey-init` → Bootstrap; delegates raw discovery to the structural-discovery subagent, synthesizes the module map in the main session, writes top-level `CODEBASE.md` plus per-module stubs
@@ -62,13 +65,16 @@ The full research specification is in `RESEARCH.md`.
 4. `/codebase-survey-update [commit-range|PR#]` → Incremental refresh driven by per-module `surveyed_sha` deltas; flags `CLAUDE.md` drift but does not rewrite
 5. `/codebase-derive-instructions` → Lifts `kind: rule` findings into `CLAUDE.md` (or `AGENTS.md` if present) with source-anchor comments; verifies length, imports, and rule count before writing
 
-The subagents live in `agents/` and are installed alongside skills by `install.sh`.
+The subagents live in `codebase-survey/agents/` and are installed alongside skills by `install.sh`.
 
-**Common skills** — used across multiple workflow families:
+**Common workflow** — skills and agents that aren't owned by any single workflow live under `common/`. This currently houses two kinds of skill:
+
+Cross-workflow tools (used by, or invoked from, multiple workflow families):
 - `/commit` → Crafts a conventional commit from staged/unstaged changes; the single commit point for all workflows (engineering, research, codebase-survey) — no other skill commits directly
 
-**Utility skills** — standalone tools that don't belong to a workflow family:
+Standalone utilities (don't belong to any workflow):
 - `/audit-context` → Diagnoses contradictions, ambiguities, and irrelevance in the current session context (or a given file list); read-only, produces a line-cited severity-ranked report
+- `/deckset` → Generates Deckset (macOS) presentations from existing markdown content
 
 ### Skill File Conventions
 
@@ -79,19 +85,21 @@ Each `SKILL.md` has YAML frontmatter controlling behavior:
 - `disable-model-invocation: true` — user-only invocation (all research skills use this)
 - `argument-hint` — documents expected arguments
 
-Reference files (like `skills/milestone-breakdown/references/SAMPLE-PLAN.md`) sit alongside SKILL.md and are loaded as context.
+Reference files (like `engineering/skills/milestone-breakdown/references/SAMPLE-PLAN.md`) sit alongside SKILL.md and are loaded as context.
 
 ### When Adding a New Skill
 
-After creating a new skill under `skills/<skill-name>/`, register it in both:
+After creating a new skill under `<workflow>/skills/<skill-name>/`, register it in both:
 - `CLAUDE.md` — add it to the appropriate workflow family list under "Workflow Families" (or create a new family if it doesn't fit)
 - `README.md` — add it to the user-facing skill listing
+
+If the skill doesn't belong to any existing workflow, place it under `common/skills/` and consider whether a new workflow directory is warranted.
 
 Keep the one-line description consistent across both files.
 
 ### Subagents
 
-Custom subagents live in `agents/<name>.md` (a single file per agent, not a directory) and are installed via symlink to `~/.claude/agents/` (or `<project>/.claude/agents/` for project installs) by the same `install.sh`. Skills invoke them via the `Agent` tool with `subagent_type: <name>`. Use a custom subagent when a skill needs to delegate a deterministic, structured task (e.g., extracting an API surface, running a dependency grapher) so the orchestrating skill never sees raw tool output.
+Custom subagents live in `<workflow>/agents/<name>.md` (a single file per agent, not a directory) and are installed via symlink to `~/.claude/agents/` (or `<project>/.claude/agents/` for project installs) by the same `install.sh`. Skills invoke them via the `Agent` tool with `subagent_type: <name>`. Use a custom subagent when a skill needs to delegate a deterministic, structured task (e.g., extracting an API surface, running a dependency grapher) so the orchestrating skill never sees raw tool output.
 
 ### Key Documents Referenced by Skills
 
