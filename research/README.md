@@ -29,7 +29,7 @@ A phased workflow with four broad steps — bootstrap, inquiry, investigation, a
 
 ## Project Layout
 
-Everything lives under a `research/` folder so the same repository can host other workflows (engineering, codebase-survey) without collision:
+Everything lives under a `research/` folder so the same repository can host other workflows (milestone-driven, codebase-survey) without collision:
 
 ```
 /

@@ -2,7 +2,7 @@
 
 ## What This Repo Is
 
-A test-bed for developing, improving, and deploying Claude Code skills. Skills are prompt-based plugins — markdown files with YAML frontmatter that Claude loads and follows as playbooks. Skills are grouped by workflow family at the repo root: each top-level directory (`engineering/`, `research/`, `codebase-survey/`, `common/`) contains its own `skills/` and `agents/` subdirectories. A skill therefore lives at `<workflow>/skills/<skill-name>/SKILL.md` and a custom subagent at `<workflow>/agents/<name>.md`.
+A test-bed for developing, improving, and deploying Claude Code skills. Skills are prompt-based plugins — markdown files with YAML frontmatter that Claude loads and follows as playbooks. Skills are grouped by workflow family at the repo root: each top-level directory (`milestone-driven/`, `research/`, `codebase-survey/`, `common/`) contains its own `skills/` and `agents/` subdirectories. A skill therefore lives at `<workflow>/skills/<skill-name>/SKILL.md` and a custom subagent at `<workflow>/agents/<name>.md`.
 
 When working in this repo, the goal is typically to iterate on skill prompts, test them against real usage, and prepare them for deployment to other projects via `install.sh` (symlinks) or manual copy.
 
@@ -13,7 +13,7 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 ./install.sh all
 
 # Install one workflow globally
-./install.sh engineering
+./install.sh milestone-driven
 
 # Install one workflow into a specific project
 ./install.sh research /path/to/project
@@ -25,7 +25,7 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 
 ### Workflow Families
 
-**Engineering workflow** — a four-phase cycle for building software:
+**Milestone-driven workflow** — a four-phase cycle for building software:
 1. `/project-inception` → Socratic dialogue producing README.md (one-time, precedes the cycle)
 2. `/strategic-planning` → Socratic dialogue adding milestones to ROADMAP.md
 3. `/milestone-breakdown` → Decomposes a milestone into ordered tasks in PLAN.md; delegates codebase reconnaissance to the `milestone-scout` subagent
@@ -33,7 +33,7 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 5. `/implementation-cycle` → Sequentially spawns one `task-worker` subagent per task (which invokes task-implementation + commit) to keep the main session clean
 6. `/milestone-closing` → Verifies criteria, documents results, resets PLAN.md
 
-The engineering workflow ships two custom subagents (`milestone-scout`, `task-worker`) under `engineering/agents/`, installed alongside skills by `install.sh`.
+The milestone-driven workflow ships two custom subagents (`milestone-scout`, `task-worker`) under `milestone-driven/agents/`, installed alongside skills by `install.sh`.
 
 **Research workflow** — a multi-phase system for building knowledge bases:
 1. `/research-inception` → Creates project structure (INDEX.md, DECISIONS.md, glossary.md, topic stubs)
@@ -70,7 +70,7 @@ The subagents live in `codebase-survey/agents/` and are installed alongside skil
 **Common workflow** — skills and agents that aren't owned by any single workflow live under `common/`. This currently houses two kinds of skill:
 
 Cross-workflow tools (used by, or invoked from, multiple workflow families):
-- `/commit` → Crafts a conventional commit from staged/unstaged changes; the single commit point for all workflows (engineering, research, codebase-survey) — no other skill commits directly
+- `/commit` → Crafts a conventional commit from staged/unstaged changes; the single commit point for all workflows (milestone-driven, research, codebase-survey) — no other skill commits directly
 
 Standalone utilities (don't belong to any workflow):
 - `/audit-context` → Diagnoses contradictions, ambiguities, and irrelevance in the current session context (or a given file list); read-only, produces a line-cited severity-ranked report
@@ -85,7 +85,7 @@ Each `SKILL.md` has YAML frontmatter controlling behavior:
 - `disable-model-invocation: true` — user-only invocation (all research skills use this)
 - `argument-hint` — documents expected arguments
 
-Reference files (like `engineering/skills/milestone-breakdown/references/SAMPLE-PLAN.md`) sit alongside SKILL.md and are loaded as context.
+Reference files (like `milestone-driven/skills/milestone-breakdown/references/SAMPLE-PLAN.md`) sit alongside SKILL.md and are loaded as context.
 
 ### When Adding a New Skill
 

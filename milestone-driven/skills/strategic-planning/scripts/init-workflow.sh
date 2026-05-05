@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# init-workflow.sh — Bootstrap the AI-native engineering workflow files
+# init-workflow.sh — Bootstrap the AI-native milestone-driven workflow files
 # Run this in your project root to create ROADMAP.md and PLAN.md
 
 set -euo pipefail

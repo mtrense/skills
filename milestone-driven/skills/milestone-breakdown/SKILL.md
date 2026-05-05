@@ -16,7 +16,7 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Agent
 
 > For the full workflow this skill belongs to, see [workflow-overview.md](../_shared/workflow-overview.md).
 
-You are guiding the human through the **Break-Down** phase of an AI-native engineering
+You are guiding the human through the **Break-Down** phase of an AI-native milestone-driven
 workflow. Your job is to turn the next open milestone from `ROADMAP.md` into a concrete,
 ordered list of tasks in `PLAN.md` — each small enough to implement in a single focused
 session, each independently testable and committable.
