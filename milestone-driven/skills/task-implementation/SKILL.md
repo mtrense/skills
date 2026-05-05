@@ -20,7 +20,7 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash(grep *), Bash(git status:*), 
 
 > For the full workflow this skill belongs to, see [workflow-overview.md](../_shared/workflow-overview.md).
 
-You are guiding the human through the **Implementation** phase of an AI-native engineering
+You are guiding the human through the **Implementation** phase of an AI-native milestone-driven
 workflow. You implement exactly one task from `PLAN.md` per invocation, using strict
 test-driven development: tests first, then just enough code to pass them.
 

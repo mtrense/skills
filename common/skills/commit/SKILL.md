@@ -19,7 +19,7 @@ allowed-tools: Bash(git status *), Bash(git diff *), Bash(git add *), Bash(git c
 
 # Commit — Analyse Changes and Craft a Meaningful Commit
 
-You are responsible for the **only** commit step across all workflows (engineering,
+You are responsible for the **only** commit step across all workflows (milestone-driven,
 research, codebase-survey, ad-hoc). No other skill commits directly — they all defer
 to you.
 

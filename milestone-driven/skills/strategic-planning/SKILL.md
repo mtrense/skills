@@ -7,7 +7,7 @@ description: >
   or says things like "let's plan", "new milestone", "next feature", "I want to build",
   "add to the roadmap", or references ROADMAP.md. Also trigger when the user starts
   describing a high-level goal or user-facing feature they want to pursue next. This skill
-  is the entry point of a four-phase engineering workflow — use it for the strategic/planning
+  is the entry point of a four-phase milestone-driven workflow — use it for the strategic/planning
   phase, not for breaking down tasks or implementing code.
 model: opus
 disable-model-invocation: true
@@ -20,7 +20,7 @@ argument-hint: "<feature or capability to plan>"
 > For the full workflow this skill belongs to, see [workflow-overview.md](../_shared/workflow-overview.md).
 
 You are guiding the human through the **Strategic Planning** phase of an AI-native
-engineering workflow. Your role is to act as a thoughtful product/engineering partner who
+milestone-driven workflow. Your role is to act as a thoughtful product/engineering partner who
 uses Socratic questioning to sharpen a vague idea into a well-defined, testable milestone
 before it gets committed to `ROADMAP.md`.
 

@@ -11,17 +11,17 @@ Skills are markdown files with YAML frontmatter that Claude loads as playbooks. 
 ./install.sh all
 
 # Install just one workflow globally
-./install.sh engineering
+./install.sh milestone-driven
 
 # Install one workflow into a specific project
 ./install.sh research /path/to/project
 ```
 
-The first argument is the workflow name (`codebase-survey`, `common`, `engineering`, `research`) or `all`. The optional second argument is the install target (defaults to `$HOME`). The installer creates symlinks, so skills stay up to date as you pull changes.
+The first argument is the workflow name (`codebase-survey`, `common`, `milestone-driven`, `research`) or `all`. The optional second argument is the install target (defaults to `$HOME`). The installer creates symlinks, so skills stay up to date as you pull changes.
 
 ## Skills
 
-### Engineering Workflow
+### Milestone-Driven Workflow
 
 A phased cycle for building software, from idea through implementation to closeout. Each phase produces a specific artifact that feeds into the next.
 
@@ -37,7 +37,7 @@ A phased cycle for building software, from idea through implementation to closeo
 
 **Typical flow:** `inception` (once) -> `planning` -> `breakdown` -> `implementation` (repeat per task) -> `closing` -> back to `planning`.
 
-The engineering workflow uses two bundled subagents: `milestone-scout` (delegated codebase reconnaissance for `milestone-breakdown`) and `task-worker` (per-task `task-implementation` + `commit` worker for `implementation-cycle`). Both live in `engineering/agents/` and are installed alongside the workflow's skills.
+The milestone-driven workflow uses two bundled subagents: `milestone-scout` (delegated codebase reconnaissance for `milestone-breakdown`) and `task-worker` (per-task `task-implementation` + `commit` worker for `implementation-cycle`). Both live in `milestone-driven/agents/` and are installed alongside the workflow's skills.
 
 ### Research Workflow
 
@@ -130,7 +130,7 @@ common/
     commit/SKILL.md
     deckset/SKILL.md
   agents/                  # (empty for now)
-engineering/
+milestone-driven/
   skills/
     implementation-cycle/SKILL.md
     milestone-breakdown/SKILL.md

@@ -4,7 +4,7 @@ description: >
   Facilitate project inception for new software projects by discovering the project's
   vision, goals, and planned feature set through Socratic dialogue, then producing a
   concise README.md and a CLAUDE.md with project-specific instructions for AI-assisted
-  development. This skill precedes the four-phase engineering workflow — use it once at
+  development. This skill precedes the four-phase milestone-driven workflow — use it once at
   the very beginning to establish the project's identity before strategic planning begins.
 disable-model-invocation: true
 model: opus

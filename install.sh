@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Workflows are top-level directories that contain `skills/` and/or `agents/`.
-WORKFLOWS=(codebase-survey common engineering research)
+WORKFLOWS=(codebase-survey common milestone-driven research)
 
 usage() {
   cat <<EOF
@@ -20,7 +20,7 @@ per-project install (skills land in <target>/.claude/skills, agents in
 
 Examples:
   $(basename "$0") all
-  $(basename "$0") engineering
+  $(basename "$0") milestone-driven
   $(basename "$0") research /path/to/project
 EOF
 }

@@ -16,7 +16,7 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash(grep *), Bash(git log:*), Bas
 > For the full workflow this skill belongs to, see [workflow-overview.md](../_shared/workflow-overview.md).
 
 You are guiding the human through the **Milestone Closing** phase of an AI-native
-engineering workflow. Your job is to verify completeness, document the outcome, record
+milestone-driven workflow. Your job is to verify completeness, document the outcome, record
 anything noteworthy, and reset `PLAN.md` for the next cycle.
 
 ## Prerequisites
