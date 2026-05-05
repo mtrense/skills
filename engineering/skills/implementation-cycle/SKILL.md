@@ -59,8 +59,8 @@ yourself — that's the human's call.
 Use the `Agent` tool with `subagent_type: task-worker`. The subagent's full
 contract — invoke `task-implementation`, then `commit`, return a fenced
 `report` block, halt instead of pushing through ambiguity — lives in
-`agents/task-worker.md`. Your prompt only needs to name the task and pass any
-context the worker can't infer from PLAN.md itself.
+`engineering/agents/task-worker.md`. Your prompt only needs to name the task
+and pass any context the worker can't infer from PLAN.md itself.
 
 Use this template:
 
@@ -75,11 +75,11 @@ will surface anything you halt on.
 Run the Agent call **synchronously** — do not use `run_in_background`. Wait for
 its result before continuing.
 
-If the `task-worker` subagent isn't available in this environment (e.g.,
-`agents/` wasn't installed), fall back to `subagent_type: general-purpose` and
-inline the contract from `agents/task-worker.md` into the prompt. This is a
-fallback, not the default — running on `task-worker` keeps the contract in one
-place.
+If the `task-worker` subagent isn't available in this environment (e.g., the
+engineering workflow's `agents/` wasn't installed), fall back to
+`subagent_type: general-purpose` and inline the contract from
+`engineering/agents/task-worker.md` into the prompt. This is a fallback, not
+the default — running on `task-worker` keeps the contract in one place.
 
 ### Step 4: Post-flight Check
 

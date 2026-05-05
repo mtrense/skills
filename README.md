@@ -7,14 +7,17 @@ Skills are markdown files with YAML frontmatter that Claude loads as playbooks. 
 ## Installation
 
 ```bash
-# Install all skills globally (~/.claude/skills/)
-./install.sh
+# Install every workflow globally (~/.claude/skills/ + ~/.claude/agents/)
+./install.sh all
 
-# Install to a specific project
-./install.sh /path/to/project
+# Install just one workflow globally
+./install.sh engineering
+
+# Install one workflow into a specific project
+./install.sh research /path/to/project
 ```
 
-The installer creates symlinks, so skills stay up to date as you pull changes.
+The first argument is the workflow name (`codebase-survey`, `common`, `engineering`, `research`) or `all`. The optional second argument is the install target (defaults to `$HOME`). The installer creates symlinks, so skills stay up to date as you pull changes.
 
 ## Skills
 
@@ -34,7 +37,7 @@ A phased cycle for building software, from idea through implementation to closeo
 
 **Typical flow:** `inception` (once) -> `planning` -> `breakdown` -> `implementation` (repeat per task) -> `closing` -> back to `planning`.
 
-The engineering workflow uses two bundled subagents: `milestone-scout` (delegated codebase reconnaissance for `milestone-breakdown`) and `task-worker` (per-task `task-implementation` + `commit` worker for `implementation-cycle`). Both live in `agents/` and are installed alongside skills.
+The engineering workflow uses two bundled subagents: `milestone-scout` (delegated codebase reconnaissance for `milestone-breakdown`) and `task-worker` (per-task `task-implementation` + `commit` worker for `implementation-cycle`). Both live in `engineering/agents/` and are installed alongside the workflow's skills.
 
 ### Research Workflow
 
@@ -57,7 +60,7 @@ A multi-phase system for building structured knowledge bases with source verific
 
 Research skills track topic status through: `stub` -> `inquiry` -> `draft` -> `audited` -> `done`.
 
-The research workflow uses five bundled subagents: `source-investigator` (web search-fetch-verify loop for `research-investigation`), `confidence-verifier` (CONFIDENCE-marker verifier shared by all four `research-audit-*` skills), `quality-auditor` (per-topic depth/sourcing audit, spawned in parallel by `research-audit-quality`), `coherence-auditor` (per-topic narrative-flow audit, spawned in parallel by `research-audit-coherence`), and `term-extractor` (per-topic glossary-candidate extraction, spawned in parallel by `research-glossary-sync`). All live in `agents/` and are installed alongside skills.
+The research workflow uses five bundled subagents: `source-investigator` (web search-fetch-verify loop for `research-investigation`), `confidence-verifier` (CONFIDENCE-marker verifier shared by all four `research-audit-*` skills), `quality-auditor` (per-topic depth/sourcing audit, spawned in parallel by `research-audit-quality`), `coherence-auditor` (per-topic narrative-flow audit, spawned in parallel by `research-audit-coherence`), and `term-extractor` (per-topic glossary-candidate extraction, spawned in parallel by `research-glossary-sync`). All live in `research/agents/` and are installed alongside the workflow's skills.
 
 ### Codebase Survey Workflow
 
@@ -71,7 +74,7 @@ A workflow for bootstrapping and maintaining an AI-consumable map of an existing
 | 4 | `/codebase-derive-instructions` | Lift `kind: rule` findings into `CLAUDE.md` (or `AGENTS.md`); source-anchored, verified for length and rule count |
 | - | `/codebase-survey-update [range/PR#]` | Incremental refresh driven by per-module `surveyed_sha`; only re-surveys modules whose code changed |
 
-The workflow uses six bundled subagents (`structural-discovery`, `dep-grapher`, `api-surface-extractor`, `wire-api-extractor`, `test-auditor`, `ops-detective`) that live in `agents/` and are installed alongside skills.
+The workflow uses six bundled subagents (`structural-discovery`, `dep-grapher`, `api-surface-extractor`, `wire-api-extractor`, `test-auditor`, `ops-detective`) that live in `codebase-survey/agents/` and are installed alongside the workflow's skills.
 
 ### Utility
 
@@ -82,7 +85,7 @@ The workflow uses six bundled subagents (`structural-discovery`, `dep-grapher`, 
 
 ## How Skills Work
 
-Each skill lives in `skills/<name>/SKILL.md` and uses YAML frontmatter to configure behavior:
+Each skill lives in `<workflow>/skills/<name>/SKILL.md` and uses YAML frontmatter to configure behavior:
 
 ```yaml
 ---
@@ -103,51 +106,65 @@ For the full specification of skill frontmatter and capabilities, see the [Anthr
 
 ## Repository Structure
 
+Skills are grouped by workflow at the repo root. Each workflow directory has its own `skills/` and `agents/` subdirectories — `install.sh` reads from those and symlinks them flat into `<target>/.claude/skills/` and `<target>/.claude/agents/`.
+
 ```
-skills/
-  audit-context/SKILL.md
-  codebase-architecture-assessment/SKILL.md
-  codebase-derive-instructions/SKILL.md
-  codebase-survey-init/SKILL.md
-  codebase-survey-module/SKILL.md
-  codebase-survey-update/SKILL.md
-  commit/SKILL.md
-  deckset/SKILL.md
-  implementation-cycle/SKILL.md
-  milestone-breakdown/SKILL.md
-  milestone-closing/SKILL.md
-  project-inception/SKILL.md
-  research-add-chapter/SKILL.md
-  research-add-topic/SKILL.md
-  research-audit-coherence/SKILL.md
-  research-audit-consistency/SKILL.md
-  research-audit-coverage/SKILL.md
-  research-audit-quality/SKILL.md
-  research-glossary-sync/SKILL.md
-  research-inception/SKILL.md
-  research-inquiry/SKILL.md
-  research-investigation/SKILL.md
-  research-refine/SKILL.md
-  research-restructure/SKILL.md
-  strategic-planning/SKILL.md
-  task-implementation/SKILL.md
-agents/
-  api-surface-extractor.md
-  coherence-auditor.md
-  confidence-verifier.md
-  dep-grapher.md
-  milestone-scout.md
-  ops-detective.md
-  quality-auditor.md
-  source-investigator.md
-  structural-discovery.md
-  task-worker.md
-  term-extractor.md
-  test-auditor.md
-  wire-api-extractor.md
-CODEBASE_SURVEY.md         # full codebase-survey workflow specification
-RESEARCH.md                # full research workflow specification
+codebase-survey/
+  README.md                  # full codebase-survey workflow specification
+  skills/
+    codebase-architecture-assessment/SKILL.md
+    codebase-derive-instructions/SKILL.md
+    codebase-survey-init/SKILL.md
+    codebase-survey-module/SKILL.md
+    codebase-survey-update/SKILL.md
+  agents/
+    api-surface-extractor.md
+    dep-grapher.md
+    ops-detective.md
+    structural-discovery.md
+    test-auditor.md
+    wire-api-extractor.md
+common/
+  skills/
+    audit-context/SKILL.md
+    commit/SKILL.md
+    deckset/SKILL.md
+  agents/                  # (empty for now)
+engineering/
+  skills/
+    implementation-cycle/SKILL.md
+    milestone-breakdown/SKILL.md
+    milestone-closing/SKILL.md
+    project-inception/SKILL.md
+    strategic-planning/SKILL.md
+    task-implementation/SKILL.md
+  agents/
+    milestone-scout.md
+    task-worker.md
+research/
+  README.md                  # full research workflow specification
+  skills/
+    research-add-chapter/SKILL.md
+    research-add-topic/SKILL.md
+    research-audit-coherence/SKILL.md
+    research-audit-consistency/SKILL.md
+    research-audit-coverage/SKILL.md
+    research-audit-graphics/SKILL.md
+    research-audit-quality/SKILL.md
+    research-generate-graphics/SKILL.md
+    research-glossary-sync/SKILL.md
+    research-inception/SKILL.md
+    research-inquiry/SKILL.md
+    research-investigation/SKILL.md
+    research-refine/SKILL.md
+    research-restructure/SKILL.md
+  agents/
+    coherence-auditor.md
+    confidence-verifier.md
+    quality-auditor.md
+    source-investigator.md
+    term-extractor.md
 documentation/
   anthropic/skills.md      # official Anthropic skills docs
-install.sh                 # symlink installer (skills + agents)
+install.sh                 # symlink installer (skills + agents) — takes <workflow|all> [target]
 ```
