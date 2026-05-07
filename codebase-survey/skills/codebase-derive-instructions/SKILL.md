@@ -62,32 +62,28 @@ survey upstream rather than papering over it here.
 
 ## Phase Workflow
 
-### Step 1: Detect the AGENTS.md interop case
+### Step 1: Select the root-file target
 
-Check whether `AGENTS.md` exists at the repo root. There are two cases:
+This step **selects a target — it does not finish the workflow.** Steps 2–8
+run in full regardless of which root file is chosen, and per-module
+`<module>/CLAUDE.md` derivation (Steps 4 & 7) is unaffected by the choice.
+Do not stop after this step.
 
-- **AGENTS.md absent** (default): derive into `CLAUDE.md` at repo root.
-- **AGENTS.md present**: derive into `AGENTS.md` instead. Write a thin
-  `CLAUDE.md` at the repo root containing only:
+Check whether `AGENTS.md` exists at the repo root and set the root-file
+target accordingly:
 
-  ```markdown
-  ---
-  derived_from_survey_sha: <SHA>
-  derived_at: <YYYY-MM-DD>
-  derive_schema: 1
-  ---
+- **AGENTS.md absent** (default): root file is `CLAUDE.md` at the repo root.
+- **AGENTS.md present**: root file is `AGENTS.md`. The skill (over)writes
+  it with derived content (same way it would write `CLAUDE.md`). A thin
+  pointer `CLAUDE.md` is also written so Claude Code defers to AGENTS.md
+  — that file's template lives in Step 7.
 
-  @AGENTS.md
-
-  ## Claude Code
-
-  <Claude-specific addenda only — e.g., references to specific skills like
-  /commit or /implementation-cycle. Empty if no Claude-specifics apply.>
-  ```
-
-  This is the **only** sanctioned `@import` the skill produces: it exists
-  to make Claude Code defer to AGENTS.md. Per-module derivation still goes
-  into `<module>/CLAUDE.md`.
+  Hand-authored guard: if the existing `AGENTS.md` has **no**
+  `derived_from_survey_sha` in its front-matter, treat it as wholly
+  hand-authored. Halt and ask the user how to proceed (typically: rename
+  the existing file out of the way, or accept overwrite) before continuing.
+  Files that already carry the derive front-matter — even if originally
+  seeded from hand-authored content — may be (re)written.
 
 The rest of this document refers to "the root file" — substitute `AGENTS.md`
 when in the interop case.
@@ -203,6 +199,10 @@ short CLAUDE.md is a feature, not a defect.
    these are files to open, not content to inline.
 
 ### Step 4: Plan per-module files
+
+Per-module derivation runs in every invocation — it is independent of the
+root-file target selected in Step 1. Visit every module listed in the
+top-level `CODEBASE.md` module map and decide for each whether it qualifies.
 
 A module only gets a `<module>/CLAUDE.md` when it has **module-specific
 instructions** that aren't already captured at the root. "Module exists"
@@ -333,17 +333,43 @@ If a target file already exists with the same body modulo `derived_at`, do
 **not** rewrite it — re-running on unchanged sources is a no-op. Bump
 `derived_at` only if any other content changed.
 
-In the AGENTS.md interop case, write `AGENTS.md` and a thin `CLAUDE.md` per
-Step 1.
+**AGENTS.md interop case** — when AGENTS.md is the root-file target, write
+the derived content to `AGENTS.md` and *additionally* write a thin pointer
+`CLAUDE.md` at the repo root with this exact shape:
+
+```markdown
+---
+derived_from_survey_sha: <SHA>
+derived_at: <YYYY-MM-DD>
+derive_schema: 1
+---
+
+@AGENTS.md
+
+## Claude Code
+
+<Claude-specific addenda only — e.g., references to specific skills like
+/commit or /implementation-cycle. Omit the section entirely if no
+Claude-specifics apply.>
+```
+
+This is the **only** sanctioned `@import` the skill produces. Do not place
+derived content (build commands, boundaries, etc.) inside this thin
+`CLAUDE.md` — that content goes into `AGENTS.md`.
+
+Per-module `<module>/CLAUDE.md` files (from Step 4) are written in this
+case too, exactly as they would be without AGENTS.md.
 
 ### Step 8: Hand off
 
 Report:
 
-- Files written (path + line count).
+- Files written (path + line count) — both root and per-module.
 - Files left unchanged (same body modulo `derived_at`).
-- Modules deliberately *skipped* (no rules, no local commands) — listing
-  them explicitly avoids the user wondering whether the skill missed them.
+- **Every module from the top-level module map**, classified as either
+  *written* or *deliberately skipped* (no rules, no local commands).
+  Listing every module explicitly proves the per-module pass actually
+  ran and lets the user spot anything the skill missed.
 - Any verification warnings (length, duplication, code-style hits, rule
   count) that the user opted to accept.
 - Confirmation that re-running `/codebase-survey-update` is the right next
