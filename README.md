@@ -70,7 +70,7 @@ A workflow for bootstrapping and maintaining an AI-consumable map of an existing
 |-------|---------|-------------|
 | 1 | `/codebase-survey-init` | Bootstrap: discover structure, synthesize module map, write top-level `CODEBASE.md` + per-module stubs |
 | 2 | `/codebase-survey-module <path>` | Deep-dive one module via parallel subagents (deps, API surface, wire API, tests, ops) |
-| 3 | `/codebase-architecture-assessment` | Cross-cutting findings written to `docs/codebase/assessment.md`; tagged `kind: rule` or `kind: observation` |
+| 3 | `/codebase-architecture-assessment` | Cross-cutting findings (`assessment.md`, tagged `kind: rule` / `kind: observation`) plus synthesised `architecture.md`, `tech-stack.md`, and `operations.md` — all four `docs/codebase/*.md` files |
 | 4 | `/codebase-derive-instructions` | Lift `kind: rule` findings into `CLAUDE.md` (or `AGENTS.md`); source-anchored, verified for length and rule count |
 | - | `/codebase-survey-update [range/PR#]` | Incremental refresh driven by per-module `surveyed_sha`; only re-surveys modules whose code changed |
 

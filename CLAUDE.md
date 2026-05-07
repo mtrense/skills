@@ -61,7 +61,7 @@ The full research specification is in `research/README.md`.
 **Codebase-survey workflow** — bootstraps and maintains an AI-consumable map of an existing codebase, with detail co-located alongside code:
 1. `/codebase-survey-init` → Bootstrap; delegates raw discovery to the structural-discovery subagent, synthesizes the module map in the main session, writes top-level `CODEBASE.md` plus per-module stubs
 2. `/codebase-survey-module <path>` → Per-module deep-dive; spawns five subagents (dep-grapher, api-surface-extractor, wire-api-extractor, test-auditor, ops-detective) in parallel and assembles `<path>/CODEBASE.md`
-3. `/codebase-architecture-assessment` → Cross-cutting pass; writes `docs/codebase/assessment.md` with each finding tagged `kind: rule` or `kind: observation`
+3. `/codebase-architecture-assessment` → Cross-cutting pass; writes all four `docs/codebase/*.md` files — `assessment.md` (findings tagged `kind: rule` or `kind: observation`), plus synthesised `architecture.md`, `tech-stack.md`, and `operations.md`. Files that lack the `generated_by` marker are treated as human-authored stated architecture and not overwritten.
 4. `/codebase-survey-update [commit-range|PR#]` → Incremental refresh driven by per-module `surveyed_sha` deltas; flags `CLAUDE.md` drift but does not rewrite
 5. `/codebase-derive-instructions` → Lifts `kind: rule` findings into `CLAUDE.md` (or `AGENTS.md` if present) with source-anchor comments; verifies length, imports, and rule count before writing
 
