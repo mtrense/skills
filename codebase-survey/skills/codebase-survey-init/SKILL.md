@@ -199,14 +199,33 @@ TODO
 TODO
 ```
 
-Also create the `docs/codebase/` directory with empty stubs:
+Also create the `docs/codebase/` directory with stub files. Each stub uses
+this template (substitute the file's title and the surveyed_sha/at):
 
-- `docs/codebase/architecture.md` — `# Architecture\n\nTODO. Populated by /codebase-architecture-assessment.`
-- `docs/codebase/tech-stack.md` — `# Tech Stack\n\nTODO.`
-- `docs/codebase/operations.md` — `# Operations\n\nTODO.`
-- `docs/codebase/assessment.md` — `# Assessment\n\nTODO. Populated by /codebase-architecture-assessment.`
+```markdown
+---
+surveyed_sha: <git SHA at init, or "(no git)">
+surveyed_at: <YYYY-MM-DD>
+survey_schema: 1
+generated_by: codebase-survey-init (stub)
+---
 
-Each carries the same front-matter (`surveyed_sha`, `surveyed_at`, `survey_schema: 1`).
+# <title>
+
+TODO. Populated by `/codebase-architecture-assessment`.
+```
+
+Create all four stubs this way:
+
+- `docs/codebase/architecture.md` (title: `Architecture`)
+- `docs/codebase/tech-stack.md` (title: `Tech Stack`)
+- `docs/codebase/operations.md` (title: `Operations`)
+- `docs/codebase/assessment.md` (title: `Assessment`)
+
+The `generated_by: codebase-survey-init (stub)` marker is what tells
+`/codebase-architecture-assessment` it can safely overwrite the file. A
+human who edits a stub and removes that marker is signalling "this is now
+stated architecture — don't overwrite it".
 
 ### Step 6: Hand off
 

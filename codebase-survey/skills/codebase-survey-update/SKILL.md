@@ -121,7 +121,11 @@ If **Top-level updates needed** is non-empty:
   Do not auto-create the per-module stub — that's an init responsibility,
   but you may surface "run `/codebase-survey-module <path>` to populate it."
 - Ops changed at repo level: rerun `ops-detective` on the repo root and
-  rewrite `docs/codebase/operations.md`'s body.
+  rewrite `docs/codebase/operations.md`'s body — but only if its
+  front-matter has `generated_by: codebase-architecture-assessment` or
+  `generated_by: codebase-survey-init (stub)`. If `generated_by` is absent
+  or unrecognised, treat the file as human-authored, surface the ops
+  changes to the user, and stop short of the rewrite.
 - Tech stack changed (root manifest version bumps, language additions):
   update the `Tech Stack` section in `CODEBASE.md`.
 
