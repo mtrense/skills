@@ -11,7 +11,7 @@ description: >
 disable-model-invocation: true
 argument-hint: "(no arguments)"
 model: opus
-allowed-tools: Read, Write, Glob, Grep, Edit, Bash(git rev-parse:*), Bash(wc:*), Bash(ls:*)
+allowed-tools: Read, Write, Glob, Grep, Edit, Bash(git rev-parse:*)
 ---
 
 # Codebase Derive Instructions
@@ -284,10 +284,14 @@ Run these checks. Surface failures to the user; do not auto-fix silently.
    Halt on broken references — fix the path, don't write a dangling
    pointer.
 
-3. **Length budgets.**
-   - Root file: count body lines (excluding YAML front-matter). If > 150,
-     report and ask the user how to shed material before writing.
-   - Per-module file: > 60 lines → same response.
+3. **Length budgets.** Count the lines of the **planned body string you
+   just composed** (what goes after the front-matter delimiters). Do this
+   by reading your own draft — do not shell out to `awk`/`wc`/`sed` to
+   strip front-matter from a written file. The body is already in your
+   context; counting happens in your head.
+   - Root file: > 150 body lines → report and ask the user how to shed
+     material before writing.
+   - Per-module file: > 60 body lines → same response.
 
 4. **Rule duplication.** For each derived rule, similarity-check against
    the corresponding `CODEBASE.md` body. A near-verbatim copy of survey
@@ -332,6 +336,11 @@ derive_schema: 1
 If a target file already exists with the same body modulo `derived_at`, do
 **not** rewrite it — re-running on unchanged sources is a no-op. Bump
 `derived_at` only if any other content changed.
+
+To perform this check: use the `Read` tool to load the existing target file.
+The body starts after the second `---` line. Compare it against your planned
+body string in-memory. Do not shell out (`awk`/`sed`/`diff`) to strip
+front-matter — both halves are already in your context.
 
 **AGENTS.md interop case** — when AGENTS.md is the root-file target, write
 the derived content to `AGENTS.md` and *additionally* write a thin pointer
@@ -411,6 +420,12 @@ Do **not** commit.
 - **Verify before write.** A stray `@import`, a length blow-out, or a
   code-style rule slipping through is much harder to clean up after the
   fact than to catch at the gate.
+- **No shell pipelines for content manipulation.** Front-matter stripping,
+  line counting, and body comparison happen in your reasoning over the
+  planned body string and the `Read`-tool output — not via `awk`, `sed`,
+  `grep -v`, or `wc -l`. The skill's `allowed-tools` deliberately omits
+  these because they create permission-prompt friction with no payoff:
+  the data is already in your context.
 - **Idempotent.** Re-running on unchanged sources is a no-op modulo
   `derived_at`. The user can always run this after a survey update without
   worrying about churn.
