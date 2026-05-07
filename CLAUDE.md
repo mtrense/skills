@@ -71,6 +71,7 @@ The subagents live in `codebase-survey/agents/` and are installed alongside skil
 
 Cross-workflow tools (used by, or invoked from, multiple workflow families):
 - `/commit` → Crafts a conventional commit from staged/unstaged changes; the single commit point for all workflows (milestone-driven, research, codebase-survey) — no other skill commits directly
+- `/pr` → Creates or updates a GitHub pull request for the current branch via `gh`. Synthesises a What/Why/How body from commits and diff, defaults to draft (override with `final`), auto-pushes the branch, and refuses on a dirty tree (defers to `/commit`)
 
 Standalone utilities (don't belong to any workflow):
 - `/audit-context` → Diagnoses contradictions, ambiguities, and irrelevance in the current session context (or a given file list); read-only, produces a line-cited severity-ranked report
