@@ -3,10 +3,11 @@ name: codebase-derive-instructions
 description: >
   Read the assembled codebase survey (CODEBASE.md files, docs/codebase/*.md,
   assessment findings) and produce a lean, source-anchored CLAUDE.md at the
-  repo root plus one per module. Lifts kind:rule findings only; observations
-  stay in assessment.md. Verifies length budgets, import resolution, and rule
-  duplication before writing. If AGENTS.md exists at the repo root, derive
-  into AGENTS.md instead and write a thin CLAUDE.md that imports it.
+  repo root plus one per module that has rules. Lifts kind:rule findings
+  only; observations stay in assessment.md. Verifies length budgets, rule
+  duplication, and code-style leaks before writing. If AGENTS.md exists at
+  the repo root, derive into AGENTS.md instead and write a thin CLAUDE.md
+  that imports it.
 disable-model-invocation: true
 argument-hint: "(no arguments)"
 model: opus
@@ -16,13 +17,38 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash(git rev-parse:*), Bash(wc:*),
 # Codebase Derive Instructions
 
 You read a completed codebase survey and produce `CLAUDE.md` at the repo root
-plus one `<module>/CLAUDE.md` per module. Both are lean, source-anchored, and
-structured so a frontier model loads them at conversation start without
-exhausting its instruction budget.
+plus one `<module>/CLAUDE.md` per module **that has module-specific rules or
+local commands**. The derived files are lean and contain only instructions
+Claude Code actually needs at conversation start — not a recap of the survey.
 
-The skill is consumer of survey output, not a producer of new findings. If
-something looks wrong in the survey, surface it and stop — go fix the survey
-upstream rather than papering over it here.
+## What CLAUDE.md is for (and what it isn't)
+
+`CODEBASE.md` is the source-of-truth survey: module map, dependencies, API
+surface, tests, ops, observations, full assessment. It is **on-demand**
+reading — Claude opens it when relevant.
+
+`CLAUDE.md` is the **instruction sheet** loaded into every session. It must
+answer "how do I work in this repo?" — operational commands, hard rules,
+gotchas — without re-stating the survey. A reader of CLAUDE.md should never
+think "this is just a wrapper around CODEBASE.md."
+
+Concretely:
+
+- **Do not `@import` `CODEBASE.md`, `docs/codebase/*.md`, or `README.md`
+  into the derived files.** `@<path>` in CLAUDE.md eagerly inlines that
+  file's full contents into every session — exactly the bloat we are trying
+  to avoid. Use plain markdown references (e.g., `` see `CODEBASE.md` ``)
+  so Claude reads them only when it needs to.
+- **Lift only what Claude must follow**, not what it can discover. Build
+  commands, hard rules, and non-default workflows belong in CLAUDE.md.
+  Tech-stack rationale, module internals, and observations do not.
+- If a module's only "content" would be a pointer to its `CODEBASE.md`,
+  **do not write a CLAUDE.md for that module**. An empty wrapper is
+  strictly worse than no file.
+
+The skill is a consumer of survey output, not a producer of new findings.
+If something looks wrong in the survey, surface it and stop — go fix the
+survey upstream rather than papering over it here.
 
 ## Prerequisites
 
@@ -59,7 +85,9 @@ Check whether `AGENTS.md` exists at the repo root. There are two cases:
   /commit or /implementation-cycle. Empty if no Claude-specifics apply.>
   ```
 
-  Per-module derivation still goes into `<module>/CLAUDE.md`.
+  This is the **only** sanctioned `@import` the skill produces: it exists
+  to make Claude Code defer to AGENTS.md. Per-module derivation still goes
+  into `<module>/CLAUDE.md`.
 
 The rest of this document refers to "the root file" — substitute `AGENTS.md`
 when in the interop case.
@@ -70,11 +98,13 @@ Load:
 
 - Top-level `CODEBASE.md`.
 - Every `<module>/CODEBASE.md` referenced in the module map.
-- `docs/codebase/assessment.md`.
+- `docs/codebase/assessment.md` (this is where rules live — it's the
+  primary input for everything that ends up in the derived files).
 - `docs/codebase/architecture.md`, `docs/codebase/tech-stack.md`,
-  `docs/codebase/operations.md` (mostly for `@imports`, not for content
-  duplication).
-- The README at the repo root (used only for project-identity import).
+  `docs/codebase/operations.md` — read to confirm a rule's context, never
+  to harvest content for the derived files.
+- The README at the repo root, only to compose the one-line project-identity
+  sentence.
 
 Capture each source's `surveyed_sha` from its front-matter — you'll record
 the latest one as `derived_from_survey_sha` so future updates can detect
@@ -82,29 +112,31 @@ drift.
 
 ### Step 3: Plan the root file
 
-The root file is loaded into every Claude Code session. Budget: ≤ 200 lines
-in the file body (excluding front-matter and trailing newline), keeping the
-total expanded launch context (root file + everything its `@imports` pull
-in) comfortably under ~10 KB.
+The root file is loaded into every Claude Code session. Budget: ≤ 150 lines
+in the file body (excluding front-matter and trailing newline). Because
+nothing is `@import`ed except the AGENTS.md interop case, the file body
+*is* the launch context — keep it tight.
 
-Use this fixed section order. Omit a section entirely if it has no content —
-do not write empty headers.
+Use this fixed section order. **Omit a section entirely if it has no content
+— do not write empty headers, and do not invent material to fill them.** A
+short CLAUDE.md is a feature, not a defect.
 
-1. **Project identity** — 1–2 lines plus `@README.md` and `@CODEBASE.md`.
-   Single sentence saying what this is. Example:
+1. **Project identity** — One inline sentence. No imports. The sentence
+   names the kind of thing, the primary language/runtime, and the primary
+   value, drawn from the README and the top-level `CODEBASE.md`.
 
    ```markdown
    # <Project Name>
 
    <One-line: kind of thing it is, primary language, primary value.>
-
-   @README.md
-   @CODEBASE.md
    ```
 
-2. **Build & test commands** — Verbatim. Each line ends with an HTML comment
-   pointing to its source. Pull from manifest scripts (`package.json scripts`,
-   `Cargo.toml [aliases]`, `Makefile` targets, `pyproject.toml [tool.poetry.scripts]`).
+2. **Build & test commands** — Verbatim, only the commands a contributor
+   actually runs. Each line ends with an HTML comment pointing to its
+   source. Pull from manifest scripts (`package.json scripts`,
+   `Cargo.toml [aliases]`, `Makefile` targets,
+   `pyproject.toml [tool.poetry.scripts]`). Skip duplicates and
+   never-invoked aliases.
 
    ```markdown
    ## Build & Test
@@ -115,9 +147,11 @@ do not write empty headers.
    - `pnpm lint` — lint <!-- from: package.json scripts.lint, surveyed_sha=abc123 -->
    ```
 
-3. **Where things live** — One line per module, plus a pointer to
-   `@CODEBASE.md` for detail. Do **not** duplicate the module map — name
-   each module in one phrase.
+3. **Where things live** — Optional, and only when modules are not
+   self-evident from the directory layout. One line per module, max one
+   phrase. End with a plain reference to `CODEBASE.md`. Skip the entire
+   section in single-module repos or when names like `frontend/` and
+   `backend/` already say enough.
 
    ```markdown
    ## Where Things Live
@@ -126,19 +160,19 @@ do not write empty headers.
    - `packages/core` — domain logic (pure TS)
    - `packages/db` — persistence (Prisma + Postgres)
 
-   See `@CODEBASE.md` for the full module map.
+   Full module map: `CODEBASE.md`.
    ```
 
 4. **Boundaries** — Three subsections from `kind: rule` findings only.
    Skip findings tagged `kind: observation` — they stay in assessment.md.
-   Phrase each rule as imperative.
+   Phrase each rule as imperative. If a subsection has no rules, omit it
+   (and omit the whole section if all three are empty).
 
    ```markdown
    ## Boundaries
 
    ### Always
    - <imperative rule> <!-- from: docs/codebase/assessment.md F-003, surveyed_sha=abc123 -->
-   - ...
 
    ### Ask first
    - <rule that gates an action on user confirmation> <!-- from: ... -->
@@ -152,32 +186,46 @@ do not write empty headers.
    surfaced a workflow rule (e.g., "all commits go through `/commit`",
    "merges to main require `make verify`").
 
-6. **Pointers** — On-demand reads.
+6. **See also** — Optional. A short bulleted list of *plain* file
+   references (no `@`) for files Claude can open on demand. Include only
+   when a path is non-obvious; skip the section otherwise.
 
    ```markdown
    ## See Also
 
-   - `@docs/codebase/architecture.md` — system design
-   - `@docs/codebase/tech-stack.md` — stack rationale
-   - `@docs/codebase/operations.md` — CI/CD, deploys, observability
-   - `@docs/codebase/assessment.md` — full assessment (incl. observations)
+   - `CODEBASE.md` — module map and per-module surveys
+   - `docs/codebase/architecture.md` — system design
+   - `docs/codebase/operations.md` — CI/CD, deploys, observability
+   - `docs/codebase/assessment.md` — full assessment (incl. observations)
    ```
+
+   The leading `` ` ``-quoted paths are intentional — they make it obvious
+   these are files to open, not content to inline.
 
 ### Step 4: Plan per-module files
 
-Each module gets `<module>/CLAUDE.md`, loaded lazily by Claude Code when it
-reads files in that subtree. Budget: ≤ 80 lines.
+A module only gets a `<module>/CLAUDE.md` when it has **module-specific
+instructions** that aren't already captured at the root. "Module exists"
+is not a reason to write a file. Skip a module entirely when:
 
-Section order:
+- It has no Architectural Deviations in its `<module>/CODEBASE.md`.
+- It has no module-only commands (per-module test runner, generator,
+  etc.) beyond the root command set.
+- The only thing you would write is a pointer to `<module>/CODEBASE.md`.
+
+When a module *does* qualify, write a `<module>/CLAUDE.md` with budget
+≤ 60 lines. Section order:
 
 1. **Local commands** — only if the module has commands beyond the root set
    (e.g., a per-module test command, a generator). Skip otherwise.
 2. **Boundaries** — pulled verbatim from this module's `Architectural
    Deviations` section in `<module>/CODEBASE.md`. Add the source-anchor
-   comment.
-3. **Pointer to `@<module>/CODEBASE.md`**.
+   comment. Skip the section if there are none.
 
-Example (a thin module CLAUDE.md is good):
+No `@import`. No "see also" pointer to `<module>/CODEBASE.md` — Claude Code
+already knows to look there when working in the subtree.
+
+Example:
 
 ```markdown
 ---
@@ -191,27 +239,12 @@ derive_schema: 1
 ## Boundaries
 - Never call `core/internal/*` directly from a route handler — always go
   through the public `core` API. <!-- from: packages/api/CODEBASE.md#architectural-deviations, surveyed_sha=abc123 -->
-
-@packages/api/CODEBASE.md
 ```
 
-If a module has no findings beyond what the root file already covers, write
-a minimal stub:
-
-```markdown
----
-derived_from_survey_sha: <SHA>
-derived_at: <YYYY-MM-DD>
-derive_schema: 1
----
-
-# packages/<name>
-
-@packages/<name>/CODEBASE.md
-```
-
-A near-empty module CLAUDE.md is fine — it still gets the `@import` of the
-module survey when the user works in that subtree.
+If you find yourself writing a file with only a header and no rules or
+commands, stop and skip the module instead. An empty wrapper is strictly
+worse than no file: it costs lines in every session that touches the
+subtree, and it reads like a stub waiting to be filled.
 
 ### Step 5: Apply content discipline
 
@@ -220,49 +253,65 @@ the survey is the source of truth, not the derived file.
 
 | Survey input | Derived? | Notes |
 |---|---|---|
-| Build/test commands (from manifests, CI) | Yes, verbatim | Highest signal |
-| Project map / module boundaries | Pointer only | Don't duplicate `CODEBASE.md` |
-| Tech-stack rationale | No | Lives in `docs/codebase/tech-stack.md` |
+| Build/test commands (from manifests, CI) | Yes, verbatim | The single highest-signal section |
+| Project map / module boundaries | At most a 1-phrase-per-module section, optional | Skip when names are self-evident; never duplicate `CODEBASE.md` |
+| Tech-stack rationale | No | Lives in `docs/codebase/tech-stack.md`; reference by path if Claude must know it exists |
 | Architectural Deviations (per-module) | Yes, as module Boundaries | Exactly the gotchas CLAUDE.md exists for |
 | Assessment findings | Only `kind: rule` | `kind: observation` stays in assessment.md |
 | Open Questions | No | Not yet decided → not a rule |
 | Code style | No | Linter's job; reference the linter config instead |
 | API surface | No | Discoverable on demand |
 | Operations / secrets | Only the "always do X before commit" subset | Rest stays in `docs/codebase/operations.md` |
+| `CODEBASE.md` body (any of it) | No | Never `@import`, never paraphrase; mention by path when Claude needs to know it exists |
 
 ### Step 6: Verify before writing
 
 Run these checks. Surface failures to the user; do not auto-fix silently.
 
-1. **All `@imports` resolve.** For every `@<path>` in the planned root file
-   and module files, confirm `<path>` exists. Fail loudly on broken imports.
+1. **No stray `@imports`.** Scan every planned file for lines beginning
+   with `@`. The only sanctioned occurrence is `@AGENTS.md` in the thin
+   root-level CLAUDE.md of the AGENTS.md interop case (Step 1). Anywhere
+   else — `@CODEBASE.md`, `@README.md`, `@docs/...`, `@<module>/CODEBASE.md`
+   — is a halt: rewrite that section as plain text or drop it. If a path
+   reference is genuinely useful, write it as `` `path/to/file.md` `` in
+   prose, not as an import.
 
-2. **Length budgets.**
-   - Root file: count body lines (excluding YAML front-matter). If > 200,
+2. **File-reference paths resolve.** For each backtick-quoted token that
+   looks like a file path (contains `/` or ends with a known extension like
+   `.md`, `.toml`, `.yaml`, `.json`), confirm the path exists relative to
+   the repo root. This catches the See Also section and inline pointers
+   like `` `CODEBASE.md` ``, but skips command tokens like `` `pnpm test` ``.
+   Halt on broken references — fix the path, don't write a dangling
+   pointer.
+
+3. **Length budgets.**
+   - Root file: count body lines (excluding YAML front-matter). If > 150,
      report and ask the user how to shed material before writing.
-   - Per-module file: > 80 lines → same response.
-   - Total launch context: estimate by reading the root file and following
-     `@imports` one level deep, summing bytes. If > ~10 KB, warn.
+   - Per-module file: > 60 lines → same response.
 
-3. **Rule duplication.** For each derived rule, similarity-check against
-   the corresponding `CODEBASE.md` body. If a derived rule is a near-verbatim
-   copy of body content already in `CODEBASE.md`, that's redundant — the
-   `@CODEBASE.md` import already pulls it in. Surface as a warning so the
-   user can decide whether to keep it for emphasis or drop it.
+4. **Rule duplication.** For each derived rule, similarity-check against
+   the corresponding `CODEBASE.md` body. A near-verbatim copy of survey
+   prose is a smell — either the rule is mis-phrased (reformulate as an
+   imperative) or the survey itself is doing rule-work it shouldn't.
+   Surface as a warning so the user can decide.
 
-4. **Code-style heuristic scan.** Search the planned content for indicators
+5. **Code-style heuristic scan.** Search the planned content for indicators
    that suggest a code-style rule snuck in: substrings like `tabs`, `spaces`,
    `indent`, `camelCase`, `snake_case`, `naming convention`, `PascalCase`,
    `2-space`, `4-space`. Flag every hit for human review — these usually
    shouldn't be in CLAUDE.md (the linter handles them).
 
-5. **Rule count ceiling.** Total derived rules across root + all module
+6. **Rule count ceiling.** Total derived rules across root + all module
    files. If > 100, warn that adherence drops past frontier-model
    thresholds. > 150 is a hard halt — ask the user to triage before writing.
 
-6. **Source-anchor coverage.** Every derived rule must carry a block-level
+7. **Source-anchor coverage.** Every derived rule must carry a block-level
    HTML comment naming its source and `surveyed_sha`. Halt on any rule
    without one.
+
+8. **Empty-file guard.** No file in the write set may consist solely of
+   front-matter and a header (no rules, no commands). If one would, drop
+   it from the write set instead.
 
 ### Step 7: Write the files
 
@@ -293,6 +342,8 @@ Report:
 
 - Files written (path + line count).
 - Files left unchanged (same body modulo `derived_at`).
+- Modules deliberately *skipped* (no rules, no local commands) — listing
+  them explicitly avoids the user wondering whether the skill missed them.
 - Any verification warnings (length, duplication, code-style hits, rule
   count) that the user opted to accept.
 - Confirmation that re-running `/codebase-survey-update` is the right next
@@ -314,16 +365,24 @@ Do **not** commit.
 
 ## Important Principles
 
+- **CLAUDE.md is instructions, not a manifest.** The survey (`CODEBASE.md`,
+  `docs/codebase/*.md`) describes the codebase. CLAUDE.md tells Claude how
+  to act in it. If a line could have come from a project guidebook, it
+  belongs in the survey, not here.
+- **No `@imports` of survey content.** Don't `@CODEBASE.md`,
+  `@<module>/CODEBASE.md`, `@docs/codebase/*.md`, or `@README.md`. Those
+  files are read on demand. The only sanctioned `@import` is `@AGENTS.md`
+  in the thin root CLAUDE.md of the AGENTS.md interop case.
 - **Lift, don't author.** Every line in the derived files traces back to a
-  specific `CODEBASE.md` or assessment finding via the source-anchor comment.
-  If you cannot anchor it, do not write it.
+  specific `CODEBASE.md` or assessment finding via the source-anchor
+  comment. If you cannot anchor it, do not write it.
 - **Rules ≠ observations.** Only `kind: rule` lifts. The cost of a noisy
   CLAUDE.md is paid on every conversation; the cost of a too-thin CLAUDE.md
   is one occasional question.
-- **Pointer over duplication.** When `CODEBASE.md` has it, link via `@import`
-  rather than copy. The rendered context is the same; the diff cost when the
-  source changes is much lower.
-- **Verify before write.** A length blow-out, a broken `@import`, or a
+- **Skip beats stub.** When a section, module, or even a whole CLAUDE.md
+  would have nothing real to say, omit it. Empty headers and pointer-only
+  files are pure overhead.
+- **Verify before write.** A stray `@import`, a length blow-out, or a
   code-style rule slipping through is much harder to clean up after the
   fact than to catch at the gate.
 - **Idempotent.** Re-running on unchanged sources is a no-op modulo
