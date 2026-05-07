@@ -80,6 +80,7 @@ The workflow uses six bundled subagents (`structural-discovery`, `dep-grapher`, 
 
 | Command | What it does |
 |---------|-------------|
+| `/pr` | Create or update a GitHub pull request for the current branch via `gh` — synthesises a What/Why/How body from commits and diff, defaults to draft (override with `final`), auto-pushes the branch |
 | `/deckset` | Generate [Deckset](https://www.deckset.com/) presentations from markdown content |
 | `/audit-context` | Diagnose contradictions, ambiguities, and irrelevance in the current session context (or a given file list) |
 
@@ -129,6 +130,7 @@ common/
     audit-context/SKILL.md
     commit/SKILL.md
     deckset/SKILL.md
+    pr/SKILL.md
   agents/                  # (empty for now)
 milestone-driven/
   skills/
