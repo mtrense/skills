@@ -6,6 +6,8 @@ A test-bed for developing, improving, and deploying Claude Code skills. Skills a
 
 When working in this repo, the goal is typically to iterate on skill prompts, test them against real usage, and prepare them for deployment to other projects via `install.sh` (symlinks) or manual copy.
 
+**Where testing happens:** This repo only contains skill and agent source — there are no skill executions, test runs, or generated artifacts here. When debugging or analyzing a skill or agent's behavior, the actual invocations (logs, outputs, generated files) live in a separate project where the skill was installed and run. Don't search this repo for test results, example outputs, or runtime traces; ask the user which project to look in instead.
+
 ## Installation
 
 ```bash
