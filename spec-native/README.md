@@ -175,7 +175,7 @@ Full example: [`_examples/capability-auth.md`](_examples/capability-auth.md) (th
 
 Two non-obvious choices:
 
-- **`scenarios` is duplicated in frontmatter and prose.** Frontmatter is the machine-readable truth; prose carries human-meaningful ordering and grouping. Audits compare them and flag drift.
+- **Frontmatter is authoritative; prose listings are a deterministic render of it.** The `scenarios` list in frontmatter is the single source of truth — its order is the order shown to humans. The prose `## Scenarios` section is generated (or regenerated) from frontmatter by a deterministic script; humans edit frontmatter to reorder or regroup, never the prose list directly. Free-form prose *between* generated blocks (framing paragraphs, group headings) is human-authored and preserved across regeneration via stable comment fences (`<!-- scenarios:begin -->` / `<!-- scenarios:end -->`). The same rule applies to `references` (frontmatter list authoritative; inline citations are links into spec elements, not a parallel list). This eliminates the "two sources of truth" failure mode by construction — drift is mechanically impossible, not audited after the fact. `/spec-inception` and every `/spec-add-*` skill must produce files that conform.
 - **"Out of scope" is a first-class required section.** Specs lie about coverage when scope is implicit; forcing this section catches the "we didn't think about X" failure mode at audit time.
 
 ### Scenario file (ex. `capabilities/auth/login.md`)
