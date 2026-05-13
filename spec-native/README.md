@@ -27,7 +27,7 @@ capability  →  scenario  →  behavior
    (dir)        (file)      (heading)
 ```
 
-- **Capability** — one coherent outcome the system delivers. The boundary rule is *outcome cohesion*: a capability is the smallest grouping of scenarios where removing any one weakens the rest. A single primary actor is the common case (and the cheapest smell test for bloat), but genuinely collaborative flows may list secondary actors explicitly. A structural lint (size budget + cohesion check) backs the rule when authorial judgment drifts.
+- **Capability** — one coherent outcome the system delivers. The boundary rule is *outcome cohesion*: a capability is the smallest grouping of scenarios where removing any one weakens the rest. A single primary actor is the common case (and the cheapest smell test for bloat), but genuinely collaborative flows may list secondary actors explicitly. A structural lint (size budget + cohesion check) backs the rule when authorial judgment drifts: warn at **>8 scenarios per capability** (advisory only — no hard ceiling, since some capabilities legitimately span more), and flag any scenario reachable only by an actor outside the capability's `actor` / `secondary_actors` list as a cohesion smell.
 - **Scenario** — a specific situation, flow, or case within a capability.
 - **Behavior** — the atomic unit of specification: `trigger + system response + observable evidence` (externally-detectable signals that distinguish success from failure; see *Scenario file* for shape).
 
