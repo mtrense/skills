@@ -263,7 +263,7 @@ POSTPONED and AUDIT both mark unfilled or unsatisfactory content, but differ ope
 For Tier 2 (and the foundation for Tier 3), code references the spec via a single-line comment using the host language's native comment syntax:
 
 ```
-// SPEC: <id>[, <id>...]   [— <optional note>]
+// SPEC: <id>[, <id>...]   [-- <optional note>]
 ```
 
 Examples in different languages:
@@ -280,7 +280,7 @@ function issueSession(user) { ... }
 ```
 
 ```rust
-// SPEC: DM:order#amount-positive — enforced on every line-item mutation
+// SPEC: DM:order#amount-positive -- enforced on every line-item mutation
 fn recalc_total(order: &mut Order) { ... }
 ```
 
@@ -291,7 +291,7 @@ fn recalc_total(order: &mut Order) { ... }
 - **Placement: directly above the code unit that implements the element.** Functions, methods, classes, test cases, or — when finer granularity is needed — the specific branch (`if`, `match` arm, `catch`) that realizes the behavior. No blank line between annotation and code.
 - **One element may have many annotations across the codebase**; one annotation refers to ≥1 spec element. The relation is many-to-many.
 - **Tests count.** A test annotated `// SPEC: auth/login#invalid-password` is the canonical evidence that the behavior is verified; the traceability audit treats test annotations distinctly from production-code annotations. Evidence in the spec describes *what* is observable; a `SPEC:`-annotated test is *how* that evidence is checked.
-- **Free-form note after `—`** is preserved by tooling but not parsed structurally — useful for "partial implementation", "see also X", etc.
+- **Free-form note after `--`** is preserved by tooling but not parsed structurally — useful for "partial implementation", "see also X", etc. The separator is the literal two-character `--`; em-dash (`—`) is not accepted, since most keyboards don't produce it and accepting both forms would force every tooling regex to handle the alternation.
 - **Renames are mechanical.** `/spec-restructure` rewrites every `SPEC:` annotation in the codebase when an ID changes. The same regex that finds annotations for the reverse-trace tool drives the rewrite.
 
 What annotations are *not*:
