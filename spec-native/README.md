@@ -312,6 +312,16 @@ Structured frontmatter + the marker grammar make the spec a graph database. Dete
 
 For Tier 3, this graph is the substrate that makes "spec → code" feasible at all.
 
+### Deterministic scripts vs. skills
+
+The list above describes capabilities, not invocation surfaces. Several user-facing tools that *look* like skills are in fact pure scripts and should ship that way — invoked directly, by skills via `Bash`, by pre-commit hooks, or by CI:
+
+- **`spec-validate`** — all syntactic lints in one entry point: ID prefix-table resolution, kebab-case naming, frontmatter required-key presence, `last_audit` axis-subset conformance per file type, marker grammar, glossary `G:#<slug>` anchor resolvability, actor catalog membership. No LLM judgment; a parser plus the prefix table is sufficient.
+- **`spec-report`** (a.k.a. certainty-debt / audit-debt report) — walks `last_audit.*` and tallies/sorts `CERTAINTY`, `AUDIT`, and `POSTPONED` markers. Pure aggregation.
+- **`spec-deprecate-check <id>`** — the safety half of the deprecation flow: verify no remaining references in spec or in code-side `// SPEC:` annotations, then emit a structured report. The judgment half (what supersedes the element, how to migrate live references) is an LLM skill that consumes this report.
+
+These ship under `spec/scripts/` in the skill family and are surfaced as both standalone CLI commands and pre-commit/CI hooks. Skills must shell out to them rather than reimplement the parsing — keeping one parser canonical avoids drift between "what the lint says" and "what the audit skill assumes". A wrapping skill is added only when the user-facing surface needs Socratic refinement on top of the script's output (the deprecation flow above is the prototypical case).
+
 ## Skill Family (sketch — not yet specified)
 
 The skills below are the intended phasing; their detailed designs are open.
