@@ -34,4 +34,4 @@ User authenticates using credentials to obtain a session.
 **References**: DM:user, DM:user#locked-after-5-failures
 
 <!-- AUDIT: coverage — missing behavior for locked account (>5 failed attempts). Suggested: locked-account. severity: medium -->
-<!-- CONFIDENCE: medium — failed-attempts counter behavior assumed; no NFR/CON pins it explicitly -->
+<!-- CERTAINTY: medium — failed-attempts counter behavior assumed; no NFR/CON pins it explicitly -->
