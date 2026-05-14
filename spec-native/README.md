@@ -6,7 +6,7 @@ A family of skills for producing and maintaining living specifications with Clau
 - **Tier 2 — Spec-Anchored**: spec is a living, version-controlled artifact. Agents use it as a permanent anchor for all future refactoring.
 - **Tier 3 — Spec-as-Source**: humans never edit code. The specification is the literal source code; the LLM acts as the compiler.
 
-The workflow operates entirely on markdown files with structured frontmatter and an inline marker grammar. Structure is deliberately machine-friendly so deterministic scripts can build dependency graphs, coverage matrices, confidence reports, and topological orderings on top of the spec without an LLM in the loop.
+The workflow operates entirely on markdown files with structured frontmatter and an inline marker grammar. Structure is deliberately machine-friendly so deterministic scripts can build dependency graphs, coverage matrices, certainty reports, and topological orderings on top of the spec without an LLM in the loop.
 
 ---
 
@@ -180,7 +180,7 @@ Two non-obvious choices:
 
 ### Scenario file (ex. `capabilities/auth/login.md`)
 
-Full example: [`_examples/scenario-login.md`](_examples/scenario-login.md). It demonstrates frontmatter (id, capability, actor, preconditions, references, last_audit), two behaviors with the fixed shape, and inline AUDIT / CONFIDENCE markers.
+Full example: [`_examples/scenario-login.md`](_examples/scenario-login.md). It demonstrates frontmatter (id, capability, actor, preconditions, references, last_audit), two behaviors with the fixed shape, and inline AUDIT / CERTAINTY markers.
 
 Behaviors have a **fixed shape**: `Trigger` / `System response` / `Evidence` / `References`. Missing parts are filled with `<!-- POSTPONED: ... -->` so the structure remains parseable. There is no behavior-level frontmatter — too noisy.
 
@@ -221,13 +221,13 @@ Full shapes will be added once skills are designed.
 Three inline HTML-comment markers, parseable by deterministic tooling:
 
 ```
-<!-- AUDIT:      <axis> — <finding>. severity: <low|medium|high> -->
-<!-- CONFIDENCE: <low|medium|high> — <reason> -->
-<!-- POSTPONED:  <what is missing and why> -->
+<!-- AUDIT:     <axis> — <finding>. severity: <low|medium|high> -->
+<!-- CERTAINTY: <low|medium|high> — <reason> -->
+<!-- POSTPONED: <what is missing and why> -->
 ```
 
 - **AUDIT** — placed by audit skills, resolved by `/spec-refine`. `<axis>` is one of the seven: `consistency`, `coverage`, `quality`, `coherence`, `ambiguity`, `testability`, `traceability`. One axis per audit skill (see Skill Family).
-- **CONFIDENCE** — placed by authoring skills when a behavior or claim is plausible but unverified. Audit skills prioritize CONFIDENCE-marked content for verification.
+- **CERTAINTY** — placed by authoring skills (or by hand) to flag the author's own confidence in a claim: a behavior, evidence statement, or NFR threshold the author committed to but isn't sure of. The `<reason>` should name *why* certainty is below `high` (e.g. "assumed from existing code", "needs product review", "regulation unread"). Audit skills prioritize CERTAINTY-marked content for verification. When external resolution is required (interviews, regulations, market data), hand off to the research workflow — its `CONFIDENCE` marker covers *source verifiability against the web*, which is a different epistemic axis.
 - **POSTPONED** — placed when a fixed-structure field (e.g. behavior `Evidence`) cannot yet be filled. Distinct from AUDIT in that it's an author-acknowledged gap, not an audit finding.
 
 POSTPONED and AUDIT both mark unfilled or unsatisfactory content, but differ operationally:
@@ -235,7 +235,7 @@ POSTPONED and AUDIT both mark unfilled or unsatisfactory content, but differ ope
 - **Origin.** POSTPONED is placed by an authoring skill (or hand-written) at the moment the gap is created, with the author's reason embedded. AUDIT is placed by an audit skill after the fact, against content the author considered complete.
 - **Audit treatment.** Each audit skill ignores POSTPONED *within its own axis* — the gap is already acknowledged, so re-flagging is noise. POSTPONED does **not** exempt the field from other axes: a POSTPONED `Evidence` is silent to `coverage` but a `traceability` audit may still flag it if downstream code claims to implement the behavior. Coverage audits surface POSTPONED separately as a "known-gaps" tally rather than as findings, so the dashboard distinguishes *unknown unknowns* (AUDIT) from *known unknowns* (POSTPONED).
 - **Lifecycle.** AUDIT is resolved by `/spec-refine`, which edits the surrounding content and removes the marker. POSTPONED is resolved by filling the field — typically via the same authoring skill that created it, or by a thin `/spec-resolve-postponed` pass — converting to a normal field with no audit footprint.
-- **Confidence debt.** POSTPONED does **not** count toward confidence debt (it's structural, not epistemic). CONFIDENCE markers do. AUDIT findings count weighted by severity.
+- **Certainty debt.** POSTPONED does **not** count toward certainty debt (it's structural, not epistemic). CERTAINTY markers do. AUDIT findings count weighted by severity.
 
 ### Code-side annotations
 
@@ -283,7 +283,7 @@ What annotations are *not*:
 Structured frontmatter + the marker grammar make the spec a graph database. Deterministic scripts (no LLM needed) can produce:
 
 - **Dependency / topological order** across capabilities and domain entities.
-- **Confidence-debt report** — every CONFIDENCE marker, ranked by severity and age.
+- **Certainty-debt report** — every CERTAINTY marker, ranked by severity and age.
 - **Coverage matrix** — which NFRs are referenced by ≥1 behavior; which DM entities are touched by ≥1 scenario; orphans flagged.
 - **Staleness ranking** — each `last_audit.<axis>` timestamp, sorted oldest-first to feed audit skills.
 - **Reverse trace** — for a given `// SPEC: auth/login#invalid-password` annotation in code, find the spec element and verify it still exists.
