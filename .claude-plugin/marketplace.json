@@ -1,0 +1,34 @@
+{
+  "name": "mtrense-skills",
+  "description": "Workflow-family plugins for Claude Code: milestone-driven build, research knowledge bases, codebase surveys, and shared utilities.",
+  "owner": {
+    "name": "Max Trense",
+    "email": "dev@trense.info"
+  },
+  "plugins": [
+    {
+      "name": "milestone-driven",
+      "source": "./milestone-driven",
+      "description": "Four-phase milestone-driven build cycle: strategic planning, milestone breakdown, TDD task implementation, and milestone closing.",
+      "category": "workflow"
+    },
+    {
+      "name": "research",
+      "source": "./research",
+      "description": "Multi-phase research workflow for building cited, audited knowledge bases.",
+      "category": "workflow"
+    },
+    {
+      "name": "codebase-survey",
+      "source": "./codebase-survey",
+      "description": "Bootstraps and maintains an AI-consumable map of an existing codebase with per-module CODEBASE.md and derived CLAUDE.md rules.",
+      "category": "workflow"
+    },
+    {
+      "name": "common",
+      "source": "./common",
+      "description": "Cross-workflow utilities: /commit, /pr, /audit-context, /deckset.",
+      "category": "utility"
+    }
+  ]
+}

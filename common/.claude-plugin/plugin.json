@@ -1,0 +1,11 @@
+{
+  "name": "common",
+  "description": "Cross-workflow utilities: /commit (the single commit point for all workflows), /pr, /audit-context, and /deckset.",
+  "author": {
+    "name": "Max Trense",
+    "email": "dev@trense.info"
+  },
+  "homepage": "https://github.com/mtrense/skills",
+  "repository": "https://github.com/mtrense/skills",
+  "keywords": ["git", "commit", "pull-request", "utility"]
+}
