@@ -1,20 +1,20 @@
 # Skill Family: Spec-Native
 
-A family of skills for producing and maintaining living specifications with Claude Code, designed for projects operating at **spec-anchored (Tier 2)** or **spec-as-source (Tier 3)** maturity:
+A family of skills for producing and maintaining living specifications with Claude Code, designed for projects operating at the **spec-anchored** or **spec-as-source** level of spec-driven development:
 
-- **Tier 1 — Spec-First**: spec is written first, then discarded after code generation. Appropriate for one-off generation; the cost is paid during maintenance, when the discarded spec can no longer anchor agent context.
-- **Tier 2 — Spec-Anchored**: spec is a living, version-controlled artifact. Agents use it as a permanent anchor for all future refactoring.
-- **Tier 3 — Spec-as-Source**: humans never edit code. The specification is the literal source code; the LLM acts as the compiler.
+- **Spec-first**: spec is written first, then discarded after code generation. Appropriate for one-off generation; the cost is paid during maintenance, when the discarded spec can no longer anchor agent context.
+- **Spec-anchored**: spec is a living, version-controlled artifact. Agents use it as a permanent anchor for all future refactoring.
+- **Spec-as-source**: humans never edit code. The specification is the literal source code; the LLM acts as the compiler.
 
-The three tiers are not a strict maturity ladder where higher is always better — the right tier depends on team size, change velocity, regulatory needs, and the half-life of the code being produced. But realizing the full productivity gain from coding with AI requires fluency in **all three**: knowing when a throwaway script earns Tier 1's speed, when a long-lived system needs Tier 2's anchor, and when a tightly-scoped domain rewards Tier 3's compile-from-spec discipline. This skill family targets Tier 2 and Tier 3 because that is where tooling support is most load-bearing; Tier 1 needs no skills at all.
+The three levels are not a strict maturity ladder where higher is always better — the right level depends on team size, change velocity, regulatory needs, and the half-life of the code being produced. But realizing the full productivity gain from coding with AI requires fluency in **all three**: knowing when a throwaway script earns spec-first's speed, when a long-lived system needs spec-anchored's anchor, and when a tightly-scoped domain rewards spec-as-source's compile-from-spec discipline. This skill family targets the latter two because that is where tooling support is most load-bearing; spec-first needs no skills at all.
 
-The Tier 1/2/3 framing is original to this workflow. Adjacent ideas — "spec-driven development," Kiro's spec-then-implement loop, GitHub Spec Kit, Anthropic's writing on agent context engineering — informed it but do not use the same three-rung division.
+The three-level framing follows Birgitta Boeckeler's [Understanding Spec-Driven-Development: Kiro, spec-kit, and Tessl](https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html) (martinfowler.com, October 2025), which named the levels spec-first / spec-anchored / spec-as-source. Adjacent ideas — Kiro's spec-then-implement loop, GitHub Spec Kit, Tessl's spec-as-source positioning, Anthropic's writing on agent context engineering — sit within or alongside that same framing.
 
 The workflow operates entirely on markdown files with structured frontmatter and an inline marker grammar. Structure is deliberately machine-friendly so deterministic scripts can build dependency graphs, coverage matrices, certainty reports, and topological orderings on top of the spec without an LLM in the loop.
 
 ---
 
-> **Status: Design draft.** This document captures structural decisions (file zoo, ID scheme, marker grammar, frontmatter shapes). The skill list is sketched but not specified — Socratic question banks, audit failure-mode boundaries, lifecycle/deprecation, and Tier 3 compile/trace skills are explicitly open.
+> **Status: Design draft.** This document captures structural decisions (file zoo, ID scheme, marker grammar, frontmatter shapes). The skill list is sketched but not specified — Socratic question banks, audit failure-mode boundaries, lifecycle/deprecation, and spec-as-source compile/trace skills are explicitly open.
 >
 > **Out of scope for v1: brownfield onboarding.** The first version assumes a greenfield project — `/spec-inception` is the entry point. Reverse-engineering a spec from an existing codebase (extracting behaviors from tests, route handlers, controllers; proposing capability boundaries from module structure; back-filling `// SPEC:` annotations) is a substantial design effort on its own and is deferred. Projects that already have code can hand-author or use `/spec-add-*` skills incrementally; a dedicated `/spec-extract` (or extract → review → annotate phase) will be designed once the greenfield workflow is proven.
 
@@ -264,7 +264,7 @@ POSTPONED and AUDIT both mark unfilled or unsatisfactory content, but differ ope
 
 ### Code-side annotations
 
-For Tier 2 (and the foundation for Tier 3), code references the spec via a single-line comment using the host language's native comment syntax:
+For spec-anchored (and the foundation for spec-as-source), code references the spec via a single-line comment using the host language's native comment syntax:
 
 ```
 // SPEC: <id>[, <id>...]   [-- <optional note>]
@@ -316,7 +316,7 @@ Structured frontmatter + the marker grammar make the spec a graph database. Dete
 - **Reverse trace** — for a given `// SPEC: auth/login#invalid-password` annotation in code, find the spec element and verify it still exists.
 - **Restructure sweep** — when an ID is renamed, find every occurrence across spec, code, and tests.
 
-For Tier 3, this graph is the substrate that makes "spec → code" feasible at all.
+For spec-as-source, this graph is the substrate that makes "spec → code" feasible at all.
 
 ### Deterministic scripts vs. skills
 
@@ -353,14 +353,14 @@ The skills below are the intended phasing; their detailed designs are open.
 - `/spec-audit-coherence` — narrative flow and abstraction-level consistency within a capability.
 - `/spec-audit-ambiguity` — vague language ("appropriate", "fast"), undefined terms, missing quantifiers.
 - `/spec-audit-testability` — every behavior independently verifiable with stated evidence.
-- `/spec-audit-traceability` (Tier 2/3) — every element has ≥1 code/test back-reference; every code path is justified by some element.
+- `/spec-audit-traceability` (spec-anchored / spec-as-source) — every element has ≥1 code/test back-reference; every code path is justified by some element.
 
 **Refinement**
 - `/spec-refine <id> <operation>` — resolve AUDIT findings (`correct`, `expand`, `condense`, `restructure`, `cross-reference`).
 - `/spec-restructure <op> <path> [target]` — `split`, `merge`, `promote`, `demote`. Sweeps every reference in spec, code, and tests.
 - `/spec-glossary-sync` — terminology alignment across the project.
 
-**Tier 3 (deferred)**
+**Spec-as-source (deferred)**
 - `/spec-compile` — generate code from spec.
 - `/spec-diff-trace` — when code drifts from spec, decide whether spec or code is wrong.
 
@@ -396,6 +396,6 @@ Tracked here so they can be resolved in subsequent design sessions:
 1. **Behavior addressability** — does the ID space stop at behavior, or do sub-parts (`auth/login#invalid-password.evidence`) get IDs? Useful for fine-grained test failure attribution; risks encouraging behaviors that should split.
 2. **Socratic question banks** — what specifically does each `add-*` skill ask before writing? Universal challenges per kind (e.g. behavior: "what's the trigger? what's the observable evidence? which actor?") plus per-kind specifics.
 3. **Audit skill boundaries** — where exactly does each audit skill's responsibility start and end? E.g. "missing edge case" — coverage or quality? "Vague trigger" — ambiguity or testability?
-4. **Lifecycle / deprecation** — Tier 2/3 specific. When a behavior no longer applies, code may still reference it. Need a "deprecated" status (still resolvable for trace, flagged for removal) and a removal workflow that verifies no remaining references first.
+4. **Lifecycle / deprecation** — specific to spec-anchored and spec-as-source. When a behavior no longer applies, code may still reference it. Need a "deprecated" status (still resolvable for trace, flagged for removal) and a removal workflow that verifies no remaining references first.
 5. **Inception flow** — what `/spec-inception` asks, what defaults it offers, what minimum viable starting state looks like.
-6. **Tier 3 compile/trace** — out of scope for the initial workflow; design once Tier 2 is proven.
+6. **Spec-as-source compile/trace** — out of scope for the initial workflow; design once spec-anchored is proven.
