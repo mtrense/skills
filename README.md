@@ -6,6 +6,24 @@ Skills are markdown files with YAML frontmatter that Claude loads as playbooks. 
 
 ## Installation
 
+This repo can be installed two ways: as a Claude Code **plugin marketplace** (recommended for end users) or via the legacy symlink installer (recommended for developing/iterating on the skills themselves).
+
+### As a plugin marketplace
+
+The repo root carries a `.claude-plugin/marketplace.json` catalog (`mtrense-skills`). Each workflow family is exposed as a separately-installable plugin with its own `<workflow>/.claude-plugin/plugin.json` manifest.
+
+```shell
+/plugin marketplace add mtrense/skills
+/plugin install milestone-driven@mtrense-skills
+/plugin install research@mtrense-skills
+/plugin install codebase-survey@mtrense-skills
+/plugin install common@mtrense-skills
+```
+
+Updates: `/plugin marketplace update`. No `version` field is pinned, so each commit on `main` is treated as a new version.
+
+### Via the symlink installer
+
 ```bash
 # Install every workflow globally (~/.claude/skills/ + ~/.claude/agents/)
 ./install.sh all

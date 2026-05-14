@@ -100,6 +100,13 @@ If the skill doesn't belong to any existing workflow, place it under `common/ski
 
 Keep the one-line description consistent across both files.
 
+If a **new workflow directory** is added (not just a new skill in an existing one), also update the marketplace metadata:
+- Create `<workflow>/.claude-plugin/plugin.json` (name, description, author, homepage, repository, keywords) — copy the shape from an existing workflow's manifest.
+- Add a new plugin entry to `.claude-plugin/marketplace.json` (`name`, `source: "./<workflow>"`, `description`, `category`).
+- Keep the plugin `description` in sync with the workflow's one-line summary in CLAUDE.md and README.md.
+
+Adding a skill *within* an existing workflow does not require touching `.claude-plugin/` — the workflow plugin already picks up everything under its `skills/` directory.
+
 ### Subagents
 
 Custom subagents live in `<workflow>/agents/<name>.md` (a single file per agent, not a directory) and are installed via symlink to `~/.claude/agents/` (or `<project>/.claude/agents/` for project installs) by the same `install.sh`. Skills invoke them via the `Agent` tool with `subagent_type: <name>`. Use a custom subagent when a skill needs to delegate a deterministic, structured task (e.g., extracting an API surface, running a dependency grapher) so the orchestrating skill never sees raw tool output.

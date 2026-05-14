@@ -1,0 +1,11 @@
+{
+  "name": "research",
+  "description": "Multi-phase research workflow for building cited, audited knowledge bases — inquiry, investigation, consistency/coverage/quality/coherence audits, refinement, and glossary sync.",
+  "author": {
+    "name": "Max Trense",
+    "email": "dev@trense.info"
+  },
+  "homepage": "https://github.com/mtrense/skills",
+  "repository": "https://github.com/mtrense/skills",
+  "keywords": ["research", "knowledge-base", "citations", "audit"]
+}

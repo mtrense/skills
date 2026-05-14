@@ -1,0 +1,11 @@
+{
+  "name": "milestone-driven",
+  "description": "Four-phase milestone-driven build cycle: strategic planning, milestone breakdown, TDD task implementation, and milestone closing.",
+  "author": {
+    "name": "Max Trense",
+    "email": "dev@trense.info"
+  },
+  "homepage": "https://github.com/mtrense/skills",
+  "repository": "https://github.com/mtrense/skills",
+  "keywords": ["workflow", "planning", "tdd", "milestones"]
+}

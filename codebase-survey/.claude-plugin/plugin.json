@@ -1,0 +1,11 @@
+{
+  "name": "codebase-survey",
+  "description": "Bootstraps and maintains an AI-consumable map of an existing codebase: top-level + per-module CODEBASE.md, architecture assessment, and derived CLAUDE.md/AGENTS.md rules.",
+  "author": {
+    "name": "Max Trense",
+    "email": "dev@trense.info"
+  },
+  "homepage": "https://github.com/mtrense/skills",
+  "repository": "https://github.com/mtrense/skills",
+  "keywords": ["codebase", "documentation", "survey", "onboarding"]
+}
