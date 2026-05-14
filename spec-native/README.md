@@ -2,9 +2,13 @@
 
 A family of skills for producing and maintaining living specifications with Claude Code, designed for projects operating at **spec-anchored (Tier 2)** or **spec-as-source (Tier 3)** maturity:
 
-- **Tier 1 — Spec-First**: spec is written first, then discarded after code generation. Leads to context rot during maintenance.
+- **Tier 1 — Spec-First**: spec is written first, then discarded after code generation. Appropriate for one-off generation; the cost is paid during maintenance, when the discarded spec can no longer anchor agent context.
 - **Tier 2 — Spec-Anchored**: spec is a living, version-controlled artifact. Agents use it as a permanent anchor for all future refactoring.
 - **Tier 3 — Spec-as-Source**: humans never edit code. The specification is the literal source code; the LLM acts as the compiler.
+
+The three tiers are not a strict maturity ladder where higher is always better — the right tier depends on team size, change velocity, regulatory needs, and the half-life of the code being produced. But realizing the full productivity gain from coding with AI requires fluency in **all three**: knowing when a throwaway script earns Tier 1's speed, when a long-lived system needs Tier 2's anchor, and when a tightly-scoped domain rewards Tier 3's compile-from-spec discipline. This skill family targets Tier 2 and Tier 3 because that is where tooling support is most load-bearing; Tier 1 needs no skills at all.
+
+The Tier 1/2/3 framing is original to this workflow. Adjacent ideas — "spec-driven development," Kiro's spec-then-implement loop, GitHub Spec Kit, Anthropic's writing on agent context engineering — informed it but do not use the same three-rung division.
 
 The workflow operates entirely on markdown files with structured frontmatter and an inline marker grammar. Structure is deliberately machine-friendly so deterministic scripts can build dependency graphs, coverage matrices, certainty reports, and topological orderings on top of the spec without an LLM in the loop.
 
