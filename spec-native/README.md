@@ -162,9 +162,26 @@ A capability starts as a single `capabilities/<name>.md` index file. Once it gai
 
 Every spec file carries frontmatter with:
 
-- `id` — the element's stable ID (path-derived, but explicit so tooling doesn't have to reverse-engineer paths).
-- `references` — list of cross-cutting IDs this element depends on (NFRs, constraints, model entities). Optional free-form comment per entry: `- DM:user (must be active)`.
-- `last_audit` — per-axis timestamps for the audit axes that apply to this file type, so audit skills can target stale areas first. `null` means never audited. The full axis set is `consistency`, `coverage`, `quality`, `coherence`, `ambiguity`, `testability`, `traceability`; each file type declares which subset it carries (e.g. journey files omit `traceability`; pure-prose files omit `testability`). The applicable subset per file type is fixed by the schema and enforced by a deterministic lint — files don't carry axes that will never be populated. Trade-off: this keeps frontmatter lean and signals "N/A vs. never audited" structurally, but the schema must be updated (and files migrated) when an axis is added, removed, or reassigned to a different file type. The alternative considered — a project-level `spec/.audit-state.yaml` sidecar — was rejected because per-file git-traceability of audit state is more valuable than the YAML savings.
+- `id` — the element's stable ID (path-derived, but explicit so tooling doesn't have to reverse-engineer paths). **Omitted for singleton files** (`glossary.md`, `SPEC.md`) — they have no canonical ID form under the prefix table (`G:` is anchor-only; `SPEC.md` is not addressable), so a file-level `id` would be a fiction.
+- `references` — list of cross-cutting IDs this element depends on (NFRs, constraints, model entities, glossary terms). Optional free-form comment per entry: `- DM:user (must be active)`. **Carried wherever it makes sense, not universally.** File types whose content has no meaningful cross-cutting dependencies (typically `actors/` and `glossary.md`) omit the field entirely; a deterministic lint does not require its presence. Distinct from `preconditions` — see capability/scenario notes below.
+- `last_audit` — per-axis timestamps for the audit axes that apply to this file type, so audit skills can target stale areas first. `null` means never audited. The full axis set is `consistency`, `coverage`, `quality`, `coherence`, `ambiguity`, `testability`, `traceability`; each file type declares which subset it carries. The applicable subset per file type is fixed by the schema below and enforced by a deterministic lint — files don't carry axes that will never be populated. Trade-off: this keeps frontmatter lean and signals "N/A vs. never audited" structurally, but the schema must be updated (and files migrated) when an axis is added, removed, or reassigned to a different file type. The alternative considered — a project-level `spec/.audit-state.yaml` sidecar — was rejected because per-file git-traceability of audit state is more valuable than the YAML savings.
+
+#### `last_audit` axis subset per file type
+
+| File type                          | consistency | coverage | quality | coherence | ambiguity | testability | traceability |
+|------------------------------------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| Capability index                   | ✓ | ✓ | ✓ | ✓ | ✓ |   | ✓ |
+| Scenario                           | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Domain model (`DM:`)               | ✓ | ✓ | ✓ |   | ✓ | ✓ | ✓ |
+| Cross-aggregate invariant (`INV:`) | ✓ | ✓ | ✓ |   | ✓ | ✓ | ✓ |
+| NFR (`NFR:`)                       | ✓ | ✓ | ✓ |   | ✓ | ✓ | ✓ |
+| Constraint (`CON:`)                | ✓ | ✓ |   |   | ✓ |   | ✓ |
+| Journey (`JRN:`)                   | ✓ | ✓ |   | ✓ | ✓ |   |   |
+| Actor (`A:`)                       | ✓ | ✓ | ✓ | ✓ | ✓ |   |   |
+| Glossary (singleton)               | ✓ | ✓ | ✓ | ✓ | ✓ |   |   |
+| `SPEC.md` (singleton)              |   |   |   |   |   |   |   |
+
+Reasoning for the omissions: `testability` only applies to files containing falsifiable claims (behaviors, invariants, NFR thresholds); `traceability` only applies to files whose elements are realized by code (so journeys, actors, and glossary entries are excluded — code annotates the scenarios/behaviors they compose, not the composition itself); `coherence` is for narrative-flow files (skipped for reference-table files like NFR/CON/DM where each entry stands alone); `quality` is skipped for `CON:` because the depth of a constraint is bounded by its external source. `SPEC.md` is auto-generated and not audited as a unit — its constituent files are.
 
 Capability and scenario files add two behavioral fields:
 
@@ -211,7 +228,7 @@ Notes on the format:
 The remaining four file types are simpler:
 
 - **`actors/<slug>.md`** — one file per actor type, each carrying a one-paragraph description (who they are, what they want, what authority they hold). IDs are `A:<slug>`.
-- **`journeys/first-purchase.md`** — frontmatter lists ordered scenario IDs; body explains why this composition matters; no new behaviors, just composition + intent.
+- **`journeys/first-purchase.md`** — frontmatter lists ordered scenario IDs; body explains why this composition matters; no new behaviors, just composition + intent. The `scenarios` field is reused from the capability index but with a different semantic: in a capability it is **display order**, in a journey it is **temporal order** (step 1 must happen before step 2). A deterministic lint cannot detect mis-ordering of either kind, but the distinction matters for any future composition-checking tool.
 - **`nfr/api.md`** — grouped measurable properties, each as a heading: `### p95-latency` (full ID `NFR:api#p95-latency`). Each has Statement / Measurement / Threshold / Rationale. Prohibitions whose absence is measurable live here — e.g. `### no-password-in-logs` with Measurement "grep of structured log stream over rolling 7 days" and Threshold "zero matches".
 - **`constraints/gdpr.md`** — same shape as NFR but for non-measurable external constraints. Each has Statement / Source / Verification. Prohibitions whose justification is external authority live here — e.g. `### no-pii-export` with Source "GDPR Art. 44" and Verification "data-flow review at PR time".
 - **`invariants/<name>.md`** — used only for invariants that span multiple aggregates. Single-aggregate invariants stay in the domain model file.
