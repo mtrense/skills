@@ -160,7 +160,7 @@ Every spec file carries frontmatter with:
 
 - `id` — the element's stable ID (path-derived, but explicit so tooling doesn't have to reverse-engineer paths).
 - `references` — list of cross-cutting IDs this element depends on (NFRs, constraints, model entities). Optional free-form comment per entry: `- DM:user (must be active)`.
-- `last_audit` — per-axis timestamps for each of the seven audit axes (`consistency`, `coverage`, `quality`, `coherence`, `ambiguity`, `testability`, `traceability`) so audit skills can target stale areas first. `null` means never audited. Axes that don't apply to a given file type (e.g. `traceability` on a pure-prose journey file) stay `null` permanently.
+- `last_audit` — per-axis timestamps for the audit axes that apply to this file type, so audit skills can target stale areas first. `null` means never audited. The full axis set is `consistency`, `coverage`, `quality`, `coherence`, `ambiguity`, `testability`, `traceability`; each file type declares which subset it carries (e.g. journey files omit `traceability`; pure-prose files omit `testability`). The applicable subset per file type is fixed by the schema and enforced by a deterministic lint — files don't carry axes that will never be populated. Trade-off: this keeps frontmatter lean and signals "N/A vs. never audited" structurally, but the schema must be updated (and files migrated) when an axis is added, removed, or reassigned to a different file type. The alternative considered — a project-level `spec/.audit-state.yaml` sidecar — was rejected because per-file git-traceability of audit state is more valuable than the YAML savings.
 
 Capability and scenario files add two behavioral fields:
 
