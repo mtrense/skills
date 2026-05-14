@@ -6,7 +6,7 @@ description: >
 disable-model-invocation: true
 argument-hint: "[max-tasks]   (optional integer; default: run until done or blocked)"
 model: sonnet
-allowed-tools: Read, Edit, Glob, Grep, Agent, Bash(git status:*), Bash(git log:*)
+allowed-tools: Read, Edit, Glob, Grep, Agent, Bash(git status:*), Bash(git log:*), Skill(task-implementation), Skill(commit)
 ---
 
 # Implementation Cycle — Sequential Subagents Over PLAN.md
