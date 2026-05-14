@@ -216,6 +216,27 @@ The remaining four file types are simpler:
 
 Full shapes will be added once skills are designed.
 
+### DECISIONS.md
+
+Chronological, append-mostly log of decisions that shape the spec but are not visible from the spec text alone: scope choices (what's in/out, rejected scenarios), NFR/model trade-offs, restructure events (capability splits/merges/promotes/demotes recorded by `/spec-restructure`), contradiction resolutions (when two stakeholder inputs disagreed and one was adopted), and deprecations.
+
+- **Scope: one global file by default.** `spec/DECISIONS.md` is the canonical log. Most decisions cross capabilities (an NFR trade-off affects multiple flows), and a single chronological log is easier to audit and search. Per-capability escalation (`spec/capabilities/<name>/DECISIONS.md`) is allowed when a capability accumulates >~20 entries scoped exclusively to it; `/spec-restructure` is the natural place to detect and perform the split. The global file then keeps cross-capability decisions only. Finer granularity (per-NFR, per-model) is not allowed — it fragments the log past usefulness.
+- **Lifecycle.** Created by `/spec-inception`. Appended-to by `/spec-restructure`, `/spec-refine`, the `/spec-add-*` family (when a non-obvious trade-off is decided during authoring), and `/spec-deprecate`. Never rewritten — superseded entries get a follow-up entry referencing the old one via `supersedes:`. Read by every `/spec-audit-*` skill so already-deliberated trade-offs aren't re-flagged. Read by `/spec-derive-instructions` only for `kind: rule` entries — those get lifted into `CLAUDE.md` the same way `kind: rule` findings do from the codebase-survey assessment.
+- **Entry schema.**
+  ```yaml
+  - id: dec-0042
+    date: 2026-05-14
+    kind: trade-off              # trade-off | scope | restructure | contradiction | deprecation | rule
+    scope: capabilities/auth     # or "global"
+    affects: [NFR:api#p95-latency, B:auth/login#valid-credentials]
+    supersedes: dec-0017         # optional
+    summary: "Accept 800ms p95 on login to avoid pre-warming infra."
+    rationale: |
+      ...
+    source: "/spec-inquiry session 2026-05-14, stakeholder: payments-team"
+  ```
+- **Contradiction-handling policy** (mirrors the research workflow): when stakeholder inputs disagree, both positions are summarized in the relevant spec element, a DECISIONS entry (`kind: contradiction`) records which was adopted and why, and an `<!-- AUDIT: consistency ... -->` marker is inserted at the spec element so `/spec-audit-consistency` can verify the resolution still holds.
+
 ### Marker grammar
 
 Three inline HTML-comment markers, parseable by deterministic tooling:
