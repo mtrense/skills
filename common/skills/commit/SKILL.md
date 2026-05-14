@@ -23,6 +23,49 @@ You are responsible for the **only** commit step across all workflows (milestone
 research, codebase-survey, ad-hoc). No other skill commits directly — they all defer
 to you.
 
+## Pre-rendered repository state
+
+The blocks below are the captured stdout of shell commands run *before* this skill
+loaded. Treat them as the source of truth for Step 1 — do not re-run the same commands.
+Only run additional git commands if you need information these snapshots don't cover
+(e.g. the diff of a specific path, or a longer log for style reference).
+
+### `git status`
+
+```
+!`git status`
+```
+
+### `git diff --staged --stat`
+
+```
+!`git diff --staged --stat`
+```
+
+### `git diff --staged`
+
+```
+!`git diff --staged`
+```
+
+### `git diff --stat` (unstaged)
+
+```
+!`git diff --stat`
+```
+
+### `git diff` (unstaged)
+
+```
+!`git diff`
+```
+
+### Recent commits (style reference)
+
+```
+!`git log -n 10 --pretty=format:'%h %s'`
+```
+
 ## Workflow
 
 ### Step 0: User Guidance
@@ -35,14 +78,13 @@ When empty, commit all related changes as a single logical commit.
 
 ### Step 1: Gather Context
 
-1. Run `git status` to see all staged and unstaged changes.
-2. Run `git diff --staged` to check for already-staged files.
-3. If there **are** staged files, those represent the user's explicit intent — **only
-   operate on the staged changes**. Skip unstaged files entirely.
-4. If there are **no** staged files, run `git diff` (unstaged) and consider all
-   modifications as candidates.
-5. Read `ROADMAP.md` and `PLAN.md` if they exist, to understand the current milestone
-   and task context.
+1. Read the pre-rendered `git status` and diff blocks above.
+2. If the `git diff --staged` block is non-empty, staged files represent the user's
+   explicit intent — **only operate on the staged changes**. Skip unstaged files entirely.
+3. If nothing is staged, treat the `git diff` (unstaged) block as the candidate set.
+4. Read `ROADMAP.md` and `PLAN.md` if they exist, to understand the current milestone
+   and task context. (These are read via the `Read` tool, not pre-rendered, because
+   they may be absent.)
 
 If there are no changes matching the guidance (or no changes at all), tell the user and stop.
 
