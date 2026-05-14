@@ -24,13 +24,14 @@ You are guiding the human through the **Implementation** phase of an AI-native m
 workflow. You implement exactly one task from `PLAN.md` per invocation, using strict
 test-driven development: tests first, then just enough code to pass them.
 
+## Git status (auto-injected)
+
+!`git status --porcelain`
+
 ## Prerequisites
 
-1. The git working tree must be clean (no uncommitted changes). Run `git status --porcelain`
-   to check (plain form — do not use `git -C <path> status`, which bypasses the
-   Claude Code permission allowlist and triggers a permission prompt). If the tree is
-   dirty, stop immediately and ask the human to commit or stash their changes before
-   proceeding.
+1. The git status output above must be empty. If it is non-empty, stop immediately
+   and ask the human to commit or stash their changes via `/commit` before proceeding.
 2. `PLAN.md` must exist with at least one task marked `todo`.
 
 ## Phase Workflow
