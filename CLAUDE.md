@@ -43,16 +43,18 @@ The milestone-driven workflow ships two custom subagents (`milestone-scout`, `ta
 3. `/research-add-chapter` → Adds new chapter stubs to an existing topic directory
 4. `/research-inquiry` → Adds RESEARCH directives (section outlines) to a chapter stub
 5. `/research-investigation` → Writes content for one section, marks confidence levels; delegates the search-fetch-verify loop to the `source-investigator` subagent (one or several in parallel for `sources: any`)
-6. `/research-audit-consistency` → Checks cross-topic contradictions; inserts AUDIT directives. Delegates CONFIDENCE-marker verification to the `confidence-verifier` subagent.
-7. `/research-audit-coverage` → Checks gaps relative to the research plan; inserts AUDIT directives. Delegates CONFIDENCE-marker verification to the `confidence-verifier` subagent.
-8. `/research-audit-quality` → Checks depth and sourcing adequacy; inserts AUDIT directives. Delegates CONFIDENCE-marker verification to `confidence-verifier`, and fans out per-topic depth/sourcing analysis to `quality-auditor` subagents in parallel.
-9. `/research-audit-coherence` → Checks narrative flow; inserts AUDIT directives. Delegates CONFIDENCE-marker verification to `confidence-verifier`, and fans out per-topic flow analysis to `coherence-auditor` subagents in parallel.
-10. `/research-refine` → Resolves AUDIT findings (correct, expand, condense, restructure, etc.)
-11. `/research-restructure` → Structural changes (split, merge, promote, demote) with cross-reference rewriting
-12. `/research-glossary-sync` → Reconciles glossary.md against topic content. Fans out per-topic candidate extraction to `term-extractor` subagents in parallel.
+6. `/research-investigation-cycle` → Sequentially batches `research-investigation-worker` subagents over all pending RESEARCH directives; workers run in parallel across distinct topic files within a batch, serial within a topic
+7. `/research-audit-consistency` → Checks cross-topic contradictions; inserts AUDIT directives. Delegates CONFIDENCE-marker verification to the `confidence-verifier` subagent.
+8. `/research-audit-coverage` → Checks gaps relative to the research plan; inserts AUDIT directives. Delegates CONFIDENCE-marker verification to the `confidence-verifier` subagent.
+9. `/research-audit-quality` → Checks depth and sourcing adequacy; inserts AUDIT directives. Delegates CONFIDENCE-marker verification to `confidence-verifier`, and fans out per-topic depth/sourcing analysis to `quality-auditor` subagents in parallel.
+10. `/research-audit-coherence` → Checks narrative flow; inserts AUDIT directives. Delegates CONFIDENCE-marker verification to `confidence-verifier`, and fans out per-topic flow analysis to `coherence-auditor` subagents in parallel.
+11. `/research-refine` → Resolves AUDIT findings (correct, expand, condense, restructure, etc.)
+12. `/research-restructure` → Structural changes (split, merge, promote, demote) with cross-reference rewriting
+13. `/research-glossary-sync` → Reconciles glossary.md against topic content. Fans out per-topic candidate extraction to `term-extractor` subagents in parallel.
 
-The research workflow ships five custom subagents under `research/agents/`, installed alongside skills by `install.sh`:
+The research workflow ships six custom subagents under `research/agents/`, installed alongside skills by `install.sh`:
 - `source-investigator` — search-fetch-verify worker for `research-investigation`.
+- `research-investigation-worker` — per-directive investigation worker (invokes `research-investigation`) spawned in parallel batches by `research-investigation-cycle`.
 - `confidence-verifier` — shared CONFIDENCE-marker verifier for all four `research-audit-*` skills.
 - `quality-auditor` — per-topic depth/sourcing auditor spawned in parallel by `research-audit-quality`.
 - `coherence-auditor` — per-topic narrative-flow auditor spawned in parallel by `research-audit-coherence`.
