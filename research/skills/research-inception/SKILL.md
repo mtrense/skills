@@ -11,6 +11,16 @@ argument-hint: <optional domain name>
 
 You are initializing a new research project. This is an interactive, Socratic phase — guide the user through defining their research scope before generating any files.
 
+## Phase 0: Preflight
+
+Before Discovery, glob `research/**` to inventory what's already on disk. Branch on what you find:
+
+- **Greenfield** (no `research/` directory, or only an empty one) — proceed to Phase 1 as normal.
+- **Fully initialised** (`research/INDEX.md` exists AND `research/content/` contains at least one topic file) — stop. Tell the user the project is already initialised and point them to the right targeted skill: `/research-add-topic` to add a new topic, `/research-add-chapter` to extend an existing topic, or `/research-inquiry` to start outlining sections. Do not proceed unless the user explicitly says they want to re-scaffold from scratch and acknowledges that existing files will be preserved (never overwritten).
+- **Partial state** (some scaffolding present but incomplete — e.g. `CLAUDE.md` without `INDEX.md`, topic files on disk not listed in `INDEX.md`, or vice versa) — present the inventory to the user as a short list ("found: X, Y; missing: Z"), confirm they want to fill in the gaps, and carry that inventory into Phase 2. Topic files discovered on disk should be surfaced during Phase 1b so the user can decide whether to keep them and whether to extend the topic set.
+
+In all non-greenfield cases, Phase 2 operates in **fill-gaps mode**: every Write is preceded by an existence check, and existing files are left untouched. Use Edit (never Write) if a structural addition to an existing file is genuinely needed — but prefer deferring that to the targeted skills above.
+
 ## Phase 1: Discovery (Interactive)
 
 Guide the user through a structured conversation. Do NOT dump all questions at once. Ask 2–3 at a time, grouped by theme, and adapt based on answers. Typically this takes 3–5 rounds.
@@ -79,7 +89,9 @@ initially named.
 
 ## Phase 2: File Generation
 
-Once the user confirms the research plan, generate the following files under `research/`:
+Once the user confirms the research plan, generate the following files under `research/`.
+
+**Idempotency rule:** Before every Write in this phase, check whether the target path already exists (from the Phase 0 inventory). If it does, skip it and note the skip in the Phase 3 summary. Never overwrite an existing file in this skill — populated files like `INDEX.md` and `DECISIONS.md` may contain user work that this skill has no way to merge safely.
 
 ### `research/CLAUDE.md`
 
@@ -206,8 +218,8 @@ Create directories as needed for grouped topics. The files are intentionally min
 ## Phase 3: Summary
 
 After generating all files, present:
-- A tree view of what was created
-- The full INDEX.md content for review
+- A tree view of what was created, with skipped (pre-existing) paths marked explicitly
+- The full INDEX.md content for review (if it was newly written; otherwise note that the existing INDEX.md was left untouched)
 - A reminder that the next step is `/research-inquiry <topic-file>` for each topic
 
 ## Git
