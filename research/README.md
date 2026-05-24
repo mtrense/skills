@@ -4,7 +4,7 @@ A family of skills for building structured knowledge bases with Claude Code, int
 
 ## Skill Family
 
-A phased workflow with four broad steps — bootstrap, inquiry, investigation, and audit-then-refine — plus structural and glossary maintenance utilities. All skills currently set `disable-model-invocation: true` and are user-invoked, so each phase is an explicit, reviewable step rather than an autonomous loop. (See `feedback_disable_model_invocation.md` if relaxing that for individual skills later.)
+A phased workflow with four broad steps — bootstrap, inquiry, investigation, and audit-then-refine — plus structural and glossary maintenance utilities. All skills currently set `disable-model-invocation: true` and are user-invoked, so each phase is an explicit, reviewable step rather than an autonomous loop.
 
 1. **`/research-inception`** — One-time bootstrap. Creates `research/CLAUDE.md` (research conventions, citation style, tone), `INDEX.md` (topic outline), `DECISIONS.md`, `glossary.md`, and one stub topic file per declared topic.
    **Invocation**: `/research-inception` — no arguments; operates on the entire project.
