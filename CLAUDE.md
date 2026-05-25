@@ -49,7 +49,7 @@ The milestone-driven workflow ships two custom subagents (`milestone-scout`, `ta
 9. `/research-audit-quality` → Checks depth and sourcing adequacy; inserts AUDIT directives. Delegates CONFIDENCE-marker verification to `confidence-verifier`, and fans out per-topic depth/sourcing analysis to `quality-auditor` subagents in parallel.
 10. `/research-audit-coherence` → Checks narrative flow; inserts AUDIT directives. Delegates CONFIDENCE-marker verification to `confidence-verifier`, and fans out per-topic flow analysis to `coherence-auditor` subagents in parallel.
 11. `/research-refine` → Resolves AUDIT findings (correct, expand, condense, restructure, etc.)
-12. `/research-restructure` → Structural changes (split, merge, promote, demote) with cross-reference rewriting
+12. `/research-restructure` → Structural changes (split, merge, promote, demote, nest, flatten) at any depth in the topic tree, with cross-reference rewriting
 13. `/research-glossary-sync` → Reconciles glossary.md against topic content. Fans out per-topic candidate extraction to `term-extractor` subagents in parallel.
 
 The research workflow ships six custom subagents under `research/agents/`, installed alongside skills by `install.sh`:

@@ -92,6 +92,21 @@ For each finding in a subagent's report:
 
 The subagent's `Outline Summary` is for your judgement only — use it to decide whether a cluster of `progression` findings warrants raising a borderline `minor` to `major`. It does not produce an AUDIT comment of its own.
 
+### Step C3 — structural-depth smell check
+
+After the per-topic findings are applied, look at the in-scope file paths themselves. For each chapter nested 4 or more levels deep under `content/` (i.e. 4+ `/` separators in the relative path), insert an AUDIT comment at the top of the chapter's body (immediately after the H1):
+
+```html
+<!-- AUDIT:
+  type: flow
+  severity: minor
+  detail: "structure: chapter nests 4+ levels deep — consider /research-restructure flatten or merge to reduce depth"
+  ref: ""
+-->
+```
+
+Skip this check when the user explicitly scoped the audit to a single chapter; it is a project-shape concern, not a per-chapter one.
+
 ## Output
 
 1. **Insert AUDIT comments** directly into the topic files at the relevant locations (immediately after the problematic content).

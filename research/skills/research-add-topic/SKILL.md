@@ -9,7 +9,7 @@ allowed-tools: Read, Glob, Write, Edit
 
 # Research Add Topic
 
-You are adding a new topic to an existing research project. A topic is a directory under `research/content/` containing chapter files (`.md` stubs). This skill bridges the gap between project inception and chapter-level inquiry.
+You are adding a new top-level topic to an existing research project. A topic lives directly under `research/content/` and is either a single chapter file (shallow subject) or a directory containing chapter files — possibly with further nested sub-chapter groups (broader subject). This skill bridges the gap between project inception and chapter-level inquiry.
 
 ## Argument Parsing
 
@@ -24,8 +24,8 @@ If a summary is provided, use it as the starting point for scoping: propose chap
 
 1. Read `research/CLAUDE.md` for project conventions, tone, scope, and goals.
 2. Read `research/INDEX.md` to understand existing topics and their relationships.
-3. Confirm the topic directory does not already exist under `research/content/`.
-   - If it exists, abort and explain. The user may want `/research-inquiry` (to outline a chapter) or `/research-restructure` (to reorganize).
+3. Confirm neither the topic directory nor a single-file topic of the same name already exists under `research/content/` (`<topic-name>/` or `<topic-name>.md`).
+   - If either exists, abort and explain. The user may want `/research-add-chapter` (to add chapters under an existing topic directory), `/research-inquiry` (to outline a chapter), or `/research-restructure` (to reorganize).
 
 ## Phase 1: Scoping (Interactive)
 
@@ -46,6 +46,7 @@ Explore openly with the user across the same dimensions.
    - A working title
    - 1-2 sentence abstract (what it covers)
    - Expected scope: brief overview vs. deep dive
+   If only one chapter is needed, the topic becomes a single `.md` file directly under `content/` rather than a directory. Don't force multiplicity for symmetry. If a chapter is itself broad enough to warrant sub-chapters, note that — sub-directories can be created up front.
 3. **Relationships** — How does this topic relate to existing topics? Are there cross-references that will be needed? Is there overlap to watch out for?
 4. **Boundaries** — What is explicitly out of scope for this topic?
 
@@ -62,9 +63,11 @@ Ask for confirmation before proceeding.
 
 ## Phase 2: File Generation
 
-### Topic directory
+### Topic files
 
-Create `research/content/<topic-name>/` with one stub file per chapter:
+If the topic has a single chapter, create one file at `research/content/<topic-name>.md`. Otherwise, create the directory `research/content/<topic-name>/` and one stub file per chapter inside it. If the discussion identified sub-chapter groups, create the sub-directories and place their chapter stubs accordingly.
+
+Every chapter stub uses the same shape:
 
 ```markdown
 ---
@@ -80,13 +83,32 @@ Filenames use lowercase with hyphens, no numeric prefixes (consistent with proje
 
 ### INDEX.md update
 
-Add the new topic to `research/INDEX.md` in a logically appropriate position (not necessarily at the end). Follow the existing format:
+Add the new topic to `research/INDEX.md` in a logically appropriate position (not necessarily at the end). Heading level matches depth: top-level entries are `##`, chapters inside a directory topic are `###`, sub-chapters under a sub-directory are `####`, etc.
+
+For a single-chapter topic:
+
+```markdown
+## <topic-name>.md
+**Status**: stub
+
+<1-2 sentence abstract>
+```
+
+For a multi-chapter topic, possibly with nested sub-chapter groups:
 
 ```markdown
 ## <topic-name>/
 <abstract for this topic>
 
 ### <topic-name>/<chapter-file>.md
+**Status**: stub
+
+<1-2 sentence abstract>
+
+### <topic-name>/<sub-group>/
+<abstract for this sub-chapter group>
+
+#### <topic-name>/<sub-group>/<chapter-file>.md
 **Status**: stub
 
 <1-2 sentence abstract>

@@ -64,8 +64,8 @@ A multi-phase system for building structured knowledge bases with source verific
 | Phase | Command | What it does |
 |-------|---------|-------------|
 | 1 | `/research-inception` | Create project structure: INDEX.md, DECISIONS.md, glossary, topic stubs |
-| - | `/research-add-topic` | Add a new topic (directory + chapter stubs) to an existing project |
-| - | `/research-add-chapter` | Add new chapter stubs to an existing topic directory |
+| - | `/research-add-topic` | Add a new top-level topic (single chapter file or directory with chapter stubs) to an existing project |
+| - | `/research-add-chapter` | Add new chapter stubs under any existing directory in the topic tree (any depth) |
 | 2 | `/research-inquiry` | Add section outlines with RESEARCH directives to a chapter |
 | 3 | `/research-investigation` | Write content for one section; delegates the search-fetch-verify loop to the `source-investigator` subagent |
 | 3 | `/research-investigation-cycle` | Batch `research-investigation-worker` subagents over all pending RESEARCH directives; parallel across distinct topic files within a batch, serial within a topic |
@@ -74,7 +74,7 @@ A multi-phase system for building structured knowledge bases with source verific
 | 4 | `/research-audit-quality` | Check depth and sourcing adequacy; insert AUDIT directives. Fans out per-topic analysis to `quality-auditor` in parallel |
 | 4 | `/research-audit-coherence` | Check narrative flow; insert AUDIT directives. Fans out per-topic analysis to `coherence-auditor` in parallel |
 | 5 | `/research-refine` | Resolve audit findings (correct, expand, condense, restructure) |
-| 6 | `/research-restructure` | Structural changes: split, merge, promote, or demote topics |
+| 6 | `/research-restructure` | Structural changes at any depth: split, merge, promote, demote, nest, or flatten chapters |
 | 7 | `/research-glossary-sync` | Reconcile glossary against current topic content. Fans out per-topic candidate extraction to `term-extractor` in parallel |
 
 Research skills track topic status through: `stub` -> `inquiry` -> `draft` -> `audited` -> `done`.

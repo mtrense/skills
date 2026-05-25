@@ -57,9 +57,10 @@ Once you understand the motivation, explore what the research should cover.
 1. **Research domain** — What broad area are we researching?
 2. **Goals** — What practical outcomes should this knowledge base support? (Anchor these to the motivations discovered in Phase 1a.)
 3. **Topics** — What specific topics should be covered? Help the user brainstorm and refine. For each topic, clarify:
-   - Is it standalone or part of a group (directory)?
+   - Is it shallow enough for a single chapter file, or does it warrant a directory with multiple chapters (and possibly sub-chapter groups for the deepest)?
    - What's the expected scope (brief overview vs. deep dive)?
    - Are there known relationships to other topics?
+   Depth should follow the material — don't force every topic into the same shape. A topic with one focused question is a single `.md` file; a sprawling topic with three distinct sub-areas becomes a directory with sub-directories.
 4. **Conventions** — Ask about:
    - Preferred tone (technical, accessible, mixed)
    - Citation style preferences (inline links, reference sections, both)
@@ -136,25 +137,28 @@ Structure:
 # <Research Project Title>
 <abstract — 2-3 sentences describing the research scope and goals>
 
-## <directory-name>/
+## <directory-topic>/
 <abstract for this topic group>
 
-### <directory-name>/<topic-file>.md
+### <directory-topic>/<chapter-file>.md
 **Status**: stub
 
 <1-2 sentence abstract>
 
-## <standalone-topic>.md
+## <single-chapter-topic>.md
 **Status**: stub
 
 <1-2 sentence abstract>
 ```
 
+If a topic warrants nested sub-chapter groups during inception, mirror them with deeper headings — `####` for chapters two levels below `content/`, `#####` for three levels, etc.
+
 Rules:
-- Directory entries (`##`) group child topics, no status field
-- Leaf topic files (`###` under a directory, or `##` if standalone) carry `**Status**: stub`
+- Directory entries (whether `##` for top-level or deeper for nested groups) group their children and carry no status field
+- Leaf chapter files carry `**Status**: stub` and use a heading level matching their depth (`##` for a single-chapter top-level topic, `###` for a chapter in a top-level directory, `####` for a chapter one level deeper, …)
 - Use the relative path from `content/` as the heading identifier
-- Order topics logically, not alphabetically
+- Order topics and chapters logically, not alphabetically
+- Every chapter in the tree appears in INDEX.md regardless of depth; sections within a chapter do not
 
 ### `research/DECISIONS.md`
 
@@ -199,21 +203,26 @@ updated: <today>
 
 Leave the glossary empty — it will be populated during investigation and glossary-sync.
 
-### Topic files in `research/content/`
+### Chapter files in `research/content/`
 
-For each topic identified during discovery, create a file with:
+For each topic identified during discovery, create chapter stub files at the depths the discussion settled on:
 
 ```markdown
 ---
-title: "<Topic Title>"
+title: "<Chapter Title>"
 created: <today>
 updated: <today>
 ---
 
-# <Topic Title>
+# <Chapter Title>
 ```
 
-Create directories as needed for grouped topics. The files are intentionally minimal stubs — the inquiry phase adds structure.
+Layout rules:
+- A single-chapter topic is one `.md` file directly under `content/`.
+- A multi-chapter topic is a directory under `content/` containing one `.md` per chapter (and, if the discussion warranted it, sub-directories for chapter groups).
+- Nesting can go arbitrarily deep, but only when the material justifies it — don't pre-emptively scaffold sub-directories with one child.
+
+The files are intentionally minimal stubs — the inquiry phase adds section structure.
 
 ## Phase 3: Summary
 

@@ -1,6 +1,14 @@
 # Skill Family: Research
 
-A family of skills for building structured knowledge bases with Claude Code, intended for both human review and AI-native consumption. Operates entirely on markdown files. Topics are organized hierarchically — each topic file represents one subject, headings within structure it into sections, and directories group related topics. Filenames are stable keys for cross-references, git history, and `INDEX.md` entries. The output is not academic-grade research; it is practical, citable knowledge tuned for downstream coding and writing.
+A family of skills for building structured knowledge bases with Claude Code, intended for both human review and AI-native consumption. Operates entirely on markdown files. Content is organized hierarchically into **topics** (top-level subjects under `content/`), **chapters** (individual `.md` files within a topic, possibly nested several directories deep), and **sections** (headings within a chapter). Filenames are stable keys for cross-references, git history, and `INDEX.md` entries. The output is not academic-grade research; it is practical, citable knowledge tuned for downstream coding and writing.
+
+## Terminology
+
+- **Topic** — a top-level node directly under `content/`. May be a single `.md` file (shallow subject) or a directory containing chapters (broader subject). Created by `/research-inception` or `/research-add-topic`.
+- **Chapter** — any `.md` file at any depth inside a topic. The leaf unit of work for inquiry, investigation, audit, and refine. A chapter at depth 1 is the topic itself (single-file topic); a chapter at depth 2+ lives in a subdirectory. Informal terms "sub-chapter" and "sub-sub-chapter" just describe depth — structurally there is one concept.
+- **Section** — a heading (`##`, `###`, …) within a chapter file. The granularity at which RESEARCH directives, CONFIDENCE markers, and AUDIT directives are placed.
+
+Nesting depth is unbounded but should follow the material. The coherence audit flags chapters nested four or more levels deep as a smell.
 
 ## Skill Family
 
@@ -9,9 +17,9 @@ A phased workflow with four broad steps — bootstrap, inquiry, investigation, a
 1. **`/research-inception`** — One-time bootstrap. Creates `research/CLAUDE.md` (research conventions, citation style, tone), `INDEX.md` (topic outline), `DECISIONS.md`, `glossary.md`, and one stub topic file per declared topic.
    **Invocation**: `/research-inception` — no arguments; operates on the entire project.
 
-2. **`/research-add-topic <topic-name> [summary]`** — Adds a new top-level topic to an existing project (directory plus chapter stubs plus `INDEX.md` entry).
+2. **`/research-add-topic <topic-name> [summary]`** — Adds a new top-level topic to an existing project (single chapter file or directory with chapter stubs, plus `INDEX.md` entry).
 
-3. **`/research-add-chapter <topic-directory>`** — Adds new chapter stubs to an existing topic directory.
+3. **`/research-add-chapter <parent-directory>`** — Adds new chapter stubs under an existing directory in the topic tree. Works at any depth: a top-level topic directory, or a nested sub-directory. If the target is a single `.md` chapter, the skill prompts to promote it to a directory first (delegating to `/research-restructure promote`).
 
 4. **`/research-inquiry <topic-file>`** — Coarse outline phase. Adds section headings to the topic file with `<!-- RESEARCH: ... -->` directives capturing the query, expected scale, source profile, and related sections. Advances section status to `inquiry`.
    **Invocation**: `/research-inquiry data-pipelines/batch-processing.md`.
@@ -23,7 +31,15 @@ A phased workflow with four broad steps — bootstrap, inquiry, investigation, a
 
 7. **`/research-refine <topic-file> <operation> [details]`** — Resolves AUDIT directives within a single topic. Built-in operations: `correct` (information is wrong), `expand`, `condense`, `restructure`, `cross-reference`, `update` (new information supersedes old, distinct from `correct`). Free-text instructions scoped to the topic also work. Status is unchanged unless all outstanding AUDIT comments are cleared, in which case it advances `audited` → `done`.
 
-8. **`/research-restructure <operation> <topic-path> [target-path]`** — Structural changes that affect project layout: `split` (oversized topic), `merge` (two topics overlap), `promote` (single file → directory with child files), `demote` (directory → single file). Updates `INDEX.md` and rewrites every cross-reference that used the old path.
+8. **`/research-restructure <operation> <chapter-path> [target-path]`** — Structural changes that affect layout. Operations apply at any depth in the topic tree:
+   - `split` — break an oversized chapter into siblings (or into a new sub-directory).
+   - `merge` — combine two overlapping chapters into one.
+   - `promote` — convert a `.md` chapter into a directory with child chapters.
+   - `demote` — collapse a directory back into a single `.md` chapter.
+   - `nest <chapter> <target>` — move a chapter under another chapter; promotes the target to a directory first if needed.
+   - `flatten <chapter>` — move a chapter up one level (out of its current sub-directory).
+
+   All ops update `INDEX.md` and rewrite every cross-reference that used the old path.
 
 9. **`/research-glossary-sync`** — Reconciles `glossary.md` with current topic content. Adds new terms introduced during investigation or refinement, updates changed definitions, removes unused terms. Should be run after any content-changing phase.
 
@@ -40,18 +56,24 @@ Everything lives under a `research/` folder so the same repository can host othe
 │   ├── DECISIONS.md
 │   ├── glossary.md
 │   ├── content/
-│   │   ├── authentication.md                 ← standalone topic
-│   │   ├── authentication_references.yaml    ← references for authentication.md
-│   │   ├── data-pipelines/                   ← hierarchical topic
-│   │   │   ├── batch-processing.md
+│   │   ├── authentication.md                 ← single-chapter topic (shallow)
+│   │   ├── authentication_references.yaml
+│   │   ├── data-pipelines/                   ← topic as directory
+│   │   │   ├── batch-processing.md           ← chapter at depth 2
 │   │   │   ├── batch-processing_references.yaml
 │   │   │   ├── stream-processing.md
 │   │   │   └── stream-processing_references.yaml
-│   │   ├── api-design/
-│   │   │   ├── rest-conventions.md
-│   │   │   ├── rest-conventions_references.yaml
-│   │   │   ├── versioning.md
-│   │   │   └── versioning_references.yaml
+│   │   ├── api-design/                       ← topic with nested sub-directories
+│   │   │   ├── overview.md                   ← chapter at depth 2
+│   │   │   ├── overview_references.yaml
+│   │   │   ├── rest/                         ← sub-chapter group
+│   │   │   │   ├── conventions.md            ← chapter at depth 3
+│   │   │   │   ├── conventions_references.yaml
+│   │   │   │   ├── versioning.md
+│   │   │   │   └── versioning_references.yaml
+│   │   │   └── graphql/
+│   │   │       ├── schema-design.md
+│   │   │       └── schema-design_references.yaml
 │   │   └── ...
 ├── src/
 │   ├── CLAUDE.md
@@ -59,9 +81,9 @@ Everything lives under a `research/` folder so the same repository can host othe
 └── ...
 ```
 
-Topics use descriptive filenames as stable keys — no numeric prefixes. A topic starts as a single file and is `promote`d into a directory when it outgrows one file. Directory overviews live in the `##` entry in `INDEX.md`; there is no separate index file per directory. The repo-root `CLAUDE.md` is project-wide and out of scope for these skills (the research-specific conventions live in `research/CLAUDE.md`).
+Chapter filenames are descriptive and stable — no numeric prefixes. A chapter that outgrows itself is `promote`d into a directory; sibling chapters can be regrouped via `nest`/`flatten`. Nesting is unbounded; depth should follow the material, not a fixed template. Directory overviews live in the matching heading in `INDEX.md`; there is no separate index file per directory. The repo-root `CLAUDE.md` is project-wide and out of scope for these skills (the research-specific conventions live in `research/CLAUDE.md`).
 
-Assets are co-located with their topic file: when `<name>.md` has assets they go in a sibling `<name>_assets/` directory and are referenced with relative paths (e.g. `![diagram](authentication_assets/flow.png)`). References are similarly co-located in `<name>_references.yaml`. There is no central `assets/` directory.
+Assets are co-located with their chapter file: when `<name>.md` has assets they go in a sibling `<name>_assets/` directory and are referenced with relative paths (e.g. `![diagram](authentication_assets/flow.png)`). References are similarly co-located in `<name>_references.yaml`. There is no central `assets/` directory.
 
 ## File Formats
 
@@ -150,7 +172,7 @@ As shown in the original paper [vaswani-2017, pp. 5-6], multi-head attention all
 
 ### `INDEX.md`
 
-Outline of the project plus a brief abstract per node. Headings use the path relative to `content/` so they mirror the directory tree:
+Outline of the project plus a brief abstract per node. Headings use the path relative to `content/` so they mirror the directory tree. Heading level matches nesting depth: top-level topics are `##`, chapters one level in are `###`, two levels in are `####`, and so on:
 
 ```
 # <Research Topic>
@@ -177,13 +199,26 @@ Outline of the project plus a brief abstract per node. Headings use the path rel
 ## api-design/
 <abstract>
 
-### api-design/rest-conventions.md
+### api-design/overview.md
 **Status**: done
+
+<abstract>
+
+### api-design/rest/
+<abstract for this sub-chapter group>
+
+#### api-design/rest/conventions.md
+**Status**: draft
+
+<abstract>
+
+#### api-design/rest/versioning.md
+**Status**: stub
 
 <abstract>
 ```
 
-Directory entries (`##`) group their child topics but carry no status; only leaf topic files (`###`) do.
+Directory entries (whether top-level `##` or nested `###`/`####`) group their children and carry no status; only leaf `.md` chapters do. Every chapter in the tree appears in `INDEX.md` regardless of depth — sections within a chapter do not.
 
 ### `glossary.md`
 
