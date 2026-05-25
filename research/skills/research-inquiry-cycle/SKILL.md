@@ -31,12 +31,6 @@ orchestrator stays tiny.
 3. Working tree is clean. Run `git status --porcelain` (plain form — never
    `git -C <path>`, which bypasses the Claude Code permission allowlist). If
    dirty, stop and ask the human to commit or stash first.
-4. Do **not** pre-check whether the `research-inquiry-worker` subagent is
-   installed. Don't glob, don't read agent files, and don't `ls` the agents
-   directory via `Bash` either — any form of "verify the agent exists first"
-   is forbidden. Just invoke it by name via the `Agent` tool; if it isn't
-   installed, the tool call itself will fail with a clear error and you can
-   halt then.
 
 ## Arguments
 
