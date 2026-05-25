@@ -63,7 +63,7 @@ Only run additional git commands if you need information these snapshots don't c
 ### Recent commits (style reference)
 
 ```
-!`git log -n 10 --pretty=format:'%h %s'`
+!`git log -n 10 --pretty=format:'%h %s' 2>/dev/null || echo '(no commits yet — this will be the initial commit)'`
 ```
 
 ## Workflow
