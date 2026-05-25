@@ -32,9 +32,11 @@ investigate concurrently). The orchestrator stays tiny.
    `git -C <path>`, which bypasses the Claude Code permission allowlist). If
    dirty, stop and ask the human to commit or stash first.
 4. Do **not** pre-check whether the `research-investigation-worker` subagent is
-   installed — don't glob or read agent files. Just invoke it by name via the
-   `Agent` tool; if it isn't installed, the tool call itself will fail with a
-   clear error and you can halt then.
+   installed. Don't glob, don't read agent files, and don't `ls` the agents
+   directory via `Bash` either — any form of "verify the agent exists first"
+   is forbidden. Just invoke it by name via the `Agent` tool; if it isn't
+   installed, the tool call itself will fail with a clear error and you can
+   halt then.
 
 ## Arguments
 
