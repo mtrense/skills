@@ -145,6 +145,12 @@ commit anything yourself.
   is what the workers (and `research-inquiry`) are for.
 - **Trust the worker's halt.** If a worker halts, do not "try again" or
   "fix it up." Halt the loop and hand control back to the human.
+- **Missing-worker failure is cheap.** If `research-inquiry-worker` isn't
+  installed, the very first `Agent` call returns a clear, immediate error
+  naming the unknown subagent — and that's a perfectly fine halt signal. There
+  is no batch state to roll back at that point and the human gets an
+  unambiguous error to act on. So treat the `Agent` call itself as the
+  verification step; a separate pre-check would only duplicate work.
 - **INDEX.md is the only concurrency hotspot.** Parallel status flips can race;
   Step 5 catches and repairs that. The race is benign because every flip is
   the same mechanical edit (`stub` → `inquiry`) on a distinct line.
