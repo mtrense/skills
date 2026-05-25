@@ -67,6 +67,7 @@ A multi-phase system for building structured knowledge bases with source verific
 | - | `/research-add-topic` | Add a new top-level topic (single chapter file or directory with chapter stubs) to an existing project |
 | - | `/research-add-chapter` | Add new chapter stubs under any existing directory in the topic tree (any depth) |
 | 2 | `/research-inquiry` | Add section outlines with RESEARCH directives to a chapter |
+| 2 | `/research-inquiry-cycle` | Batch `research-inquiry-worker` subagents over all `stub` topics; fully parallel within a batch (one topic per worker) |
 | 3 | `/research-investigation` | Write content for one section; delegates the search-fetch-verify loop to the `source-investigator` subagent |
 | 3 | `/research-investigation-cycle` | Batch `research-investigation-worker` subagents over all pending RESEARCH directives; parallel across distinct topic files within a batch, serial within a topic |
 | 4 | `/research-audit-consistency` | Check cross-topic contradictions; insert AUDIT directives |
@@ -79,7 +80,7 @@ A multi-phase system for building structured knowledge bases with source verific
 
 Research skills track topic status through: `stub` -> `inquiry` -> `draft` -> `audited` -> `done`.
 
-The research workflow uses six bundled subagents: `source-investigator` (web search-fetch-verify loop for `research-investigation`), `research-investigation-worker` (per-directive investigation worker spawned in parallel batches by `research-investigation-cycle`), `confidence-verifier` (CONFIDENCE-marker verifier shared by all four `research-audit-*` skills), `quality-auditor` (per-topic depth/sourcing audit, spawned in parallel by `research-audit-quality`), `coherence-auditor` (per-topic narrative-flow audit, spawned in parallel by `research-audit-coherence`), and `term-extractor` (per-topic glossary-candidate extraction, spawned in parallel by `research-glossary-sync`). All live in `research/agents/` and are installed alongside the workflow's skills.
+The research workflow uses seven bundled subagents: `source-investigator` (web search-fetch-verify loop for `research-investigation`), `research-inquiry-worker` (per-topic inquiry worker spawned in parallel batches by `research-inquiry-cycle`), `research-investigation-worker` (per-directive investigation worker spawned in parallel batches by `research-investigation-cycle`), `confidence-verifier` (CONFIDENCE-marker verifier shared by all four `research-audit-*` skills), `quality-auditor` (per-topic depth/sourcing audit, spawned in parallel by `research-audit-quality`), `coherence-auditor` (per-topic narrative-flow audit, spawned in parallel by `research-audit-coherence`), and `term-extractor` (per-topic glossary-candidate extraction, spawned in parallel by `research-glossary-sync`). All live in `research/agents/` and are installed alongside the workflow's skills.
 
 ### Codebase Survey Workflow
 
@@ -176,6 +177,7 @@ research/
     research-glossary-sync/SKILL.md
     research-inception/SKILL.md
     research-inquiry/SKILL.md
+    research-inquiry-cycle/SKILL.md
     research-investigation/SKILL.md
     research-investigation-cycle/SKILL.md
     research-refine/SKILL.md
@@ -184,6 +186,7 @@ research/
     coherence-auditor.md
     confidence-verifier.md
     quality-auditor.md
+    research-inquiry-worker.md
     research-investigation-worker.md
     source-investigator.md
     term-extractor.md
