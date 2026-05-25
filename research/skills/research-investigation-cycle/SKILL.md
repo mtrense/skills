@@ -32,9 +32,8 @@ investigate concurrently). The orchestrator stays tiny.
    `git -C <path>`, which bypasses the Claude Code permission allowlist). If
    dirty, stop and ask the human to commit or stash first.
 4. The `research-investigation-worker` subagent is installed. If not, fall back
-   to `subagent_type: general-purpose` and inline the contract from
-   `research/agents/research-investigation-worker.md` into each prompt. This is
-   a fallback, not the default.
+   to `subagent_type: general-purpose` and inline the worker contract into each
+   prompt. This is a fallback, not the default.
 
 ## Arguments
 
@@ -82,8 +81,8 @@ number. You'll use it after the batch to verify monotonic numbering.
 
 Use the `Agent` tool with `subagent_type: research-investigation-worker` —
 one call per directive in the batch, **all in a single message** so they run
-concurrently. The worker's full contract lives in
-`research/agents/research-investigation-worker.md`.
+concurrently. The worker subagent carries its own contract; you only need to
+pass the topic file and section heading via the standard prompt below.
 
 Use this prompt template per worker:
 

@@ -32,9 +32,8 @@ orchestrator stays tiny.
    `git -C <path>`, which bypasses the Claude Code permission allowlist). If
    dirty, stop and ask the human to commit or stash first.
 4. The `research-inquiry-worker` subagent is installed. If not, fall back to
-   `subagent_type: general-purpose` and inline the contract from
-   `research/agents/research-inquiry-worker.md` into each prompt. This is a
-   fallback, not the default.
+   `subagent_type: general-purpose` and inline the worker contract into each
+   prompt. This is a fallback, not the default.
 
 ## Arguments
 
@@ -74,8 +73,8 @@ the dirty paths to the human. Do not clean up yourself.
 
 Use the `Agent` tool with `subagent_type: research-inquiry-worker` — one call
 per topic in the batch, **all in a single message** so they run concurrently.
-The worker's full contract lives in
-`research/agents/research-inquiry-worker.md`.
+The worker subagent carries its own contract; you only need to pass the topic
+file and the standard prompt below.
 
 Use this prompt template per worker:
 

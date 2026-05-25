@@ -2,7 +2,6 @@
 name: research-inquiry
 description: "Create a detailed section outline with RESEARCH directives for a topic file. Use after inception to structure a stub topic before investigation. Argument: topic file path relative to research/content/."
 argument-hint: "<topic-file>"
-disable-model-invocation: true
 model: opus
 allowed-tools: Read, Glob, Edit, WebSearch, WebFetch
 ---

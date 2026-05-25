@@ -2,7 +2,6 @@
 name: research-investigation
 description: "Research and write content for a single section of a topic file based on its RESEARCH directive. Delegates web search and source verification to the source-investigator subagent (optionally several in parallel), then synthesizes the section from its structured report. Arguments: topic file path, optional section heading (defaults to first inquiry-status section)."
 argument-hint: "<topic-file> [\"section-heading\"]"
-disable-model-invocation: true
 model: opus
 allowed-tools: Read, Write, Glob, Grep, Edit, Agent, WebFetch
 ---
