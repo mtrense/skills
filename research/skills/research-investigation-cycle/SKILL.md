@@ -50,15 +50,26 @@ Repeat the following until a stop condition triggers.
 
 ### Step 1: Enumerate pending directives
 
-Find every `<!-- RESEARCH: ... -->` marker across `research/content/` (use
-`Grep` for `<!-- RESEARCH:` with `output_mode: content` and `-n`). For each
-match, capture:
+Find every `<!-- RESEARCH: ... -->` marker across `research/content/`. Use
+**two `Grep` calls only** — no Bash, no `awk`, no `for` loops, no shell
+glue:
 
-- The topic file path (relative to `research/content/`).
-- The nearest preceding heading (the directive's section).
+1. `Grep` for `<!-- RESEARCH:` over `research/content/` with `output_mode:
+   content` and `-n: true`. This gives you `(file, line_number)` for every
+   pending directive.
+2. `Grep` for `^#+ ` over the same path with `output_mode: content` and
+   `-n: true`. This gives you `(file, line_number, heading_text)` for every
+   markdown heading.
 
-The result is a list of `(topic_file, section_heading)` pairs. If empty, exit
-the loop (success path → Step 5).
+In-context, for each directive match, find the heading from the same file
+with the largest `line_number` strictly less than the directive's line
+number. That heading is the directive's section.
+
+The result is a list of `(topic_file, section_heading)` tuples. If empty,
+exit the loop (success path → Step 5).
+
+Do **not** invent shell pipelines (`awk`, `sed`, per-file `for` loops, etc.)
+to compute this — the two Grep calls above contain everything you need.
 
 ### Step 2: Build the next batch
 
