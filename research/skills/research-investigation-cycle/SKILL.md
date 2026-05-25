@@ -31,9 +31,10 @@ investigate concurrently). The orchestrator stays tiny.
 3. Working tree is clean. Run `git status --porcelain` (plain form — never
    `git -C <path>`, which bypasses the Claude Code permission allowlist). If
    dirty, stop and ask the human to commit or stash first.
-4. The `research-investigation-worker` subagent is installed. If not, fall back
-   to `subagent_type: general-purpose` and inline the worker contract into each
-   prompt. This is a fallback, not the default.
+4. Do **not** pre-check whether the `research-investigation-worker` subagent is
+   installed — don't glob or read agent files. Just invoke it by name via the
+   `Agent` tool; if it isn't installed, the tool call itself will fail with a
+   clear error and you can halt then.
 
 ## Arguments
 
