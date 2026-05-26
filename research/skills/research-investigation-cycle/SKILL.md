@@ -33,9 +33,14 @@ The orchestrator stays tiny.
 1. `research/INDEX.md` exists.
 2. At least one topic file under `research/content/` contains a
    `<!-- RESEARCH: ... -->` marker. If none, stop and tell the human.
-3. Working tree is clean. Run `git status --porcelain` (plain form — never
-   `git -C <path>`, which bypasses the Claude Code permission allowlist). If
-   dirty, stop and ask the human to commit or stash first.
+3. Working tree must be clean. The output of `git status --porcelain` at skill
+   load time is injected below — if the block is non-empty, stop and ask the
+   human to commit or stash before proceeding. Do not re-run this command for
+   the initial check.
+
+   ```
+   !`git status --porcelain`
+   ```
 
 ## Arguments
 
