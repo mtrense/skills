@@ -6,7 +6,7 @@ description: >
   research-investigation-worker subagent — in parallel batches where topic
   files don't collide, sequentially within a topic.
 disable-model-invocation: true
-argument-hint: "[max-directives]   (optional integer; default: run until done or blocked)"
+argument-hint: "[max-directives][@workers]   (e.g. `12`, `12@8`, `@8`; defaults: no cap, 4 workers)"
 model: opus
 allowed-tools: Read, Edit, Glob, Grep, Skill, Bash(git status:*), Bash(git log:*), Bash(bash */skills/research-investigation-cycle/list-pending.sh *)
 ---
@@ -44,9 +44,22 @@ The orchestrator stays tiny.
 
 ## Arguments
 
-`$ARGUMENTS` is optional. If it parses as a positive integer, treat it as the
-**maximum number of directives** to attempt this cycle. Otherwise, run until no
-pending directives remain or a halt condition fires.
+`$ARGUMENTS` is optional and has the shape `[<total>][@<workers>]`:
+
+- `<total>` — positive integer; max directives to attempt this cycle.
+- `<workers>` — positive integer; max parallel forks per batch (the batch-size
+  cap in Step 2).
+
+Accepted forms:
+
+- *empty* → no total cap, 4 workers (default).
+- `N` → cap at N directives, 4 workers.
+- `N@W` → cap at N directives, W workers.
+- `@W` → no total cap, W workers.
+
+Anything else (non-integer parts, zero or negative values, extra tokens) →
+halt immediately and tell the human the expected shape. Bind the parsed
+values as `<total>` and `<workers>` for use in Steps 2 and 5.
 
 ## Loop
 
@@ -82,11 +95,10 @@ script is the single allowed path so the permission surface stays narrow.
 A **batch** is a set of `(topic_file, section_heading)` pairs where every
 `topic_file` is distinct. Build it greedily: walk the enumerated list and pick
 the first pending directive from each topic file you haven't seen yet in this
-batch. Cap batch size at **4 forks** (concurrency limit; raise only if the
-human asks).
+batch. Cap batch size at `<workers>` forks (default 4).
 
-If `$ARGUMENTS` capped the total directive count and you're close to it, shrink
-this batch so you don't overshoot.
+If `<total>` was specified and you're close to it, shrink this batch so you
+don't overshoot.
 
 ### Step 3: Pre-flight check
 
@@ -142,8 +154,7 @@ After all forks in the batch pass:
 7. **Tree state is as expected.** Run `git status --porcelain` — every modified
    path must belong to one of the batch's topic files, its sibling
    `_references.yaml`, `DECISIONS.md`, or `INDEX.md`. Unexpected paths → halt.
-8. **Cap not yet hit.** If `$ARGUMENTS` specified a max and you've reached it,
-   exit.
+8. **Cap not yet hit.** If `<total>` was specified and you've reached it, exit.
 
 If all checks pass, log a one-line progress note for the human per fork
 (e.g. `✓ topic-a.md § "Foo bar" — 412 words, 3 cites`), then loop back to
