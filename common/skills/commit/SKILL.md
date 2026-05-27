@@ -150,11 +150,14 @@ The summary line should be under 72 characters. The body (if needed) should expl
      git commit -m "feat(x): short subject" -m "First body paragraph." -m "Second body paragraph."
      ```
    - **Longer body, or bodies with bullet lists / code fences / blank-line-sensitive
-     formatting** → write the message to `$TMPDIR/commit-msg.txt` via the **Write tool**,
-     then commit with `-F`:
+     formatting** → write the message to `.git/CLAUDE_COMMIT_MSG` (a path **inside the
+     repo**, so the harness sandbox allows it) via the **Write tool**, then commit
+     with `-F`:
      ```
-     git commit -F "$TMPDIR/commit-msg.txt"
+     git commit -F .git/CLAUDE_COMMIT_MSG
      ```
+     Do not use `$TMPDIR` or `/tmp/` — the Write tool does not shell-expand env vars,
+     and writes outside the project tree are typically blocked by the sandbox.
    - **Never** use `git commit -m "$(cat <<'EOF' … EOF)"` or any other heredoc form.
      Heredocs bypass the `Bash(git commit*)` permission match and trigger prompts; they
      also produce no diff in the harness. The two forms above cover every case.
