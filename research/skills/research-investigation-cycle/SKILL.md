@@ -8,7 +8,7 @@ description: >
 disable-model-invocation: true
 argument-hint: "[max-directives]   (optional integer; default: run until done or blocked)"
 model: opus
-allowed-tools: Read, Edit, Glob, Grep, Skill, Bash(git status:*), Bash(git log:*), Bash(grep:*)
+allowed-tools: Read, Edit, Glob, Grep, Skill, Bash(git status:*), Bash(git log:*), Bash(bash */skills/research-investigation-cycle/list-pending.sh *)
 ---
 
 # Research Investigation Cycle — Parallel Subagents Over RESEARCH Directives
@@ -54,26 +54,28 @@ Repeat the following until a stop condition triggers.
 
 ### Step 1: Enumerate pending directives
 
-Find every `<!-- RESEARCH: ... -->` marker across `research/content/`. Use
-**two `Grep` calls only** — no Bash, no `awk`, no `for` loops, no shell
-glue:
+Run the bundled helper script (substitute `<skill-directory>` with this
+skill's installed directory — i.e. the directory containing this `SKILL.md`):
 
-1. `Grep` for `<!-- RESEARCH:` over `research/content/` with `output_mode:
-   content` and `-n: true`. This gives you `(file, line_number)` for every
-   pending directive.
-2. `Grep` for `^#+ ` over the same path with `output_mode: content` and
-   `-n: true`. This gives you `(file, line_number, heading_text)` for every
-   markdown heading.
+```
+bash <skill-directory>/list-pending.sh research
+```
 
-In-context, for each directive match, find the heading from the same file
-with the largest `line_number` strictly less than the directive's line
-number. That heading is the directive's section.
+It walks `research/content/`, pairs every `<!-- RESEARCH: ... -->` marker with
+the nearest preceding markdown heading, and prints one tab-separated row per
+pending directive:
 
-The result is a list of `(topic_file, section_heading)` tuples. If empty,
-exit the loop (success path → Step 5).
+```
+<topic_file>\t<directive_line>\t<heading>
+```
 
-Do **not** invent shell pipelines (`awk`, `sed`, per-file `for` loops, etc.)
-to compute this — the two Grep calls above contain everything you need.
+Parse the TSV in-context. The result is a list of
+`(topic_file, section_heading)` tuples. If empty, exit the loop (success path
+→ Step 5).
+
+Do **not** roll your own enumeration with `Grep` + post-processing or with
+ad-hoc Bash pipelines (`grep | awk | cut`, per-file `for` loops, etc.) — the
+script is the single allowed path so the permission surface stays narrow.
 
 ### Step 2: Build the next batch
 
