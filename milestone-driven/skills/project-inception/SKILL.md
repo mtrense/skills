@@ -8,7 +8,7 @@ description: >
   the very beginning to establish the project's identity before strategic planning begins.
 disable-model-invocation: true
 model: opus
-allowed-tools: Read, Glob, Write, Edit
+allowed-tools: Read, Glob, Write, Edit, AskUserQuestion
 argument-hint: <optional one-line project description>
 ---
 
@@ -84,22 +84,24 @@ get there.
   is that right?" A concrete proposal is easier to react to than a blank prompt, surfaces
   your assumptions so the user can catch them, and turns each question into a quick yes / no /
   refine. Base proposals on `$ARGUMENTS`, what the user has already said, the repo contents,
-  and sensible domain defaults. Offer them as the options in an `AskUserQuestion` call when
-  the tool is available, or inline in prose otherwise. Always leave room to decline — a
-  suggestion must never read as a decision already made.
+  and sensible domain defaults. For closed, option-shaped decisions, offer them as the options
+  in an `AskUserQuestion` call (see below); for open discovery, offer them inline in prose.
+  Always leave room to decline — a suggestion must never read as a decision already made.
 - It's fine for this to take many rounds. A thorough inception that takes fifteen exchanges
   and surfaces a buried assumption is a success; a tidy three-round chat that ratifies the
   user's first framing is a failure.
 
-**Asking via AskUserQuestion (when available):**
+**Asking via AskUserQuestion:**
 
-If the `AskUserQuestion` tool is available in this session, prefer it for the **closed,
+`AskUserQuestion` is available in this session, and you are expected to use it for the **closed,
 option-shaped decisions** where you can offer concrete choices — for example: artefact type
 (library / CLI / web app / API service / agent), primary language or runtime, open-source
 vs. internal vs. commercial, licence, and testing posture (TDD / integration-first / minimal).
 Offering 2–4 hypotheses as options — each is a Socratic "it sounds like this might be X" with
 a built-in escape hatch, since the user can always write their own answer — is often sharper
-than an open prompt. You can pose several such decisions in one `AskUserQuestion` call.
+than an open prompt. You can pose several such decisions in one `AskUserQuestion` call. Reaching
+the artefact/language/licence/testing decisions of Phase B and Phase D without having posed a
+single `AskUserQuestion` call is a sign you are defaulting to prose out of habit — don't.
 
 Do NOT force the **open-ended discovery** through multiple choice. The problem-discovery
 questions of Phase A, the value proposition, and the non-goals are exploratory — premature
@@ -107,9 +109,6 @@ options there would railroad the user toward your framing, which is the exact fa
 skill exists to prevent. Ask those in plain prose. And never let the tool's structure cut a
 grilling short: if an answer is shallow or contradictory, follow up in prose regardless of
 how it was asked.
-
-If `AskUserQuestion` is not available, conduct the entire dialogue in plain prose — the tool
-is a convenience for the closed decisions, never a requirement.
 
 **Per-phase understanding bar — what "done with this phase" means:**
 
