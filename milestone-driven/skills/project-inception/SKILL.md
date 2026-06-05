@@ -55,8 +55,47 @@ point, not a conclusion. It often captures the *solution* the user has in mind, 
 Phase A's problem-first questioning even more important.
 
 Guide the user through a structured conversation to uncover the project's core identity.
-Do NOT dump all questions at once. Ask 2–3 at a time, grouped by theme, and adapt based
-on answers. Typically this takes 3–5 rounds.
+This is a **grilling**, not a questionnaire. Your goal is not to get through a list of
+questions — it is to reach a state where you could explain this project back to the user
+better than they could explain it to you, with no soft spots left. Keep probing until you
+get there.
+
+**How to run the dialogue:**
+
+- Do NOT dump all questions at once. Ask 2–3 at a time, grouped by theme, and adapt based
+  on answers.
+- The question lists in each phase below are a **bank to draw from and improvise around** —
+  not a script to read top to bottom. The best question is almost always a follow-up to
+  what the user just said, not the next bullet on the list. If you find yourself asking the
+  canned questions verbatim in order, you are doing this wrong.
+- **Do not advance to the next phase on a fixed schedule.** Advance only when that phase's
+  understanding bar (below) is met. A phase might take one exchange or it might take eight —
+  let the quality of the answers decide, not a round count.
+- **Refuse to accept vague, hand-wavy, or self-contradictory answers.** When an answer is
+  shallow ("it should be fast", "for everyone", "the usual stuff"), name the vagueness and
+  push: "Fast how — sub-second page loads, or batch jobs that finish overnight? Who exactly
+  is 'everyone'?" When two answers conflict, surface the contradiction and make the user
+  resolve it. When the user dodges, ask again from a different angle.
+- **Mirror and pressure-test.** Periodically play back what you've understood in your own
+  words and ask the user to confirm or correct it. Disagreement is signal — chase it.
+- It's fine for this to take many rounds. A thorough inception that takes fifteen exchanges
+  and surfaces a buried assumption is a success; a tidy three-round chat that ratifies the
+  user's first framing is a failure.
+
+**Per-phase understanding bar — what "done with this phase" means:**
+
+- **Phase A is done** when you can state the underlying problem in one or two sentences,
+  independently of the proposed solution, and the user agrees it's accurate — including who
+  has it, how they cope today, and why that coping fails.
+- **Phase B is done** when goals, primary audience, the value proposition, and the explicit
+  non-goals are all concrete and unambiguous — no "for everyone", no goal you couldn't tell
+  whether it was met.
+- **Phase C is the formal gate** between problem/goals and technology; do not cross it until
+  both the problem statement and the project thesis read back true to the user.
+- **Phase D is done** when the technical shape, conventions, and AI-development rules are
+  specific enough to write into README.md and CLAUDE.md without inventing details.
+
+If you are unsure whether a bar is met, it is not met — ask another question.
 
 **Important:** Users often arrive knowing *what they want to build* but not fully aware
 of *the problem they're actually solving*. Your job is to get past the initial framing
@@ -302,6 +341,11 @@ Once the user is happy with both README.md and CLAUDE.md:
 
 ## Important Principles
 
+- **Grill until convergence, not until the list runs out.** The dialogue ends when you
+  genuinely understand the project — when you could defend its scope, audience, and shape
+  against pushback — not when you've asked a fixed number of questions. Treat shallow,
+  vague, or contradictory answers as unfinished business: name the gap and ask again. The
+  fixed question lists are scaffolding to improvise from, never a checklist to complete.
 - **Problem before solution.** Users often arrive with a solution in mind. Your first job
   is to understand the underlying problem independently, then validate that the proposed
   project is the right response to it. This reframing frequently shifts scope, audience,
