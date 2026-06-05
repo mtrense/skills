@@ -110,6 +110,14 @@ skill exists to prevent. Ask those in plain prose. And never let the tool's stru
 grilling short: if an answer is shallow or contradictory, follow up in prose regardless of
 how it was asked.
 
+This anti-railroading caution applies **only** to the open discovery above. Do NOT stretch it
+into a reason to keep the closed decisions — artefact type, language, distribution, licence,
+testing posture — in prose. Those have discrete, enumerable answers; offering them as options
+*surfaces* your assumptions for the user to reject rather than burying them, and the free-text
+escape hatch means it never railroads. "I left it in prose to avoid railroading" is the wrong
+call for any decision in that list — if you catch yourself reasoning that way about a closed
+decision, that is the habit this section exists to break. Use the tool.
+
 **Per-phase understanding bar — what "done with this phase" means:**
 
 - **Phase A is done** when you can state the underlying problem in one or two sentences,
@@ -176,6 +184,9 @@ the goals are clear, because goals constrain the solution space.
 - Is this open-source, internal, or commercial?
 - What licence do you intend?
 
+➤ The distribution model and licence are closed decisions — pose them with `AskUserQuestion`
+(e.g. open-source / internal / commercial as options; common licences as options), not in prose.
+
 #### Phase C: Convergence Checkpoint — Problem and Goals
 
 Before discussing any technology, synthesize and present two things separately:
@@ -209,6 +220,10 @@ needs to ship in two weeks, that constrains framework choices.
 - Are there key technology choices already made (framework, database, platform)?
 - Are there deployment or distribution constraints?
 
+➤ Artefact type and primary language/runtime are closed decisions — pose them with
+`AskUserQuestion`, leading with your goal-informed hypothesis as the first option. Ask the
+*why* follow-up ("why that runtime for this project?") in prose after they pick.
+
 **Conventions & Preferences**
 - What tone should documentation and code comments use? (technical, friendly, terse, etc.)
 - Are there naming conventions you care about? (file naming, variable style, module structure)
@@ -224,6 +239,8 @@ commit messages), so capturing them early prevents repeated correction later.
   (e.g., "never use ORMs", "always use structured logging", "prefer composition over inheritance")
 - Are there specific testing expectations? (e.g., "every public function needs a test",
   "use integration tests over unit tests", "TDD is mandatory")
+  ➤ Testing posture (TDD / integration-first / unit-first / minimal) is a closed decision —
+  pose it with `AskUserQuestion`.
 - Are there security or compliance constraints Claude should always respect?
   (e.g., "never log PII", "all API endpoints need auth middleware")
 - Any files or directories Claude should never modify? (e.g., generated code, vendored deps)
