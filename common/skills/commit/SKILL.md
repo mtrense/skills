@@ -142,25 +142,20 @@ The summary line should be under 72 characters. The body (if needed) should expl
 1. If files were already staged, commit exactly those — do not add or remove anything
    from the index. If no files were staged, stage the appropriate files by name (avoid
    `git add -A`). Exclude any suspicious files identified in Step 2.
-2. Commit with the crafted message. **How you pass the message matters** — choose
-   based on the body:
-   - **Subject only or 1–3 short body paragraphs** → use repeated `-m` flags, one per
-     paragraph. Each `-m` becomes its own paragraph in the final message.
+2. Commit with the crafted message using **repeated `-m` flags, one per paragraph or
+   line**. Each `-m` becomes its own blank-line-separated block in the final message.
+   This is the only form — it never prompts for permission and needs no temp file.
+   ```
+   git commit -m "feat(x): short subject" -m "First body paragraph." -m "Second body paragraph."
+   ```
+   - For a bullet list, give each bullet its own `-m`:
      ```
-     git commit -m "feat(x): short subject" -m "First body paragraph." -m "Second body paragraph."
+     git commit -m "feat(x): short subject" -m "- first point" -m "- second point" -m "- third point"
      ```
-   - **Longer body, or bodies with bullet lists / code fences / blank-line-sensitive
-     formatting** → write the message to `.git/CLAUDE_COMMIT_MSG` (a path **inside the
-     repo**, so the harness sandbox allows it) via the **Write tool**, then commit
-     with `-F`:
-     ```
-     git commit -F .git/CLAUDE_COMMIT_MSG
-     ```
-     Do not use `$TMPDIR` or `/tmp/` — the Write tool does not shell-expand env vars,
-     and writes outside the project tree are typically blocked by the sandbox.
-   - **Never** use `git commit -m "$(cat <<'EOF' … EOF)"` or any other heredoc form.
-     Heredocs bypass the `Bash(git commit*)` permission match and trigger prompts; they
-     also produce no diff in the harness. The two forms above cover every case.
+   - **Never** write the message to a file and use `-F`, and **never** use
+     `git commit -m "$(cat <<'EOF' … EOF)"` or any other heredoc form. Heredocs bypass
+     the `Bash(git commit*)` permission match and trigger prompts; they also produce no
+     diff in the harness. Repeated `-m` covers every case.
 3. Report the commit hash, summary, and list of files committed.
 
 If relevant, suggest the next workflow step:
