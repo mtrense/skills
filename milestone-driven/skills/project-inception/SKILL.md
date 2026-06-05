@@ -78,9 +78,38 @@ get there.
   resolve it. When the user dodges, ask again from a different angle.
 - **Mirror and pressure-test.** Periodically play back what you've understood in your own
   words and ask the user to confirm or correct it. Disagreement is signal — chase it.
+- **Suggest answers wherever you can.** Don't ask cold, open questions when you can make an
+  informed guess. Lead with a proposed answer and ask the user to confirm, correct, or
+  reject it — "My guess is the primary audience is solo backend developers, not whole teams;
+  is that right?" A concrete proposal is easier to react to than a blank prompt, surfaces
+  your assumptions so the user can catch them, and turns each question into a quick yes / no /
+  refine. Base proposals on `$ARGUMENTS`, what the user has already said, the repo contents,
+  and sensible domain defaults. Offer them as the options in an `AskUserQuestion` call when
+  the tool is available, or inline in prose otherwise. Always leave room to decline — a
+  suggestion must never read as a decision already made.
 - It's fine for this to take many rounds. A thorough inception that takes fifteen exchanges
   and surfaces a buried assumption is a success; a tidy three-round chat that ratifies the
   user's first framing is a failure.
+
+**Asking via AskUserQuestion (when available):**
+
+If the `AskUserQuestion` tool is available in this session, prefer it for the **closed,
+option-shaped decisions** where you can offer concrete choices — for example: artefact type
+(library / CLI / web app / API service / agent), primary language or runtime, open-source
+vs. internal vs. commercial, licence, and testing posture (TDD / integration-first / minimal).
+Offering 2–4 hypotheses as options — each is a Socratic "it sounds like this might be X" with
+a built-in escape hatch, since the user can always write their own answer — is often sharper
+than an open prompt. You can pose several such decisions in one `AskUserQuestion` call.
+
+Do NOT force the **open-ended discovery** through multiple choice. The problem-discovery
+questions of Phase A, the value proposition, and the non-goals are exploratory — premature
+options there would railroad the user toward your framing, which is the exact failure this
+skill exists to prevent. Ask those in plain prose. And never let the tool's structure cut a
+grilling short: if an answer is shallow or contradictory, follow up in prose regardless of
+how it was asked.
+
+If `AskUserQuestion` is not available, conduct the entire dialogue in plain prose — the tool
+is a convenience for the closed decisions, never a requirement.
 
 **Per-phase understanding bar — what "done with this phase" means:**
 
