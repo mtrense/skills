@@ -49,13 +49,13 @@ A phased cycle for building software, from idea through implementation to closeo
 | 1 | `/strategic-planning` | Sharpen ideas into well-defined, testable milestones | `ROADMAP.md` entries |
 | 2 | `/milestone-breakdown` | Decompose a milestone into ordered, independently testable tasks | `PLAN.md` |
 | 3 | `/task-implementation` | Implement one task using strict TDD (tests first, then code) | Passing code + tests |
-| 3 | `/implementation-cycle` | Run task-implementation + commit in fresh subagents per task to keep the main session clean | Passing code + commits |
+| 3 | `/implementation-cycle` | Run task-implementation + commit in fresh subagents per task, then sync docs/examples to each commit, to keep the main session clean | Passing code + commits + doc commits |
 | 4 | `/milestone-closing` | Verify success criteria, document results, reset for next cycle | Updated `ROADMAP.md` |
 | - | `/commit` | Craft a conventional commit from staged/unstaged changes | Git commit |
 
 **Typical flow:** `inception` (once) -> `planning` -> `breakdown` -> `implementation` (repeat per task) -> `closing` -> back to `planning`.
 
-The milestone-driven workflow uses two bundled subagents: `milestone-scout` (delegated codebase reconnaissance for `milestone-breakdown`) and `task-worker` (per-task `task-implementation` + `commit` worker for `implementation-cycle`). Both live in `milestone-driven/agents/` and are installed alongside the workflow's skills.
+The milestone-driven workflow uses three bundled subagents: `milestone-scout` (delegated codebase reconnaissance for `milestone-breakdown`), `task-worker` (per-task `task-implementation` + `commit` worker for `implementation-cycle`), and `doc-updater` (per-task documentation/examples sync, spawned by `implementation-cycle` after each task commit — a no-op unless the change is user- or developer-visible). All live in `milestone-driven/agents/` and are installed alongside the workflow's skills.
 
 ### Research Workflow
 
@@ -163,6 +163,7 @@ milestone-driven/
   agents/
     milestone-scout.md
     task-worker.md
+    doc-updater.md
 research/
   README.md                  # full research workflow specification
   skills/

@@ -116,8 +116,14 @@ clean pass through Step 4.
 ### Step 5: Update README.md
 
 With the milestone verified and closed, bring `README.md` up to date so it reflects the
-project's current state. Read the existing `README.md` and reconcile it against what
-was actually shipped in this milestone:
+project's current state. This is the **holistic narrative** pass — overview, feature
+list, positioning, quickstart. Per-task reference docs and examples were already kept in
+sync incrementally during `/implementation-cycle` by the `doc-updater` worker, so focus
+here on the README's framing and on anything that worker conservatively skipped; don't
+re-litigate every flag and endpoint it already documented.
+
+Read the existing `README.md` and reconcile it against what was actually shipped in this
+milestone:
 
 - Update feature lists, capability descriptions, or status claims that are now stale.
 - Add documentation for newly shipped capabilities (commands, flags, configuration,

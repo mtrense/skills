@@ -32,10 +32,10 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 2. `/strategic-planning` → Socratic dialogue adding milestones to ROADMAP.md
 3. `/milestone-breakdown` → Decomposes a milestone into ordered tasks in PLAN.md; delegates codebase reconnaissance to the `milestone-scout` subagent
 4. `/task-implementation` → Strict TDD: one task per invocation, tests first
-5. `/implementation-cycle` → Sequentially spawns one `task-worker` subagent per task (which invokes task-implementation + commit) to keep the main session clean
-6. `/milestone-closing` → Verifies criteria, documents results, resets PLAN.md
+5. `/implementation-cycle` → Sequentially spawns one `task-worker` subagent per task (which invokes task-implementation + commit) to keep the main session clean; after each task lands, spawns a `doc-updater` subagent to sync reference docs and examples to that one commit (no-op unless the change is surface-visible)
+6. `/milestone-closing` → Verifies criteria, documents results (holistic README narrative pass), resets PLAN.md
 
-The milestone-driven workflow ships two custom subagents (`milestone-scout`, `task-worker`) under `milestone-driven/agents/`, installed alongside skills by `install.sh`.
+The milestone-driven workflow ships three custom subagents (`milestone-scout`, `task-worker`, `doc-updater`) under `milestone-driven/agents/`, installed alongside skills by `install.sh`. `doc-updater` runs per task inside `/implementation-cycle`, keeping reference docs and examples in sync incrementally; `/milestone-closing` then handles the holistic README narrative at the end of the milestone.
 
 **Research workflow** — a multi-phase system for building knowledge bases:
 1. `/research-inception` → Creates project structure (INDEX.md, DECISIONS.md, glossary.md, topic stubs)

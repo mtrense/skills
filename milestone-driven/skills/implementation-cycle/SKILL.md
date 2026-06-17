@@ -106,17 +106,61 @@ After the subagent returns, verify in order. Any failure → halt the loop.
 7. **Cap not yet hit.** If `$ARGUMENTS` specified a max and you've reached it, exit.
 
 If all checks pass, log a one-line progress note for the human (e.g.
-`✓ Task 3/8 done — feat(parser): handle nested groups (a1b2c3d)`) and loop back
-to Step 1.
+`✓ Task 3/8 done — feat(parser): handle nested groups (a1b2c3d)`) and proceed to
+Step 4.5 before looping back to Step 1.
 
 When you halt mid-loop, the cycle is over for this invocation. Do not retry
 inside the same run.
+
+### Step 4.5: Sync Documentation
+
+Now that the task's code commit has landed cleanly, spawn a documentation worker
+to keep reference docs and examples in step with what just changed. Use the
+`Agent` tool with `subagent_type: doc-updater`. Its full contract — inspect the
+single task commit, update docs/examples **only** if the change is user- or
+developer-visible, `commit` them as a separate `docs(...)` commit, otherwise no-op
+— lives in `milestone-driven/agents/doc-updater.md`.
+
+Use this template:
+
+```
+The task just completed is: "<TASK TITLE>"
+Its commit hash is: <HASH FROM THE task-worker REPORT>
+
+Run your standard contract: inspect that commit's diff, update reference docs and
+examples only if the change is surface-visible, commit them separately, and return
+your report block. Default to NO-CHANGES for internal-only changes.
+```
+
+Run this Agent call **synchronously**, like the task-worker call. Then:
+
+1. **Report block present.** The worker's final message must end with a fenced
+   ` ```report ` block (the UPDATED, NO-CHANGES, or HALTED variant). If it's
+   missing, note it and move on — do not halt the whole cycle for a doc-worker
+   reporting glitch.
+2. **Tree is clean.** Run `git status --porcelain`. The worker either committed
+   its doc edits or made none — either way the tree must be clean before the next
+   iteration's pre-flight. If it's dirty, halt the loop and surface it: stray
+   uncommitted doc edits would corrupt the next task's pre-flight check.
+3. **Doc-worker HALTED is non-fatal.** Unlike `task-worker`, a `doc-updater` halt
+   does not kill the cycle — the code already landed. Log the halt reason for the
+   human and continue to Step 1. Documentation drift is recoverable at
+   `/milestone-closing`.
+
+Fold the doc outcome into the progress note, e.g.
+`✓ Task 3/8 done — feat(parser): handle nested groups (a1b2c3d) · docs(e4f5g6h)`
+or `· docs: none`.
+
+If the `doc-updater` subagent isn't available in this environment, skip Step 4.5
+with a one-line note to the human (the milestone's `/milestone-closing` README
+pass will reconcile docs at the end) and continue the loop.
 
 ### Step 5: Final Summary
 
 When the loop ends — clean exit, cap hit, or halt — print a compact summary:
 
-- Tasks completed this cycle (count + commit hashes / one-line subjects)
+- Tasks completed this cycle (count + commit hashes / one-line subjects), noting
+  any accompanying `docs(...)` commits from Step 4.5
 - Tasks remaining in PLAN.md (count)
 - Whether the milestone now has zero `[ ]` tasks (if so, suggest `/milestone-closing`)
 - The halt reason, if any
