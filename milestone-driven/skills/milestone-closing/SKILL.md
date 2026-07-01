@@ -83,6 +83,23 @@ Update the milestone's status from `in progress` to `completed` and append:
 3. <Point out what changed / what's new>
 ```
 
+**Reconcile the decision log.** If `docs/decisions/` exists, read
+`docs/decisions/INDEX.md` (one cheap file — no subagent needed here) and cross-check it
+against what actually shipped:
+
+- **New decisions:** if this milestone made an architectural decision that isn't yet in
+  the log, name it in the *Decision changes* closing note and point the human at recording
+  it (a decision surfaced during planning belongs in `docs/decisions/` via the recording
+  convention).
+- **Revised decisions:** if implementation contradicted an `Accepted` record, that record
+  is now stale. Flag it explicitly in the *Decision changes* note — the correct fix is a
+  new ADR that supersedes the old one (and marks the old one `Superseded by NNNN`), not
+  silent drift. Do not quietly rewrite the old record's decision; surface the conflict so
+  the human decides.
+
+The point is that a reader of `ROADMAP.md` and the decision log should never find them
+telling different stories about the same choice.
+
 ### Step 3: Review on File
 
 After writing to `ROADMAP.md`, tell the human the closing notes are ready for review and

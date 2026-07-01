@@ -35,7 +35,9 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 5. `/implementation-cycle` → Sequentially spawns one `task-worker` subagent per task (which invokes task-implementation + commit) to keep the main session clean; after each task lands, spawns a `doc-updater` subagent to sync reference docs and examples to that one commit (no-op unless the change is surface-visible)
 6. `/milestone-closing` → Verifies criteria, documents results (holistic README narrative pass), resets PLAN.md
 
-The milestone-driven workflow ships three custom subagents (`milestone-scout`, `task-worker`, `doc-updater`) under `milestone-driven/agents/`, installed alongside skills by `install.sh`. `doc-updater` runs per task inside `/implementation-cycle`, keeping reference docs and examples in sync incrementally; `/milestone-closing` then handles the holistic README narrative at the end of the milestone.
+The milestone-driven workflow ships four custom subagents (`milestone-scout`, `task-worker`, `doc-updater`, `decision-lookup`) under `milestone-driven/agents/`, installed alongside skills by `install.sh`. `doc-updater` runs per task inside `/implementation-cycle`, keeping reference docs and examples in sync incrementally; `/milestone-closing` then handles the holistic README narrative at the end of the milestone. `decision-lookup` is a read-only librarian for the project's Architecture Decision Records (see "Decision records" below): given a topic, it reads `docs/decisions/INDEX.md`, pulls only the relevant records, and returns a compact briefing — spawned by `/strategic-planning` and `/milestone-breakdown` so those opus sessions inherit prior decisions without paging the whole log into context.
+
+**Decision records (ADRs).** The decision-making skills record substantial *on-the-way* decisions — ones that split the architecture, commit to a goal, or foreclose an expensive-to-reverse alternative — as ADRs under `docs/decisions/`. Each decision is a full record at `docs/decisions/NNNN-kebab-title.md` (context, decision, rationale, alternatives, consequences) plus a one-sentence entry in `docs/decisions/INDEX.md` (the abbreviated form agents read to know a decision exists without loading its rationale). `/project-inception` records the foundational tech-shape/distribution decisions, `/strategic-planning` records directional decisions a milestone commits to, and `/milestone-breakdown` records milestone-level architectural splits. Recording is done inline by each skill from the bundled `references/decision-record.md`; *querying* is delegated to the `decision-lookup` subagent for context housekeeping. `/task-implementation` and `/milestone-closing` consume the log directly (reading the specific referenced records / `INDEX.md`) rather than via the subagent — the former because it may run inside a worker subagent that cannot spawn one, the latter because it only needs the index. `spec-sharpener` (in `common/`) writes to the same `docs/decisions/` + `INDEX.md` convention, so a project sharpened there and then built stays on one decision log. (The research workflow's `research/DECISIONS.md` is a separate, content-level log and is intentionally *not* part of this ADR convention.)
 
 **Research workflow** — a multi-phase system for building knowledge bases:
 1. `/research-inception` → Creates project structure (INDEX.md, DECISIONS.md, glossary.md, topic stubs)
@@ -81,7 +83,7 @@ Cross-workflow tools (used by, or invoked from, multiple workflow families):
 Standalone utilities (don't belong to any workflow):
 - `/audit-context` → Diagnoses contradictions, ambiguities, and irrelevance in the current session context (or a given file list); read-only, produces a line-cited severity-ranked report
 - `/deckset` → Generates Deckset (macOS) presentations from existing markdown content
-- `/spec-sharpener` → Hardens a greenfield project's spec/docs into an implementation-ready state; interviews the user one issue at a time (ambiguities, contradictions, gaps), edits the docs in place, and logs each resolution as an ADR-style decision record
+- `/spec-sharpener` → Hardens a greenfield project's spec/docs into an implementation-ready state; interviews the user one issue at a time (ambiguities, contradictions, gaps), edits the docs in place, and logs each resolution as an ADR under `docs/decisions/` with a one-line `INDEX.md` entry (the shared decision-record convention — see "Decision records" above)
 
 ### Skill File Conventions
 
@@ -121,6 +123,7 @@ Skills expect these files to exist in target projects:
 - `README.md` — project identity (created by project-inception)
 - `ROADMAP.md` — milestones (managed by strategic-planning, read by milestone-breakdown/closing)
 - `PLAN.md` — task list for current milestone (managed by milestone-breakdown, consumed by task-implementation)
+- `docs/decisions/NNNN-kebab-title.md` + `docs/decisions/INDEX.md` — Architecture Decision Records (written by project-inception, strategic-planning, milestone-breakdown, and spec-sharpener; read via the `decision-lookup` subagent by strategic-planning/milestone-breakdown, and directly by task-implementation/milestone-closing)
 
 Research skills expect an `research/` directory with `INDEX.md`, `DECISIONS.md`, `glossary.md`, and `content/` subdirectory.
 

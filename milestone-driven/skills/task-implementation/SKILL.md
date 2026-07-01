@@ -58,6 +58,15 @@ Build a mental model of:
 - What utilities, fixtures, or test helpers exist
 - The naming conventions for files, functions, variables, and tests
 
+**Read any decision records the task points to.** If the task's **Architecture &
+Decisions** notes reference an ADR (e.g. "per ADR 0007"), open that
+`docs/decisions/NNNN-*.md` file and read it — it is the binding source of truth for
+how this area must be built, and it carries the reasoning the one-line plan note
+omits. (Read the file directly; do not spawn a subagent — this skill may itself be
+running inside a worker subagent.) If the notes reference no ADR but `docs/decisions/`
+exists and plausibly governs the files you're touching, skim `docs/decisions/INDEX.md`
+and read any record that clearly applies.
+
 ### Step 3: Write the Tests FIRST
 
 This is the core TDD discipline. Before writing any production code:
@@ -89,7 +98,8 @@ Implement the minimum code required to make all tests pass. Follow these princip
   unless the task explicitly calls for it.
 - **No speculative code.** Don't add features, parameters, or abstractions not required
   by the tests. If it's not tested, it shouldn't exist.
-- **Respect the architecture decisions** listed in the task's plan entry.
+- **Respect the architecture decisions** listed in the task's plan entry, and any ADR it
+  references (Step 2) — a recorded decision is binding, not advisory.
 - **Handle the non-functional concerns** noted in the task (security checks, input
   validation, logging, etc.).
 

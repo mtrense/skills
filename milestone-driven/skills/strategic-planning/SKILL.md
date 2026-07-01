@@ -11,7 +11,7 @@ description: >
   phase, not for breaking down tasks or implementing code.
 model: opus
 disable-model-invocation: true
-allowed-tools: Read, Glob, Grep, Edit, Write
+allowed-tools: Read, Glob, Grep, Edit, Write, Agent
 argument-hint: "<feature or capability to plan>"
 ---
 
@@ -38,6 +38,15 @@ build context about the project's domain, tech stack, and existing capabilities.
 
 Read the current `ROADMAP.md` to understand existing milestones and project trajectory.
 Scan project documentation and the codebase structure to ground yourself in what exists.
+
+**Consult prior architectural decisions.** Before shaping a new milestone, find out what
+has already been decided so the milestone doesn't contradict or unknowingly re-open a
+settled direction. Spawn the `decision-lookup` subagent (Agent tool, `subagent_type:
+decision-lookup`) with the area the user wants to work on — it reads `docs/decisions/INDEX.md`,
+pulls only the relevant records, and returns a compact briefing, keeping the full decision
+log out of this session. If it reports no log exists, proceed normally. Treat any `Accepted`
+decision it returns as a standing constraint; if the milestone the user is describing would
+cut against one, surface that early rather than planning around it silently.
 
 Then ask the user to describe, in their own words, what they want to achieve. Accept
 rough, incomplete descriptions — the refinement happens next.
@@ -105,13 +114,32 @@ Use this exact format:
 - <Scope exclusions, dependencies, risks, or architectural considerations>
 ```
 
-### Step 4: Review and Refine
+### Step 4: Record Directional Decisions
 
-Tell the user the milestone was appended to `ROADMAP.md` and ask them to review the
-file. If they request changes, apply edits directly to `ROADMAP.md` — keep the
-feedback loop on the file, not in chat.
+A milestone is a goal, and `ROADMAP.md` already records the goal itself — do not
+duplicate that as an ADR. But shaping a milestone sometimes settles a **directional
+decision** that outlives the milestone: choosing one approach or architecture over
+another, drawing a scope boundary that forecloses a class of future work, or committing
+to a strategy that later milestones must live with. When the dialogue lands such a
+decision, capture the reasoning as an ADR — `ROADMAP.md` states *what* the milestone is,
+the ADR preserves *why the direction was chosen* and what was rejected.
 
-### Step 5: Hand Off
+Record one only when the decision **splits the architecture or commits the project to a
+direction that would be expensive to reverse** — not for ordinary scoping. For each that
+clears the bar, read `references/decision-record.md` and follow it: number the record,
+write `docs/decisions/NNNN-kebab-title.md`, and append the one-sentence entry to
+`docs/decisions/INDEX.md`. If a decision would contradict one the `decision-lookup`
+briefing surfaced in Step 1, do not overwrite that record silently — flag the conflict to
+the user; superseding a decision is their call and produces a new ADR that marks the old
+one superseded.
+
+### Step 5: Review and Refine
+
+Tell the user the milestone was appended to `ROADMAP.md` (and note any decision records you
+wrote) and ask them to review. If they request changes, apply edits directly to the file —
+keep the feedback loop on the file, not in chat.
+
+### Step 6: Hand Off
 
 Once the human is satisfied:
 

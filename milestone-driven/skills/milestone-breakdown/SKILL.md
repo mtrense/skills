@@ -76,6 +76,16 @@ reading the codebase yourself: project root layout (`Glob`), key affected
 files, README/ARCHITECTURE/CONTRIBUTING docs, and existing test conventions.
 Note the same categories the scout would have produced.
 
+**Consult prior architectural decisions too.** In parallel with the scout,
+spawn the `decision-lookup` subagent (`subagent_type: decision-lookup`) with the
+milestone's title and the subsystems it touches. It reads `docs/decisions/INDEX.md`,
+pulls only the relevant records, and returns a compact briefing of the decisions
+that constrain how this milestone should be built — so you inherit them without
+paging the whole decision log into your opus session. If it reports no log exists,
+proceed normally. Fold any binding decision it returns into the tasks' **Architecture
+& Decisions** notes, and if the milestone as scoped would cut against an `Accepted`
+decision, raise that with the human before writing the plan.
+
 After the scout returns: if anything about the milestone's scope is unclear
 or contradicts what the scout found, ask the human now, before writing. Keep
 clarification questions focused and minimal. Once open questions are
@@ -114,13 +124,32 @@ appendix at the end of this document.
 - **Rollback:** <how to safely revert if something goes wrong>
 ```
 
-### Step 4: Review on File
+### Step 4: Record Architectural Splits
+
+Most per-task choices belong in a task's **Architecture & Decisions** notes and nowhere
+else — that field exists precisely so small, local decisions stay local. But breaking a
+milestone down occasionally forces a **milestone-level architectural split**: a fork that
+shapes many tasks at once and would be expensive to reverse — introducing a new service
+boundary, choosing a persistence model for a whole feature, committing to a protocol or a
+cross-cutting pattern the rest of the work must honour. When the breakdown lands such a
+split, record it as an ADR so the reasoning survives past this planning session.
+
+Record one only when the decision **splits the architecture across tasks or commits to a
+direction that is costly to undo** — not for ordinary per-task choices. For each that
+clears the bar, read `references/decision-record.md` and follow it: number the record,
+write `docs/decisions/NNNN-kebab-title.md`, and append the one-sentence entry to
+`docs/decisions/INDEX.md`. Reference the record from the affected tasks' **Architecture &
+Decisions** notes (e.g. "per ADR 0007") so the implementer follows it. If the split would
+contradict a decision the Step 2 `decision-lookup` briefing surfaced, flag it to the
+human rather than silently overriding — that is a superseding decision and their call.
+
+### Step 5: Review on File
 
 After writing `PLAN.md`, tell the human the plan is ready for review and point them to
-the file. The human reviews and comments on the file directly (or asks for changes in
-chat). Iterate by editing `PLAN.md` until the human approves.
+the file (note any decision records you wrote). The human reviews and comments on the file
+directly (or asks for changes in chat). Iterate by editing `PLAN.md` until the human approves.
 
-### Step 5: Hand Off
+### Step 6: Hand Off
 
 Once approved:
 

@@ -376,9 +376,34 @@ Let the user know you've written both files and invite them to review. Ask:
 
 Apply refinements directly to both files. Iterate until the human is satisfied.
 
-### Step 6: Hand Off
+### Step 6: Record Foundational Decisions
 
-Once the user is happy with both README.md and CLAUDE.md:
+Inception is where a project's load-bearing decisions get made — the artefact type,
+the primary language/runtime, the distribution and licence model, and any
+architectural fork the dialogue surfaced. README.md and CLAUDE.md capture the *what*,
+but the *why* — the alternatives weighed and the reasoning behind the choice — is
+exactly what later agents and contributors need and exactly what those documents
+deliberately leave out. Preserve it as an Architecture Decision Record (ADR).
+
+Record an ADR for a decision only when it **splits the architecture, commits the
+project to a goal, or forecloses an alternative that would be expensive to reverse** —
+typically the core tech-shape decision (artefact + runtime + key framework, which may
+be one combined ADR), the distribution/licence model when it shapes the build, and any
+major fork the user resolved during the grilling. Do **not** write an ADR for an
+easily-reversible or purely-stylistic choice, nor for anything already fully captured
+as a plain convention in CLAUDE.md — over-recording buries the signal.
+
+For each decision that clears that bar, read `references/decision-record.md` and follow
+it: number the record, write `docs/decisions/NNNN-kebab-title.md` from the template, and
+append the one-sentence entry to `docs/decisions/INDEX.md`. There is no prior decision
+log to consult at inception — you are creating the first records.
+
+Briefly tell the user which decisions you recorded (a line each), so they can review the
+new records alongside README.md and CLAUDE.md.
+
+### Step 7: Hand Off
+
+Once the user is happy with README.md, CLAUDE.md, and any decision records:
 
 1. Do NOT commit. The user will review the diff and use `/commit` when ready.
 2. Suggest they move to **Strategic Planning** (`/strategic-planning`) to define their

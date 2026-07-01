@@ -55,7 +55,9 @@ A phased cycle for building software, from idea through implementation to closeo
 
 **Typical flow:** `inception` (once) -> `planning` -> `breakdown` -> `implementation` (repeat per task) -> `closing` -> back to `planning`.
 
-The milestone-driven workflow uses three bundled subagents: `milestone-scout` (delegated codebase reconnaissance for `milestone-breakdown`), `task-worker` (per-task `task-implementation` + `commit` worker for `implementation-cycle`), and `doc-updater` (per-task documentation/examples sync, spawned by `implementation-cycle` after each task commit — a no-op unless the change is user- or developer-visible). All live in `milestone-driven/agents/` and are installed alongside the workflow's skills.
+The milestone-driven workflow uses four bundled subagents: `milestone-scout` (delegated codebase reconnaissance for `milestone-breakdown`), `task-worker` (per-task `task-implementation` + `commit` worker for `implementation-cycle`), `doc-updater` (per-task documentation/examples sync, spawned by `implementation-cycle` after each task commit — a no-op unless the change is user- or developer-visible), and `decision-lookup` (read-only librarian that returns a compact briefing of the Architecture Decision Records relevant to a topic, so planning/breakdown inherit prior decisions without loading the whole log). All live in `milestone-driven/agents/` and are installed alongside the workflow's skills.
+
+**Decision records.** The decision-making phases record substantial *on-the-way* decisions — ones that split the architecture, commit to a goal, or foreclose an expensive-to-reverse alternative — as Architecture Decision Records under `docs/decisions/`: a full `NNNN-title.md` record (context, decision, rationale, alternatives, consequences) plus a one-sentence line in `docs/decisions/INDEX.md` for quick agent lookup. `project-inception` captures the foundational tech-shape decisions, `strategic-planning` the directional decisions a milestone commits to, and `milestone-breakdown` milestone-level architectural splits; `task-implementation` and `milestone-closing` read the log to stay consistent with it. `/spec-sharpener` writes to the same convention, so a project sharpened and then built shares one decision log.
 
 ### Research Workflow
 
@@ -103,7 +105,7 @@ The workflow uses six bundled subagents (`structural-discovery`, `dep-grapher`, 
 | `/pr` | Create or update a GitHub pull request for the current branch via `gh` — synthesises a What/Why/How body from commits and diff, defaults to draft (override with `final`), auto-pushes the branch |
 | `/deckset` | Generate [Deckset](https://www.deckset.com/) presentations from markdown content |
 | `/audit-context` | Diagnose contradictions, ambiguities, and irrelevance in the current session context (or a given file list) |
-| `/spec-sharpener` | Harden a greenfield project's spec/docs into an implementation-ready state — interviews you one issue at a time, edits docs in place, and logs each resolution as an ADR-style decision record |
+| `/spec-sharpener` | Harden a greenfield project's spec/docs into an implementation-ready state — interviews you one issue at a time, edits docs in place, and logs each resolution as an ADR under `docs/decisions/` (with a one-line `INDEX.md` entry) |
 
 ## How Skills Work
 
@@ -166,6 +168,7 @@ milestone-driven/
     milestone-scout.md
     task-worker.md
     doc-updater.md
+    decision-lookup.md
 research/
   README.md                  # full research workflow specification
   skills/

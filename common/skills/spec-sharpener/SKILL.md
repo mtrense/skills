@@ -57,8 +57,9 @@ remains.
    `ARCHITECTURE*`, `*.md`, `openapi*/`, schema files, and any config that
    reveals intent (`package.json`, `pyproject.toml`, `Cargo.toml`, etc.).
 2. Locate the decisions log if one exists. Check `docs/decisions/`, `docs/adr/`,
-   `adr/`, `decisions/`, `DECISIONS.md`, `docs/decisions.md`. Read every record.
-   **Treat `Accepted` decisions as settled** — do not re-raise them unless the
+   `adr/`, `decisions/`, `DECISIONS.md`, `docs/decisions.md`. If `docs/decisions/INDEX.md`
+   exists, read it first for a one-line map of what's been decided, then read the full
+   records. **Treat `Accepted` decisions as settled** — do not re-raise them unless the
    user asks or a *new* contradiction with one has appeared.
 
 ### Step 1 — Build a model of the intended system
@@ -139,12 +140,19 @@ Keep a dedicated, ADR-style log so decisions are durable and reruns are cheap.
   decision, named `NNNN-kebab-title.md` with a zero-padded sequential number
   (`0001-…`, `0002-…`). Determine the next number from the highest existing file.
 - **Contents:** copy `assets/decision-record-template.md` and fill it in —
-  number, title, status (`Accepted`), date, the documents it affected, the
-  context (the original ambiguity, with the quoted spot), the decision (the new
-  source of truth), the rationale, and the alternatives that were rejected and
-  why.
-- One record per resolved finding. Write it right after the edit, while the
-  reasoning is fresh, before moving to the next issue.
+  number, title, status (`Accepted`), date, deciders, scope, the documents it
+  affected, the context (the original ambiguity, with the quoted spot), the
+  decision (the new source of truth), the rationale, the alternatives that were
+  rejected and why, and the consequences.
+- **Index it.** Append one line to `docs/decisions/INDEX.md` — the abbreviated,
+  one-sentence form so an agent can grasp the decision without opening the full
+  record: `- [NNNN](NNNN-kebab-title.md) — <what was decided and its outcome> (Accepted)`.
+  Create `INDEX.md` if it doesn't exist yet, seeding it with a `# Decision Index`
+  header that says one line per decision links to its full record. This shared
+  `NNNN-title.md` + `INDEX.md` convention is the same one the milestone-driven
+  skills use, so a project sharpened here and then built stays on one decision log.
+- One record per resolved finding. Write both the record and its index line right
+  after the edit, while the reasoning is fresh, before moving to the next issue.
 
 ## Re-running
 
