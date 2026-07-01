@@ -103,6 +103,7 @@ The workflow uses six bundled subagents (`structural-discovery`, `dep-grapher`, 
 | `/pr` | Create or update a GitHub pull request for the current branch via `gh` — synthesises a What/Why/How body from commits and diff, defaults to draft (override with `final`), auto-pushes the branch |
 | `/deckset` | Generate [Deckset](https://www.deckset.com/) presentations from markdown content |
 | `/audit-context` | Diagnose contradictions, ambiguities, and irrelevance in the current session context (or a given file list) |
+| `/spec-sharpener` | Harden a greenfield project's spec/docs into an implementation-ready state — interviews you one issue at a time, edits docs in place, and logs each resolution as an ADR-style decision record |
 
 ## How Skills Work
 
@@ -151,6 +152,7 @@ common/
     commit/SKILL.md
     deckset/SKILL.md
     pr/SKILL.md
+    spec-sharpener/SKILL.md
   agents/                  # (empty for now)
 milestone-driven/
   skills/

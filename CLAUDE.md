@@ -81,6 +81,7 @@ Cross-workflow tools (used by, or invoked from, multiple workflow families):
 Standalone utilities (don't belong to any workflow):
 - `/audit-context` → Diagnoses contradictions, ambiguities, and irrelevance in the current session context (or a given file list); read-only, produces a line-cited severity-ranked report
 - `/deckset` → Generates Deckset (macOS) presentations from existing markdown content
+- `/spec-sharpener` → Hardens a greenfield project's spec/docs into an implementation-ready state; interviews the user one issue at a time (ambiguities, contradictions, gaps), edits the docs in place, and logs each resolution as an ADR-style decision record
 
 ### Skill File Conventions
 
