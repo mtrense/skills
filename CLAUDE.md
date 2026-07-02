@@ -83,7 +83,11 @@ Cross-workflow tools (used by, or invoked from, multiple workflow families):
 Standalone utilities (don't belong to any workflow):
 - `/audit-context` → Diagnoses contradictions, ambiguities, and irrelevance in the current session context (or a given file list); read-only, produces a line-cited severity-ranked report
 - `/deckset` → Generates Deckset (macOS) presentations from existing markdown content
-- `/spec-sharpener` → Hardens a greenfield project's spec/docs into an implementation-ready state; interviews the user one issue at a time (ambiguities, contradictions, gaps), edits the docs in place, and logs each resolution as an ADR under `docs/decisions/` with a one-line `INDEX.md` entry (the shared decision-record convention — see "Decision records" above)
+- `/spec-sharpener` → Hardens a greenfield project's spec/docs into an implementation-ready state; interviews the user one issue at a time (ambiguities, contradictions, gaps), edits the docs in place, and logs each resolution as an ADR under `docs/decisions/` with a one-line `INDEX.md` entry (the shared decision-record convention — see "Decision records" above). Keeps the main session lean by delegating both the doc-heavy sweep and the file-writing to subagents (see below) — the main session holds only the compact backlog and runs the interview
+
+The common workflow ships two custom subagents under `common/agents/`, installed alongside skills by `install.sh`. Both are used by `/spec-sharpener`:
+- `spec-surveyor` — read-only reconnaissance worker. Discovers the docs, reads the decision log, builds a system model, sweeps against the finding taxonomy, drops findings already settled by `Accepted` decisions, and returns a compact prioritized backlog (each finding carrying a quoted anchor, the problem, why-it-matters, and 2–4 concrete options). All the doc text and the taxonomy stay inside the subagent and are discarded.
+- `decision-encoder` — write-side worker. Given one resolved finding plus the agreed resolution, makes the minimal edits to the affected docs, writes the ADR from the template, and appends the `INDEX.md` line, returning a one-line confirmation. Runs one at a time (never in parallel) so decision numbering stays race-free.
 
 ### Skill File Conventions
 

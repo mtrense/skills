@@ -107,6 +107,8 @@ The workflow uses six bundled subagents (`structural-discovery`, `dep-grapher`, 
 | `/audit-context` | Diagnose contradictions, ambiguities, and irrelevance in the current session context (or a given file list) |
 | `/spec-sharpener` | Harden a greenfield project's spec/docs into an implementation-ready state — interviews you one issue at a time, edits docs in place, and logs each resolution as an ADR under `docs/decisions/` (with a one-line `INDEX.md` entry) |
 
+`/spec-sharpener` uses two bundled subagents in `common/agents/` to keep the main session lean: `spec-surveyor` (read-only — discovers the docs, reads the decision log, sweeps against the finding taxonomy, and returns a compact prioritized backlog; all the doc text stays inside the subagent) and `decision-encoder` (write-side — edits the affected docs, writes the ADR, and indexes it for one resolved finding at a time). The main session holds only the compact backlog and runs the interview. Both are installed alongside the workflow's skills.
+
 ## How Skills Work
 
 Each skill lives in `<workflow>/skills/<name>/SKILL.md` and uses YAML frontmatter to configure behavior:
@@ -155,7 +157,9 @@ common/
     deckset/SKILL.md
     pr/SKILL.md
     spec-sharpener/SKILL.md
-  agents/                  # (empty for now)
+  agents/
+    decision-encoder.md
+    spec-surveyor.md
 milestone-driven/
   skills/
     implementation-cycle/SKILL.md

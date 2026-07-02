@@ -17,6 +17,34 @@ implement without having to guess. This is an **interview-and-edit** workflow,
 not a report generator. The deliverables are (1) sharper documents and (2) a log
 of the decisions that made them sharper.
 
+## Architecture: keep the main session lean
+
+The interview is the only part that *must* live in this (the main) session,
+because it's the conversation with the user. The two expensive, context-heavy
+parts are delegated to subagents so their bulk never sits in your context:
+
+- **`spec-surveyor`** (read-only) does the discovery, model-building, and sweep,
+  and hands back a compact, prioritized backlog — each finding already carrying
+  its quoted anchor, the problem, why it matters, and concrete options. All the
+  doc text and the taxonomy stay inside that subagent and are discarded.
+- **`decision-encoder`** (write) takes one resolved finding plus the agreed
+  resolution and does all the file work — edits the docs, writes the ADR, indexes
+  it — returning a one-line confirmation. The template and the edited section body
+  never enter your context.
+
+So your job is: dispatch the surveyor once, hold the compact backlog, run the
+interview loop, and dispatch the encoder once per resolution. You never load the
+full corpus and never hold the ADR template.
+
+```mermaid
+flowchart TD
+    A[Main session] -->|dispatch once| S[spec-surveyor]
+    S -->|system model +<br/>prioritized backlog| A
+    A -->|interview, one issue/turn| U((User))
+    A -->|per resolution| E[decision-encoder]
+    E -->|1-line confirm + ADR #| A
+```
+
 ## When this applies
 
 The project is greenfield: docs/spec exist, but there is no real implementation
@@ -50,36 +78,28 @@ remains.
 
 ## Workflow
 
-### Step 0 — Orient
+### Step 0–2 — Survey (delegated to `spec-surveyor`)
 
-1. Discover the documentation. Look across the repo, not just the README:
-   `README*`, `docs/`, `doc/`, `spec*/`, `design*`, `requirements*`,
-   `ARCHITECTURE*`, `*.md`, `openapi*/`, schema files, and any config that
-   reveals intent (`package.json`, `pyproject.toml`, `Cargo.toml`, etc.).
-2. Locate the decisions log if one exists. Check `docs/decisions/`, `docs/adr/`,
-   `adr/`, `decisions/`, `DECISIONS.md`, `docs/decisions.md`. If `docs/decisions/INDEX.md`
-   exists, read it first for a one-line map of what's been decided, then read the full
-   records. **Treat `Accepted` decisions as settled** — do not re-raise them unless the
-   user asks or a *new* contradiction with one has appeared.
+Do **not** read the docs, the decision log, or the taxonomy yourself. Instead
+dispatch the `spec-surveyor` subagent via the `Agent` tool
+(`subagent_type: spec-surveyor`). Give it the repo root and, on a re-run, a
+one-line note of what previous runs already covered.
 
-### Step 1 — Build a model of the intended system
+It returns a **system-model paragraph** and a **compact, prioritized backlog** in
+which each finding already carries its quoted anchor, the problem, why it matters,
+and 2–4 concrete options — plus the decision-log location and the highest existing
+decision number. It has already dropped findings settled by `Accepted` decisions.
 
-Read everything and form a concrete mental model: who the users are, what the
-system does, its main entities and flows, its constraints, what's in and out of
-scope. You can't spot a contradiction or a gap without a model to check against.
-If something is so unclear that you can't even build the model, that's your first
-finding.
+Hold that backlog as your working state for this run. It is compact by design —
+this is what keeps your context lean. Do **not** print it as a list, and do
+**not** re-read the docs to "verify" it; trust the survey and only Read a specific
+spot on demand if the interview genuinely needs the live text (e.g. the user asks
+exactly what the doc says today). Keep the reported decision-log location and next
+number to hand the encoder later.
 
-### Step 2 — Sweep for findings
-
-Go through the documents systematically against the finding taxonomy in
-`references/finding-taxonomy.md`. Read that file now — it is the checklist that
-makes the sweep thorough and repeatable (ambiguities, contradictions, gaps,
-undefined/inconsistent terms, unstated assumptions, interface/data-model issues,
-non-functional gaps, testability, boilerplate-vs-spec mismatches, wording).
-
-Hold the resulting findings as an internal, prioritized backlog. Do **not** print
-it as a list.
+If the survey reports no blockers or fork-risks and only trivial-or-nothing
+remains, skip to the wrap in Step 6 and tell the user the spec looks
+implementation-ready.
 
 ### Step 3 — Open the interview
 
@@ -112,17 +132,27 @@ unsure, refine the options, ask a narrowing question, or surface a consideration
 they may not have weighed. Do not move on while they're still hedging. One
 finding may take several turns — that's expected and good.
 
-### Step 5 — Encode the decision
+### Step 5 — Encode the decision (delegated to `decision-encoder`)
 
-Once the user confirms a resolution:
+Once the user confirms a resolution, do **not** edit the docs or write the ADR
+yourself. Dispatch the `decision-encoder` subagent (`subagent_type:
+decision-encoder`) with:
 
-1. **Edit the document(s).** Make the minimal change that encodes the decision.
-   If the decision touches multiple docs, update all of them so they stay
-   consistent. Briefly confirm what changed (a line or two) — don't paste the
-   whole document back.
-2. **Write the decision record.** Append an ADR-style record using
-   `assets/decision-record-template.md`. See "Decision records" below for where
-   it goes and what it contains.
+- the finding (title, affected doc(s), the verbatim quoted anchor, why it
+  mattered — straight from the backlog item),
+- the **agreed resolution** in prose (the option chosen, a blend, or the user's
+  own answer — whatever was actually settled),
+- the decision-log location and the next number (from the survey; increment it
+  yourself for each subsequent encode this run so numbers stay sequential).
+
+It edits all affected docs, writes the ADR from the template, appends the INDEX
+line, and returns a one-line `ENCODED: NNNN — title` confirmation. Relay that to
+the user in a sentence — don't paste the document or the record back.
+
+Encoders run **one at a time**, never in parallel: the interview is sequential and
+so is decision numbering. If it returns `BLOCKED:` (e.g. the anchor no longer
+matches), read the reason, resolve it with the user or by a quick targeted Read,
+and re-dispatch.
 
 ### Step 6 — Next, or wrap
 
@@ -132,6 +162,10 @@ give a one-line status: how many resolved this run, how many remain, and the
 nature of what's left.
 
 ## Decision records
+
+The `decision-encoder` subagent writes these; you don't. This section documents
+the shared convention it follows so you know what's being produced and can point
+the encoder at the right location and number.
 
 Keep a dedicated, ADR-style log so decisions are durable and reruns are cheap.
 
@@ -156,12 +190,14 @@ Keep a dedicated, ADR-style log so decisions are durable and reruns are cheap.
 
 ## Re-running
 
-On every run: redo Step 0 (re-read docs *and* the decision log), rebuild the
-model, re-sweep, drop anything already settled, and continue the interview on
-what remains — including new issues introduced by recent edits. When a full sweep
-turns up no remaining blockers or fork-risks and only trivial-or-nothing is left,
-say so plainly: the spec looks implementation-ready, with a note on any residual
-minor items the user chose to leave.
+On every run: re-dispatch the `spec-surveyor` (it re-reads the docs *and* the
+decision log, rebuilds the model, re-sweeps, and drops anything already settled),
+then continue the interview on what remains — including new issues introduced by
+recent edits. The fresh survey runs in the subagent and is discarded, so re-runs
+stay cheap for your context. When the survey turns up no remaining blockers or
+fork-risks and only trivial-or-nothing is left, say so plainly: the spec looks
+implementation-ready, with a note on any residual minor items the user chose to
+leave.
 
 ## What not to do
 
@@ -169,8 +205,12 @@ minor items the user chose to leave.
   is the interview plus the edits plus the decision log.
 - **Don't dump the backlog.** One issue per turn.
 - **Don't edit ahead of agreement.** No change lands until the user confirms it.
-- **Don't advance prematurely.** Resolve and record the current issue before the
-  next one.
+- **Don't advance prematurely.** Resolve and record the current issue (i.e. get
+  the encoder's `ENCODED` confirmation) before starting the next one.
+- **Don't do the surveyor's or encoder's work yourself.** Don't read the whole
+  corpus to sweep, and don't hand-edit docs or hand-write ADRs in the main
+  session — that reintroduces the context bloat this design removes. Reserve
+  direct Reads for a single spot the live interview genuinely needs.
 - **Don't fabricate requirements.** Silence in the spec is a question for the
   user, not a license to decide for them.
 - **Don't re-open settled decisions** without cause.
