@@ -49,8 +49,9 @@ one-line map, then read the full records. **Findings already settled by an
 *new* contradiction with a settled decision has appeared (in which case flag that
 contradiction explicitly).
 
-Also record the **highest existing decision number** so the orchestrator knows
-where numbering resumes.
+The decision log is a **read-only input** for this dedup — the sharpening
+workflow never writes to it, so you do not need to track numbering or report
+where records would go.
 
 ### 3. Build a model of the intended system
 
@@ -106,8 +107,7 @@ Return exactly this structure and nothing else:
 
 ## Decision log state
 
-- Location: <path, or "none found — orchestrator should create docs/decisions/">
-- Highest existing decision number: <N, or 0>
+- Location: <path, or "none found">
 - Settled findings dropped from this backlog: <count + one-line note, or "none">
 
 ## Backlog (prioritized, strongest first)

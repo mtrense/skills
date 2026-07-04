@@ -80,7 +80,9 @@ would trigger revisiting it — which would be a new ADR superseding this one.>
 
 Do not spend an ADR on an easily-reversible, low-stakes, or purely-stylistic
 choice, nor on something already fully captured as a plain convention elsewhere
-(e.g. a lint rule or a CLAUDE.md instruction). Over-recording buries the
-decisions that actually matter. When in doubt, ask: *would a future contributor
-be surprised or misled without knowing the reasoning behind this?* If yes, record
-it; if no, skip it.
+(e.g. a lint rule or a CLAUDE.md instruction), nor on a decision already fully
+encoded in the project documents written this same session (README, ROADMAP,
+spec) where the rationale is a single obvious line — there, the doc itself is
+the record. Over-recording buries the decisions that actually matter. When in
+doubt, ask: *would a future contributor be surprised or misled without knowing
+the reasoning behind this?* If yes, record it; if no, skip it.
