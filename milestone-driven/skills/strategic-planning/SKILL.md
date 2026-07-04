@@ -2,13 +2,8 @@
 name: strategic-planning
 description: >
   Facilitate strategic planning for AI-native software projects by adding new milestones
-  to ROADMAP.md through Socratic dialogue. Trigger whenever the user mentions adding a
-  milestone, starting a new feature, planning a new capability, discussing project direction,
-  or says things like "let's plan", "new milestone", "next feature", "I want to build",
-  "add to the roadmap", or references ROADMAP.md. Also trigger when the user starts
-  describing a high-level goal or user-facing feature they want to pursue next. This skill
-  is the entry point of a four-phase milestone-driven workflow — use it for the strategic/planning
-  phase, not for breaking down tasks or implementing code.
+  to ROADMAP.md through Socratic dialogue. The strategic/planning entry point of the
+  four-phase milestone-driven workflow — not for breaking down tasks or implementing code.
 model: opus
 disable-model-invocation: true
 allowed-tools: Read, Glob, Grep, Edit, Write, Agent
