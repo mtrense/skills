@@ -8,6 +8,7 @@ description: >-
   directly to the docs — the sharpened spec itself is the record; no ADRs are
   written. Built to be run repeatedly until the spec is crystal clear.
 disable-model-invocation: true
+argument-hint: "[spec doc(s) to assess — path/glob; omit to assess all reasonable docs]"
 ---
 
 # Spec Sharpener
@@ -86,11 +87,33 @@ remains.
 
 ## Workflow
 
-### Step 0–2 — Survey (delegated to `spec-surveyor`)
+### Step 0 — Scope the survey (`$ARGUMENTS`)
+
+`$ARGUMENTS` names the specification documents to assess — a path or glob, or
+several. It is **optional**:
+
+- **Given:** treat that set as the scope. Pass the exact paths/globs to the
+  surveyor and tell it to confine its sweep to them (it may still read the
+  decision log and scaffolding config as *context* for building its model, but
+  it flags findings only within the named docs).
+- **Omitted:** the default — the surveyor discovers and assesses every reasonable
+  specification document itself (its normal behaviour).
+
+For a **large or unfamiliar repo** where you can't tell up front what counts as
+"the spec", don't guess and don't page the whole tree into your own context:
+first dispatch a lightweight discovery agent (the read-only `Explore` agent) to
+return a **list of candidate spec documents, each with a one-line summary**.
+Show that list, confirm the scope with the user (or pick the obvious spec set
+and say so), then feed the confirmed paths to the surveyor as if they'd been
+passed in `$ARGUMENTS`. Skip this discovery hop for small repos — the surveyor's
+own discovery is enough.
+
+### Step 1–2 — Survey (delegated to `spec-surveyor`)
 
 Do **not** read the docs, the decision log, or the taxonomy yourself. Instead
 dispatch the `spec-surveyor` subagent via the `Agent` tool
-(`subagent_type: spec-surveyor`). Give it the repo root and, on a re-run, a
+(`subagent_type: spec-surveyor`). Give it the repo root, the document scope from
+Step 0 (or "all reasonable docs" when none was given), and, on a re-run, a
 one-line note of what previous runs already covered.
 
 It returns a **system-model paragraph** and a **compact, prioritized backlog** in

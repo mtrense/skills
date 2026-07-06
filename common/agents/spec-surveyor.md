@@ -27,13 +27,22 @@ report and exit.
 ## Inputs
 
 The orchestrator gives you the repo root (default: current working directory).
-It may also pass a note about what a previous run already covered — respect it.
+It may also pass:
+
+- A **document scope** — specific paths or globs to assess. When given, confine
+  your findings to those documents (you may still read the decision log and any
+  scaffolding config as *context* for your model, but flag issues only inside the
+  named docs). When the scope is "all reasonable docs" or absent, discover and
+  assess everything yourself as described below.
+- A note about what a previous run already covered — respect it.
 
 ## What to do
 
 ### 1. Discover the documentation
 
-Look across the whole repo, not just the README: `README*`, `docs/`, `doc/`,
+If the orchestrator handed you an explicit document scope, that *is* your set —
+read those docs (expanding globs) and skip the broad discovery below. Otherwise
+look across the whole repo, not just the README: `README*`, `docs/`, `doc/`,
 `spec*/`, `design*`, `requirements*`, `ARCHITECTURE*`, `*.md`, `openapi*/`,
 schema files, and any config that reveals intent (`package.json`,
 `pyproject.toml`, `Cargo.toml`, etc.). This is a greenfield project: treat any
