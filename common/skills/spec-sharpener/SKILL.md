@@ -80,6 +80,12 @@ remains.
   nothing here appends to it.
 - **Never invent intent.** Where the spec is silent, ask — don't quietly fill
   the gap with an assumption. The user is the source of truth for what they want.
+- **Sharpen, don't plan.** This skill clarifies *what the system is* — it never
+  plans *how or in what order it gets built*. Don't iterate over milestones,
+  propose a sequencing, or ask what a reasonable first increment would be.
+  Prioritization and phasing come later, in `/strategic-planning` and
+  `/milestone-breakdown`. A scope question here is only ever *"is this part of
+  the spec?"*, never *"what do we build first?"*.
 - **Flag everything, but in priority order.** The bar for flagging is low (down
   to wording and style), but the order is strict: things that *block* a build
   come before things that would *fork* a build, which come before clarity, which
@@ -233,6 +239,10 @@ leave.
   under dozens that don't and pads trivial calls with fabricated "alternatives
   considered". If a resolution's rationale is genuinely worth keeping, give it
   a sentence in the spec itself.
+- **Don't plan or prioritize.** No milestones, no sequencing, no MVP-vs-later,
+  no "what's a reasonable first increment." That's the job of
+  `/strategic-planning` and `/milestone-breakdown`, later. If the interview
+  starts drifting into build order, pull it back to what the spec *says*.
 - **Don't fabricate requirements.** Silence in the spec is a question for the
   user, not a license to decide for them.
 - **Don't re-open settled decisions** without cause.

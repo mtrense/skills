@@ -48,9 +48,15 @@ Prioritize findings in this order when deciding what to surface first:
 - Assumed external state ("the data will already be there").
 
 ## 6. Scope boundaries
-- What is explicitly out of scope? What is MVP vs. later?
-- Features mentioned in passing that may or may not be in v1.
+- Is a mentioned feature *in* the system being specified, or not? Flag the
+  ambiguity of whether something belongs — not when it should be built.
+- Features mentioned in passing whose in-scope status is genuinely unclear.
 - Open-ended "etc." / "and more" that hides undefined scope.
+- **Out of bounds for this sweep:** sequencing, milestone ordering, MVP-vs-later
+  prioritization, phasing, or "what's a reasonable first increment." That is
+  *planning*, done later by `/strategic-planning` and `/milestone-breakdown` —
+  never propose it here. A scope finding is only valid if it's about *whether* a
+  thing is part of the spec, never about *what order* to build the parts in.
 
 ## 7. Interfaces & contracts
 - API endpoints/messages without defined inputs, outputs, status/error codes.

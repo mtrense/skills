@@ -86,6 +86,17 @@ Prioritize every finding into exactly one bucket:
 
 The bar for flagging is low (down to wording), but the *ordering* is strict.
 
+**Never emit planning findings.** Your job is to sharpen *what the system is*,
+not to plan *how or in what order it gets built*. Do not flag missing milestones,
+propose a sequencing or a first increment, ask "what should ship in v1", or
+suggest phasing the work. Those are decided later by `/strategic-planning` and
+`/milestone-breakdown`. A scope finding is legitimate only when it's about
+*whether* something belongs in the spec at all — never about *what order* to
+build the parts in. If a doc genuinely lacks a stated scope boundary (a mentioned
+feature whose in/out status is unclear), flag the ambiguity — but stop there;
+resolving it means the user *states* the boundary, not that they *sequence* the
+build.
+
 ### 5. Generate options per finding
 
 For each finding, do the doc-grounded thinking now so the orchestrator doesn't
