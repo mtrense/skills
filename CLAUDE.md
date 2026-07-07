@@ -54,14 +54,16 @@ The milestone-driven workflow ships four custom subagents (`milestone-scout`, `t
 12. `/research-refine` → Resolves AUDIT findings (correct, expand, condense, restructure, etc.)
 13. `/research-restructure` → Structural changes (split, merge, promote, demote, nest, flatten) at any depth in the topic tree, with cross-reference rewriting
 14. `/research-glossary-sync` → Reconciles glossary.md against topic content. Fans out per-topic candidate extraction to `term-extractor` subagents in parallel.
+15. `/research-ingest-source` → Out-of-band author entry point (user-invoked, not part of the phase cycle): given one specific source the author already has (URL or local file), vets it for legitimacy with the same levers as investigation (URL verification, primary-vs-secondary, independence, per-claim confidence), then weaves it into every existing section it corroborates/extends/contradicts across the topic tree — reusing the reference, CONFIDENCE, contradiction (both-positions + DEC + AUDIT), and gap-AUDIT conventions. This is the source-first counterpart to `/research-investigation` (which is directive-first and discovers its own sources). Delegates the read-heavy placement scan to the `corpus-locator` subagent and confirms the placement plan before editing.
 
-The research workflow ships six custom subagents under `research/agents/`, installed alongside skills by `install.sh`:
+The research workflow ships seven custom subagents under `research/agents/`, installed alongside skills by `install.sh`:
 - `research-inquiry-worker` — per-topic inquiry worker (invokes `research-inquiry`) spawned in parallel batches by `research-inquiry-cycle`.
 - `research-investigation-worker` — execution environment for the forked `research-investigation` skill (`context: fork`). Hosts one directive per fork, including the inline web search-fetch-verify loop. Spawned in parallel batches by `research-investigation-cycle` and also used by direct human invocations of `/research-investigation`.
 - `confidence-verifier` — shared CONFIDENCE-marker verifier for all four `research-audit-*` skills.
 - `quality-auditor` — per-topic depth/sourcing auditor spawned in parallel by `research-audit-quality`.
 - `coherence-auditor` — per-topic narrative-flow auditor spawned in parallel by `research-audit-coherence`.
 - `term-extractor` — per-topic glossary-candidate extractor spawned in parallel by `research-glossary-sync`.
+- `corpus-locator` — read-only placement scout spawned by `research-ingest-source`. Given a new source's extracted claims, scans the topic tree and returns, per claim, the sections that corroborate/extend/contradict it (plus uncovered claims). Does not fetch the web or edit files.
 
 The full research specification is in `research/README.md`.
 
