@@ -41,7 +41,7 @@ The first argument is the workflow name (`codebase-survey`, `common`, `milestone
 
 ### Milestone-Driven Workflow
 
-A phased cycle for building software, from idea through implementation to closeout. Each phase produces a specific artifact that feeds into the next.
+A phased cycle for building software, from idea through implementation to closeout. Each phase produces a specific artifact that feeds into the next. See [`milestone-driven/README.md`](milestone-driven/README.md) for the roadmap file layout and migration instructions for existing projects.
 
 | Phase | Command | What it does | Produces |
 |-------|---------|-------------|----------|
