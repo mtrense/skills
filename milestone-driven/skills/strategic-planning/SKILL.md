@@ -17,12 +17,16 @@ argument-hint: "<feature or capability to plan>"
 You are guiding the human through the **Strategic Planning** phase of an AI-native
 milestone-driven workflow. Your role is to act as a thoughtful product/engineering partner who
 uses Socratic questioning to sharpen a vague idea into a well-defined, testable milestone
-before it gets committed to `ROADMAP.md`.
+before it gets committed to the roadmap (its own `roadmap/NNNN-slug.md` file, summarised
+by one line in the `ROADMAP.md` index).
 
 ## Prerequisites
 
-Check for the existence of `ROADMAP.md` in the project root. If it doesn't exist, offer
-to create the initial file with a header and format explanation before proceeding.
+Check for the existence of `ROADMAP.md` and the `roadmap/` directory in the project root.
+`ROADMAP.md` is a lightweight **index** — one line per milestone — while the full content
+of each milestone lives in `roadmap/NNNN-slug.md`. If either is missing, offer to create
+them (the header-and-format `ROADMAP.md` plus an empty `roadmap/` directory) before
+proceeding.
 
 Also look for any project documentation (README.md, docs/, ARCHITECTURE.md, etc.) to
 build context about the project's domain, tech stack, and existing capabilities.
@@ -31,8 +35,11 @@ build context about the project's domain, tech stack, and existing capabilities.
 
 ### Step 1: Understand the Intent
 
-Read the current `ROADMAP.md` to understand existing milestones and project trajectory.
-Scan project documentation and the codebase structure to ground yourself in what exists.
+Read the current `ROADMAP.md` index to understand existing milestones and project
+trajectory. The index gives you each milestone's number, status, and one-line summary
+cheaply; open a specific `roadmap/NNNN-slug.md` file only if you need the full detail of a
+prior milestone. Scan project documentation and the codebase structure to ground yourself
+in what exists.
 
 **Consult prior architectural decisions.** Before shaping a new milestone, find out what
 has already been decided so the milestone doesn't contradict or unknowingly re-open a
@@ -81,16 +88,21 @@ Continue asking until you feel confident you can write a milestone that the huma
 recognize as a faithful, sharpened version of their intent. Typically this takes 2–4
 rounds of questions.
 
-### Step 3: Write the Milestone to ROADMAP.md
+### Step 3: Write the Milestone
 
-Once all open questions from Step 2 are resolved, append the milestone directly to
-`ROADMAP.md` using Edit/Write. Do NOT paste the milestone into chat for the user to
-approve — review happens on the file in Step 4, not in chat.
+Once all open questions from Step 2 are resolved, write the milestone directly to disk
+using Edit/Write. Do NOT paste the milestone into chat for the user to approve — review
+happens on the files in Step 4, not in chat.
 
-Use this exact format:
+This takes **two writes**:
+
+**1. Create `roadmap/NNNN-slug.md`** — the full milestone content. Pick the next
+sequential number by scanning existing filenames in `roadmap/` (zero-padded 4 digits;
+first milestone is `0001`) and a short kebab-case slug from the title. Use this exact
+format:
 
 ```markdown
-## Milestone: <short descriptive title>
+# Milestone: <short descriptive title>
 
 **Status:** open
 
@@ -109,15 +121,26 @@ Use this exact format:
 - <Scope exclusions, dependencies, risks, or architectural considerations>
 ```
 
+**2. Append one line to the `ROADMAP.md` index**, matching the filename, status, and a
+one-line summary (usually a condensed Value/Impact):
+
+```markdown
+NNNN-slug.md — [open] <one-line summary of what the milestone achieves>
+```
+
+Keep the two in sync: the index line's status must always match the `**Status:**` field
+in the milestone file. The index is what later phases scan to find the next open
+milestone, so it must never go stale.
+
 ### Step 4: Record Directional Decisions
 
-A milestone is a goal, and `ROADMAP.md` already records the goal itself — do not
+A milestone is a goal, and the milestone file already records the goal itself — do not
 duplicate that as an ADR. But shaping a milestone sometimes settles a **directional
 decision** that outlives the milestone: choosing one approach or architecture over
 another, drawing a scope boundary that forecloses a class of future work, or committing
 to a strategy that later milestones must live with. When the dialogue lands such a
-decision, capture the reasoning as an ADR — `ROADMAP.md` states *what* the milestone is,
-the ADR preserves *why the direction was chosen* and what was rejected.
+decision, capture the reasoning as an ADR — the milestone file states *what* the milestone
+is, the ADR preserves *why the direction was chosen* and what was rejected.
 
 Record one only when the decision **splits the architecture or commits the project to a
 direction that would be expensive to reverse** — not for ordinary scoping. For each that
@@ -130,9 +153,10 @@ one superseded.
 
 ### Step 5: Review and Refine
 
-Tell the user the milestone was appended to `ROADMAP.md` (and note any decision records you
-wrote) and ask them to review. If they request changes, apply edits directly to the file —
-keep the feedback loop on the file, not in chat.
+Tell the user the milestone was written to `roadmap/NNNN-slug.md` and indexed in
+`ROADMAP.md` (and note any decision records you wrote), and ask them to review. If they
+request changes, apply edits directly to the milestone file (and the index line if the
+summary or title changes) — keep the feedback loop on the files, not in chat.
 
 ### Step 6: Hand Off
 
@@ -143,8 +167,9 @@ Once the human is satisfied:
 
 ## Important Principles
 
-- **Append-only.** `ROADMAP.md` is a living history. Never edit or delete past milestones
-  during this phase.
+- **Append-only.** The roadmap is a living history. Never delete a past milestone's file
+  or its index line during this phase — add new milestones and let later phases update
+  their status.
 - **No implementation details.** Milestones describe *outcomes*, not *how* to get there.
   Implementation details belong in `PLAN.md` during the break-down phase.
 - **Right-sized milestones.** A milestone should be achievable in roughly 1–5 sessions of

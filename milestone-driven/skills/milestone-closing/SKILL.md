@@ -22,25 +22,28 @@ anything noteworthy, and reset `PLAN.md` for the next cycle.
 ## Prerequisites
 
 - `PLAN.md` exists with tasks — ideally all marked `[x]` (done) or `[~]` (postponed).
-- `ROADMAP.md` exists with the relevant milestone marked `in progress`.
+- The `ROADMAP.md` index lists the relevant milestone as `[in progress]`, and its full
+  content lives in `roadmap/NNNN-slug.md`. `PLAN.md`'s `> Milestone:` line names that file.
 
 ## Phase Workflow
 
 ### Step 1: Completeness Check
 
-Read `PLAN.md` and `ROADMAP.md`. Verify:
+Read `PLAN.md` and the milestone file `roadmap/NNNN-slug.md` it references (find the path
+on `PLAN.md`'s `> Milestone:` line, or the `[in progress]` entry in the `ROADMAP.md`
+index). Verify:
 
 1. **All tasks resolved.** Every task should be `[x]` or `[~]`. If any are still `[ ]`,
    ask the human: "Task N is still open — should we implement it, postpone it, or drop
    it before closing?"
 
-2. **Success criteria met.** Read the milestone's success criteria from `ROADMAP.md`
-   (formatted as `- [ ]` checkboxes by `strategic-planning`). For each criterion, assess
-   whether the implemented tasks collectively satisfy it, then **edit `ROADMAP.md` to
-   tick the box** (`- [ ]` → `- [x]`) for every met criterion. Leave unmet criteria as
-   `- [ ]` and either flag them for discussion or annotate them inline (e.g.,
-   `- [ ] <criterion> — descoped, see closing notes`). Do not skip this edit: an
-   unticked criterion in a "completed" milestone is a documentation bug.
+2. **Success criteria met.** Read the milestone's success criteria from
+   `roadmap/NNNN-slug.md` (formatted as `- [ ]` checkboxes by `strategic-planning`). For
+   each criterion, assess whether the implemented tasks collectively satisfy it, then
+   **edit the milestone file to tick the box** (`- [ ]` → `- [x]`) for every met criterion.
+   Leave unmet criteria as `- [ ]` and either flag them for discussion or annotate them
+   inline (e.g., `- [ ] <criterion> — descoped, see closing notes`). Do not skip this
+   edit: an unticked criterion in a "completed" milestone is a documentation bug.
 
 3. **Postponed tasks.** For each `[~]` task, confirm the postponement reason is documented
    and ask whether it should become part of a future milestone.
@@ -48,15 +51,16 @@ Read `PLAN.md` and `ROADMAP.md`. Verify:
 If any tasks are unresolved or criteria are not fully met, discuss with the human before
 proceeding.
 
-### Step 2: Write Closing Notes to ROADMAP.md
+### Step 2: Write Closing Notes to the Milestone File
 
-Once all tasks are resolved, write the closing content **directly to the milestone entry
-in `ROADMAP.md`**. Do not compose it in chat first — the file is the artifact.
+Once all tasks are resolved, write the closing content **directly to the milestone file
+`roadmap/NNNN-slug.md`**. Do not compose it in chat first — the file is the artifact.
 
-Update the milestone's status from `in progress` to `completed` and append:
+Update the milestone's status from `in progress` to `completed` in **both** the milestone
+file's `**Status:**` field and the `ROADMAP.md` index line's `[in progress]` → `[completed]`
+marker, then append to the milestone file:
 
 ```markdown
-**Status:** completed
 **Completed:** <date>
 
 **Closing Notes:**
@@ -97,14 +101,14 @@ against what actually shipped:
   silent drift. Do not quietly rewrite the old record's decision; surface the conflict so
   the human decides.
 
-The point is that a reader of `ROADMAP.md` and the decision log should never find them
-telling different stories about the same choice.
+The point is that a reader of the milestone file and the decision log should never find
+them telling different stories about the same choice.
 
 ### Step 3: Review on File
 
-After writing to `ROADMAP.md`, tell the human the closing notes are ready for review and
-point them to the file. Apply any requested changes directly to `ROADMAP.md` — keep the
-feedback loop on the file, not in chat.
+After writing to `roadmap/NNNN-slug.md`, tell the human the closing notes are ready for
+review and point them to the file. Apply any requested changes directly to the milestone
+file — keep the feedback loop on the file, not in chat.
 
 Ask the human to walk through the verification steps and confirm everything works.
 
@@ -191,7 +195,7 @@ enhancement", ask the human before deciding.
 **Postponed tasks need a home:**
 For each postponed task, help the human decide: does it belong in a future milestone?
 Should it be tracked as tech debt? Or is it no longer relevant? Add appropriate notes
-to `ROADMAP.md`.
+to the milestone file `roadmap/NNNN-slug.md`.
 
 ## Important Principles
 

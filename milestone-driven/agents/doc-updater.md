@@ -65,7 +65,7 @@ You do NOT own:
   is `/milestone-closing`'s Step 5 job, done once per milestone. Don't rewrite
   the README's prose framing here — only update the specific reference passage
   the task made stale.
-- Code, tests, PLAN.md, ROADMAP.md, or any project-internal planning doc.
+- Code, tests, PLAN.md, ROADMAP.md, `roadmap/*.md`, or any project-internal planning doc.
 
 ## Step 1 — read the diff
 

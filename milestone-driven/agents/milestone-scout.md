@@ -24,7 +24,7 @@ breakdown.
 You receive:
 
 1. The milestone description (title + value/impact + outcome + success criteria,
-   verbatim from `ROADMAP.md`).
+   verbatim from the milestone file `roadmap/NNNN-slug.md`).
 2. The repo root path (defaults to the current working directory).
 3. Optionally, a hint about which `<module>/CODEBASE.md` files (from the
    codebase-survey workflow) are most relevant. If present, use them — they

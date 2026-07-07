@@ -29,7 +29,7 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 
 **Milestone-driven workflow** — a four-phase cycle for building software:
 1. `/project-inception` → Socratic dialogue producing README.md (one-time, precedes the cycle)
-2. `/strategic-planning` → Socratic dialogue adding milestones to ROADMAP.md
+2. `/strategic-planning` → Socratic dialogue adding milestones (each as `roadmap/NNNN-slug.md`, indexed by one line in ROADMAP.md)
 3. `/milestone-breakdown` → Decomposes a milestone into ordered tasks in PLAN.md; delegates codebase reconnaissance to the `milestone-scout` subagent
 4. `/task-implementation` → Strict TDD: one task per invocation, tests first
 5. `/implementation-cycle` → Sequentially spawns one `task-worker` subagent per task (which invokes task-implementation + commit) to keep the main session clean; after each task lands, spawns a `doc-updater` subagent to sync reference docs and examples to that one commit (no-op unless the change is surface-visible)
@@ -126,7 +126,7 @@ Custom subagents live in `<workflow>/agents/<name>.md` (a single file per agent,
 
 Skills expect these files to exist in target projects:
 - `README.md` — project identity (created by project-inception)
-- `ROADMAP.md` — milestones (managed by strategic-planning, read by milestone-breakdown/closing)
+- `ROADMAP.md` — milestone **index**: one line per milestone (`NNNN-slug.md — [status] summary`), kept lean so it stays cheap to load. Full milestone content (value, outcome, success criteria, notes, closing notes) lives in `roadmap/NNNN-slug.md`. Managed by strategic-planning, read by milestone-breakdown/closing (which open only the specific milestone file they need)
 - `PLAN.md` — task list for current milestone (managed by milestone-breakdown, consumed by task-implementation)
 - `docs/decisions/NNNN-kebab-title.md` + `docs/decisions/INDEX.md` — Architecture Decision Records (written by project-inception, strategic-planning, and milestone-breakdown; read via the `decision-lookup` subagent by strategic-planning/milestone-breakdown, directly by task-implementation/milestone-closing, and as read-only dedup input by spec-sharpener's surveyor)
 

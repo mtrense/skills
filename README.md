@@ -46,11 +46,11 @@ A phased cycle for building software, from idea through implementation to closeo
 | Phase | Command | What it does | Produces |
 |-------|---------|-------------|----------|
 | 0 | `/project-inception` | Socratic dialogue to discover project vision and goals | `README.md` |
-| 1 | `/strategic-planning` | Sharpen ideas into well-defined, testable milestones | `ROADMAP.md` entries |
+| 1 | `/strategic-planning` | Sharpen ideas into well-defined, testable milestones | `roadmap/NNNN-slug.md` + `ROADMAP.md` index entry |
 | 2 | `/milestone-breakdown` | Decompose a milestone into ordered, independently testable tasks | `PLAN.md` |
 | 3 | `/task-implementation` | Implement one task using strict TDD (tests first, then code) | Passing code + tests |
 | 3 | `/implementation-cycle` | Run task-implementation + commit in fresh subagents per task, then sync docs/examples to each commit, to keep the main session clean | Passing code + commits + doc commits |
-| 4 | `/milestone-closing` | Verify success criteria, document results, reset for next cycle | Updated `ROADMAP.md` |
+| 4 | `/milestone-closing` | Verify success criteria, document results, reset for next cycle | Updated `roadmap/NNNN-slug.md` + `ROADMAP.md` index |
 | - | `/commit` | Craft a conventional commit from staged/unstaged changes | Git commit |
 
 **Typical flow:** `inception` (once) -> `planning` -> `breakdown` -> `implementation` (repeat per task) -> `closing` -> back to `planning`.

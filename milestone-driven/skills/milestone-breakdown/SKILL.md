@@ -23,7 +23,8 @@ session, each independently testable and committable.
 
 ## Prerequisites
 
-1. `ROADMAP.md` must exist with at least one milestone with status `open`.
+1. `ROADMAP.md` (the index) must exist with at least one milestone whose status is `open`.
+   The full content of each milestone lives in `roadmap/NNNN-slug.md`.
 2. `PLAN.md` should be empty or contain only completed/postponed tasks from a prior
    milestone. If it has uncompleted tasks, confirm with the user before overwriting.
 
@@ -31,7 +32,11 @@ session, each independently testable and committable.
 
 ### Step 1: Select the Milestone
 
-Read `ROADMAP.md` and identify the next `open` milestone. If multiple are open, approach the next one in order of writing. Update its status to `in progress`.
+Read the `ROADMAP.md` index and identify the next `[open]` milestone. If multiple are
+open, approach the next one in order of writing (lowest number). Open its
+`roadmap/NNNN-slug.md` file to read the full milestone content. Update the status to
+`in progress` in **both** places: the `[open]` → `[in progress]` marker on the index line
+and the `**Status:**` field in the milestone file.
 
 ### Step 2: Codebase Reconnaissance — Delegate to `milestone-scout`
 
@@ -45,7 +50,7 @@ Spawn the scout with `subagent_type: milestone-scout` and a self-contained
 prompt:
 
 ```
-Milestone (verbatim from ROADMAP.md):
+Milestone (verbatim from roadmap/NNNN-slug.md):
 
 <paste the full milestone block — title, value/impact, outcome, success
 criteria, notes>
@@ -178,7 +183,7 @@ Once approved:
 
 # Plan: <Milestone Title>
 
-> Milestone: <link or reference to the ROADMAP.md entry>
+> Milestone: roadmap/NNNN-slug.md
 > Started: <date>
 
 ## Tasks
