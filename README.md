@@ -104,12 +104,15 @@ The workflow uses six bundled subagents (`structural-discovery`, `dep-grapher`, 
 | Command | What it does |
 |---------|-------------|
 | `/pr` | Create or update a GitHub pull request for the current branch via `gh` — synthesises a What/Why/How body from commits and diff, defaults to draft (override with `final`), auto-pushes the branch |
+| `/version-bump` | Bump the project's version (detects `package.json`, `Cargo.toml`, `pyproject.toml`, and similar) from `major`/`minor`/`patch` or an explicit `x.y.z`, then cut an annotated git tag — gathers a changelog from the commits since the last tag and writes it to CHANGELOG.md, the tag message, and the chat; defers the commit to `/commit` |
 | `/deckset` | Generate [Deckset](https://www.deckset.com/) presentations from markdown content |
 | `/adr` | Manually record one or more ADRs from the current conversation under `docs/decisions/` — the human override for when a decision worth preserving was made in-session but no skill recorded it |
 | `/audit-context` | Diagnose contradictions, ambiguities, and irrelevance in the current session context (or a given file list) |
 | `/spec-sharpener` | Harden a greenfield project's spec/docs into an implementation-ready state — interviews you one issue at a time and edits docs in place; the sharpened spec itself is the record (no ADRs — it runs pre-implementation) |
 
 `/spec-sharpener` uses two bundled subagents in `common/agents/` to keep the main session lean: `spec-surveyor` (read-only — discovers the docs, reads the decision log, sweeps against the finding taxonomy, and returns a compact prioritized backlog; all the doc text stays inside the subagent) and `decision-encoder` (write-side — edits the affected docs for one resolved finding at a time; writes no ADRs). The main session holds only the compact backlog and runs the interview. Both are installed alongside the workflow's skills.
+
+`/version-bump` uses a third bundled subagent in `common/agents/`: `changelog-gatherer` (read-only — runs `git log` over the range since the last tag, classifies commits into Keep-a-Changelog sections, filters noise, and returns one ready-to-use changelog block). The raw commit list stays inside the subagent; the block is written to CHANGELOG.md, the tag annotation, and the chat.
 
 ## How Skills Work
 
