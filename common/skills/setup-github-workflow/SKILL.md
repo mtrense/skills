@@ -126,7 +126,10 @@ Cover at minimum:
 4. **When a release is cut and what it produces.** Manual tag push? A `release`
    GitHub event? A version-bump commit? And what's the artifact — a published
    package, a GitHub Release with binaries, a container image pushed to a registry?
-   Tie this to the distribution shape from Step 1 and to the existing tag naming.
+   Tie this to the distribution shape from Step 1 and to the existing tag naming
+   (from the tag list above). If prior tags establish a convention, follow it
+   verbatim; if there is no clear prior convention, default to the `v`-prefixed
+   `vX.Y.Z` format (e.g. `v0.1.0`).
 5. **Secrets / permissions.** Which published targets need tokens
    (`NPM_TOKEN`, `CARGO_REGISTRY_TOKEN`, `PYPI_API_TOKEN`, `GHCR`/`GITHUB_TOKEN`,
    etc.)? Note them so the workflow references them by name — never invent or embed
