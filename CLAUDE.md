@@ -11,7 +11,7 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 ## Installation
 
 ```bash
-# Install every workflow globally (~/.claude/skills/ + ~/.claude/agents/)
+# Install every workflow globally (~/.claude/skills/ + ~/.claude/agents/ + ~/.claude/workflows/)
 ./install.sh all
 
 # Install one workflow globally
@@ -21,7 +21,7 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 ./install.sh research /path/to/project
 ```
 
-`install.sh` takes the workflow name (or `all`) as the first argument and an optional target directory as the second. All selected skills are symlinked into `<target>/.claude/skills/` and agents into `<target>/.claude/agents/` — the flat layout Claude Code expects — so workflow grouping exists only at the source. Two workflows that ship a skill or agent with the same filename will shadow each other when installed together; this is intentional, so a workflow can re-define a skill by name when installed alone.
+`install.sh` takes the workflow name (or `all`) as the first argument and an optional target directory as the second. All selected skills are symlinked into `<target>/.claude/skills/`, agents into `<target>/.claude/agents/`, and any Workflow scripts (`<workflow>/workflows/*.js`) into `<target>/.claude/workflows/` — the flat layout Claude Code expects — so workflow grouping exists only at the source. Two workflows that ship a skill or agent with the same filename will shadow each other when installed together; this is intentional, so a workflow can re-define a skill by name when installed alone.
 
 ## Skill Architecture
 
@@ -34,6 +34,9 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 4. `/task-implementation` → Strict TDD: one task per invocation, tests first
 5. `/implementation-cycle` → Sequentially spawns one `task-worker` subagent per task (which invokes task-implementation + commit) to keep the main session clean; after each task lands, spawns a `doc-updater` subagent to sync reference docs and examples to that one commit (no-op unless the change is surface-visible)
 6. `/milestone-closing` → Verifies criteria, documents results (holistic README narrative pass), resets PLAN.md
+7. `/implementation-cycle-workflow` → **Experimental** workflow-backed twin of `/implementation-cycle`: delegates the whole per-task loop to the bundled `implementation-cycle` Workflow script (`milestone-driven/workflows/implementation-cycle.js`) instead of driving it in-session, so the two orchestration styles can be tested side by side. Same `task-worker` + `doc-updater` contract; because a Workflow script has no filesystem/bash access, it adds small `gate`/`verify` `general-purpose` subagents to stand in for the in-session git/PLAN.md reads
+
+The milestone-driven workflow also ships one **Workflow script** under `milestone-driven/workflows/` (`implementation-cycle.js`, invoked by `/implementation-cycle-workflow`), installed by `install.sh` as a symlink into `<target>/.claude/workflows/` — the single-file-per-workflow layout mirrors `agents/`.
 
 The milestone-driven workflow ships four custom subagents (`milestone-scout`, `task-worker`, `doc-updater`, `decision-lookup`) under `milestone-driven/agents/`, installed alongside skills by `install.sh`. `doc-updater` runs per task inside `/implementation-cycle`, keeping reference docs and examples in sync incrementally; `/milestone-closing` then handles the holistic README narrative at the end of the milestone. `decision-lookup` is a read-only librarian for the project's Architecture Decision Records (see "Decision records" below): given a topic, it reads `docs/decisions/INDEX.md`, pulls only the relevant records, and returns a compact briefing — spawned by `/strategic-planning` and `/milestone-breakdown` so those opus sessions inherit prior decisions without paging the whole log into context.
 

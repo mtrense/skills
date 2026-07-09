@@ -50,6 +50,7 @@ A phased cycle for building software, from idea through implementation to closeo
 | 2 | `/milestone-breakdown` | Decompose a milestone into ordered, independently testable tasks | `PLAN.md` |
 | 3 | `/task-implementation` | Implement one task using strict TDD (tests first, then code) | Passing code + tests |
 | 3 | `/implementation-cycle` | Run task-implementation + commit in fresh subagents per task, then sync docs/examples to each commit, to keep the main session clean | Passing code + commits + doc commits |
+| 3 | `/implementation-cycle-workflow` | **Experimental** workflow-backed twin of `/implementation-cycle` — delegates the per-task loop to the bundled `implementation-cycle` Workflow script so the two orchestration styles can be tested side by side | Passing code + commits + doc commits |
 | 4 | `/milestone-closing` | Verify success criteria, document results, reset for next cycle | Updated `roadmap/NNNN-slug.md` + `ROADMAP.md` index |
 | - | `/commit` | Craft a conventional commit from staged/unstaged changes | Git commit |
 
@@ -179,6 +180,7 @@ common/
 milestone-driven/
   skills/
     implementation-cycle/SKILL.md
+    implementation-cycle-workflow/SKILL.md
     milestone-breakdown/SKILL.md
     milestone-closing/SKILL.md
     project-inception/SKILL.md
@@ -189,6 +191,8 @@ milestone-driven/
     task-worker.md
     doc-updater.md
     decision-lookup.md
+  workflows/
+    implementation-cycle.js       # Workflow script for /implementation-cycle-workflow
 research/
   README.md                  # full research workflow specification
   skills/
