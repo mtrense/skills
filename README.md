@@ -76,6 +76,8 @@ A multi-phase system for building structured knowledge bases with source verific
 | 4 | `/research-audit-coverage` | Check gaps relative to the research plan; insert AUDIT directives |
 | 4 | `/research-audit-quality` | Check depth and sourcing adequacy; insert AUDIT directives. Fans out per-topic analysis to `quality-auditor` in parallel |
 | 4 | `/research-audit-coherence` | Check narrative flow; insert AUDIT directives. Fans out per-topic analysis to `coherence-auditor` in parallel |
+| 4 | `/research-audit-topic` | Audit **one topic across every lens** (consistency, coverage, quality, coherence, graphics) in one pass and advance it `draft → audited`; runs as a forked `research-audit-worker` subagent (`context: fork`) that inlines all lens analysis and CONFIDENCE verification |
+| 4 | `/research-audit-cycle` | Batch `Skill(research-audit-topic)` invocations over all `draft` topics; forks run in parallel across distinct topics within a batch, lenses serial within a topic. Takes `[max-items][@workers]`; drives topics to `audited`; resumable/idempotent |
 | - | `/research-ingest-source` | Ingest a specific source you already have (URL or file): vet it for legitimacy like investigation, then weave it into every existing section it corroborates or contradicts. Delegates the placement scan to `corpus-locator` |
 | 5 | `/research-refine` | Resolve audit findings (correct, expand, condense, restructure) |
 | 6 | `/research-restructure` | Structural changes at any depth: split, merge, promote, demote, nest, or flatten chapters |
@@ -83,7 +85,7 @@ A multi-phase system for building structured knowledge bases with source verific
 
 Research skills track topic status through: `stub` -> `inquiry` -> `draft` -> `audited` -> `done`.
 
-The research workflow uses seven bundled subagents: `research-inquiry-worker` (per-topic inquiry worker spawned in parallel batches by `research-inquiry-cycle`), `research-investigation-worker` (execution environment for the forked `research-investigation` skill — `context: fork` — spawned in parallel batches by `research-investigation-cycle` and also by direct human invocations of `/research-investigation`; hosts the inline web search-fetch-verify loop), `confidence-verifier` (CONFIDENCE-marker verifier shared by all four `research-audit-*` skills), `quality-auditor` (per-topic depth/sourcing audit, spawned in parallel by `research-audit-quality`), `coherence-auditor` (per-topic narrative-flow audit, spawned in parallel by `research-audit-coherence`), `term-extractor` (per-topic glossary-candidate extraction, spawned in parallel by `research-glossary-sync`), and `corpus-locator` (read-only placement scout that maps a new source's claims to the sections they belong in, spawned by `research-ingest-source`). All live in `research/agents/` and are installed alongside the workflow's skills.
+The research workflow uses eight bundled subagents: `research-inquiry-worker` (per-topic inquiry worker spawned in parallel batches by `research-inquiry-cycle`), `research-investigation-worker` (execution environment for the forked `research-investigation` skill — `context: fork` — spawned in parallel batches by `research-investigation-cycle` and also by direct human invocations of `/research-investigation`; hosts the inline web search-fetch-verify loop), `research-audit-worker` (execution environment for the forked `research-audit-topic` skill — `context: fork` — spawned in parallel batches by `research-audit-cycle` and also by direct human invocations of `/research-audit-topic`; runs every audit lens plus CONFIDENCE verification inline on one topic), `confidence-verifier` (CONFIDENCE-marker verifier shared by the four standalone `research-audit-*` lens skills; the forked `research-audit-topic` resolves markers inline instead), `quality-auditor` (per-topic depth/sourcing audit, spawned in parallel by `research-audit-quality`), `coherence-auditor` (per-topic narrative-flow audit, spawned in parallel by `research-audit-coherence`), `term-extractor` (per-topic glossary-candidate extraction, spawned in parallel by `research-glossary-sync`), and `corpus-locator` (read-only placement scout that maps a new source's claims to the sections they belong in, spawned by `research-ingest-source`). All live in `research/agents/` and are installed alongside the workflow's skills.
 
 ### Codebase Survey Workflow
 
@@ -196,6 +198,8 @@ research/
     research-audit-coverage/SKILL.md
     research-audit-graphics/SKILL.md
     research-audit-quality/SKILL.md
+    research-audit-topic/SKILL.md
+    research-audit-cycle/SKILL.md
     research-generate-graphics/SKILL.md
     research-glossary-sync/SKILL.md
     research-inception/SKILL.md
@@ -211,6 +215,7 @@ research/
     confidence-verifier.md
     corpus-locator.md
     quality-auditor.md
+    research-audit-worker.md
     research-inquiry-worker.md
     research-investigation-worker.md
     term-extractor.md
