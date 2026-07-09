@@ -172,7 +172,7 @@ As shown in the original paper [vaswani-2017, pp. 5-6], multi-head attention all
 
 ### `INDEX.md`
 
-Outline of the project plus a brief abstract per node. Headings use the path relative to `content/` so they mirror the directory tree. Heading level matches nesting depth: top-level topics are `##`, chapters one level in are `###`, two levels in are `####`, and so on:
+Outline of the project plus a brief abstract per node. Every leaf chapter heading is a markdown link whose text is the path relative to `content/` and whose target is that path prefixed with `content/` (relative to `INDEX.md`) — so the tree mirrors the directory layout, stays navigable in any markdown viewer, and is machine-parsable by the helper scripts. Heading level matches nesting depth: top-level topics are `##`, chapters one level in are `###`, two levels in are `####`, and so on:
 
 ```
 # <Research Topic>
@@ -181,17 +181,17 @@ Outline of the project plus a brief abstract per node. Headings use the path rel
 ## data-pipelines/
 <abstract>
 
-### data-pipelines/batch-processing.md
+### [data-pipelines/batch-processing.md](content/data-pipelines/batch-processing.md)
 **Status**: stub | inquiry | draft | audited | done
 
 <abstract>
 
-### data-pipelines/stream-processing.md
+### [data-pipelines/stream-processing.md](content/data-pipelines/stream-processing.md)
 **Status**: draft
 
 <abstract>
 
-## authentication.md
+## [authentication.md](content/authentication.md)
 **Status**: inquiry
 
 <abstract>
@@ -199,7 +199,7 @@ Outline of the project plus a brief abstract per node. Headings use the path rel
 ## api-design/
 <abstract>
 
-### api-design/overview.md
+### [api-design/overview.md](content/api-design/overview.md)
 **Status**: done
 
 <abstract>
@@ -207,18 +207,18 @@ Outline of the project plus a brief abstract per node. Headings use the path rel
 ### api-design/rest/
 <abstract for this sub-chapter group>
 
-#### api-design/rest/conventions.md
+#### [api-design/rest/conventions.md](content/api-design/rest/conventions.md)
 **Status**: draft
 
 <abstract>
 
-#### api-design/rest/versioning.md
+#### [api-design/rest/versioning.md](content/api-design/rest/versioning.md)
 **Status**: stub
 
 <abstract>
 ```
 
-Directory entries (whether top-level `##` or nested `###`/`####`) group their children and carry no status; only leaf `.md` chapters do. Every chapter in the tree appears in `INDEX.md` regardless of depth — sections within a chapter do not.
+Directory entries (whether top-level `##` or nested `###`/`####`) group their children, carry no status, and stay plain-text path headings (no single file to link). Only leaf `.md` chapters carry a status and are rendered as markdown links. Every chapter in the tree appears in `INDEX.md` regardless of depth — sections within a chapter do not.
 
 ### `glossary.md`
 

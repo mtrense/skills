@@ -83,12 +83,12 @@ Filenames use lowercase with hyphens, no numeric prefixes (consistent with proje
 
 ### INDEX.md update
 
-Add the new topic to `research/INDEX.md` in a logically appropriate position (not necessarily at the end). Heading level matches depth: top-level entries are `##`, chapters inside a directory topic are `###`, sub-chapters under a sub-directory are `####`, etc.
+Add the new topic to `research/INDEX.md` in a logically appropriate position (not necessarily at the end). Heading level matches depth: top-level entries are `##`, chapters inside a directory topic are `###`, sub-chapters under a sub-directory are `####`, etc. Every leaf chapter heading is a markdown link — link text is the path relative to `content/`, link target is that path prefixed with `content/`. Directory entries stay plain-text path headings (no file to point at).
 
 For a single-chapter topic:
 
 ```markdown
-## <topic-name>.md
+## [<topic-name>.md](content/<topic-name>.md)
 **Status**: stub
 
 <1-2 sentence abstract>
@@ -100,7 +100,7 @@ For a multi-chapter topic, possibly with nested sub-chapter groups:
 ## <topic-name>/
 <abstract for this topic>
 
-### <topic-name>/<chapter-file>.md
+### [<topic-name>/<chapter-file>.md](content/<topic-name>/<chapter-file>.md)
 **Status**: stub
 
 <1-2 sentence abstract>
@@ -108,7 +108,7 @@ For a multi-chapter topic, possibly with nested sub-chapter groups:
 ### <topic-name>/<sub-group>/
 <abstract for this sub-chapter group>
 
-#### <topic-name>/<sub-group>/<chapter-file>.md
+#### [<topic-name>/<sub-group>/<chapter-file>.md](content/<topic-name>/<sub-group>/<chapter-file>.md)
 **Status**: stub
 
 <1-2 sentence abstract>

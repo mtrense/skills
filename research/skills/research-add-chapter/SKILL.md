@@ -69,10 +69,10 @@ Filenames use lowercase with hyphens, no numeric prefixes (consistent with proje
 
 ### INDEX.md update
 
-Add the new chapter entries to `research/INDEX.md` under the existing directory section, using the heading level computed in step 4 of Prerequisites. Follow the existing format — for a new chapter under `data-pipelines/` (depth 1):
+Add the new chapter entries to `research/INDEX.md` under the existing directory section, using the heading level computed in step 4 of Prerequisites. Every leaf chapter heading is a markdown link — link text is the path relative to `content/`, link target is that path prefixed with `content/`. Follow the existing format — for a new chapter under `data-pipelines/` (depth 1):
 
 ```markdown
-### data-pipelines/<chapter-file>.md
+### [data-pipelines/<chapter-file>.md](content/data-pipelines/<chapter-file>.md)
 **Status**: stub
 
 <1-2 sentence abstract>
@@ -81,7 +81,7 @@ Add the new chapter entries to `research/INDEX.md` under the existing directory 
 Or for a new chapter under `api-design/rest/` (depth 2):
 
 ```markdown
-#### api-design/rest/<chapter-file>.md
+#### [api-design/rest/<chapter-file>.md](content/api-design/rest/<chapter-file>.md)
 **Status**: stub
 
 <1-2 sentence abstract>

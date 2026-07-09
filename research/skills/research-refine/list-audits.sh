@@ -17,13 +17,15 @@ if [[ ! -f "$index_file" ]]; then
 fi
 
 # Extract ordered list of content file paths from INDEX.md headings.
-# Matches lines like "### [Title](content/dir/file.md)" and extracts the path.
+# Leaf chapters are markdown-link headings at any depth, e.g.
+#   "### [dir/file.md](content/dir/file.md)" or "#### [a/b/c.md](content/a/b/c.md)".
+# Directory group headings carry no link, so they are naturally skipped.
 ordered_files=()
 while IFS= read -r path; do
   # Strip the leading "content/" prefix so paths are relative to content_dir
   path="${path#content/}"
   ordered_files+=("$path")
-done < <(grep -oE '^\#{2,3} \[.*\]\(content/[^)]+\.md\)' "$index_file" | grep -oE 'content/[^)]+\.md')
+done < <(grep -oE '^#{2,} \[.*\]\(content/[^)]+\.md\)' "$index_file" | grep -oE 'content/[^)]+\.md')
 
 # For each file in INDEX.md order, find AUDIT comment start lines.
 if [[ ${#ordered_files[@]} -eq 0 ]]; then

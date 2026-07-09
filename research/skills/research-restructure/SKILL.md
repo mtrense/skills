@@ -26,7 +26,7 @@ You are performing structural changes to the research project layout — splitti
 
 ## Operations
 
-All operations preserve depth conventions: heading level in `INDEX.md` matches path depth (`##` for top-level, `###` for one level in, `####` for two levels in, etc.). After any move, recompute heading levels for every affected entry.
+All operations preserve depth conventions: heading level in `INDEX.md` matches path depth (`##` for top-level, `###` for one level in, `####` for two levels in, etc.). After any move, recompute heading levels for every affected entry. Every leaf chapter entry is a markdown link — `### [<path>](content/<path>)` where `<path>` is relative to `content/` — so when a chapter's path changes, update **both** the link text and the link target. Directory group entries stay plain-text path headings with no link.
 
 ### `split` — Split a Large Chapter
 
