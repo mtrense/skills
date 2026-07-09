@@ -2,7 +2,6 @@
 name: research-refine
 description: "Refine a topic file by resolving AUDIT comments or applying content-level corrections. Arguments: topic file path, operation (correct|expand|condense|restructure|cross-reference|update|free-text), optional details."
 argument-hint: "<topic-file> <operation> [\"details\"]"
-disable-model-invocation: true
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash(bash */skills/research-refine/list-audits.sh *), Bash(curl *), Bash(grep *), Bash(python3 -m json.tool), WebSearch, WebFetch
 ---
 
