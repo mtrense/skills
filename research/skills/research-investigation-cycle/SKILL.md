@@ -153,7 +153,9 @@ After all forks in the batch pass:
    needed` and surface the offending IDs to the human. Do not auto-renumber.
 7. **Tree state is as expected.** Run `git status --porcelain` — every modified
    path must belong to one of the batch's topic files, its sibling
-   `_references.yaml`, `DECISIONS.md`, or `INDEX.md`. Unexpected paths → halt.
+   `_references.yaml`, or `DECISIONS.md`. (Investigation writes no status to
+   `INDEX.md` — status is derived, not stored — so an `INDEX.md` change here is
+   unexpected.) Unexpected paths → halt.
 8. **Cap not yet hit.** If `<total>` was specified and you've reached it, exit.
 
 If all checks pass, log a one-line progress note for the human per fork
@@ -169,7 +171,9 @@ When the loop ends — clean exit, cap hit, or halt — print a compact summary:
 
 - Directives completed this cycle (count + a few `topic_file § section` examples).
 - Directives remaining (count, grouped by topic file).
-- Topic files whose INDEX.md status advanced (`inquiry → draft`, etc.).
+- Topic files whose **derived** status advanced (`inquiry → draft`, etc.) as
+  their RESEARCH directives were consumed — status is derived from the
+  now-cleared directives, not written anywhere.
 - New `DEC-NNN` entries appended to DECISIONS.md.
 - Whether all topic files are now at `draft` or beyond (if so, suggest the
   audit skills: `/research-audit-consistency`, `/research-audit-coverage`,

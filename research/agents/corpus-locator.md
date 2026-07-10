@@ -36,10 +36,10 @@ You receive, at minimum:
    Each claim carries a one-line paraphrase and, usually, one or two verbatim
    supporting sentences from the source.
 3. The **content root** — the absolute path to `research/content/`.
-4. A slice of `research/INDEX.md` naming the eligible topics and their status.
-   Only topics at status `draft`, `audited`, or `done` have written content and
-   are in scope. Skip `stub` and `inquiry` topics — they have nothing to weave
-   into.
+4. The eligible topics and their **derived status** (computed by the
+   orchestrator's helper run, not read from a stored status line). Only topics at
+   derived status `draft`, `audited`, or `done` have written content and are in
+   scope. Skip `stub` and `inquiry` topics — they have nothing to weave into.
 5. Optionally a **topic hint** — a topic path or subject phrase. When present,
    search that subtree first and widen only if a claim finds no home there.
 
@@ -85,7 +85,8 @@ different emphasis. When unsure between `extends` and `contradicts`, choose
 
 - **Do not** fetch the web or verify the source — you have no network tools and
   legitimacy is the orchestrator's job.
-- **Do not** edit any file, insert any comment, or change any status.
+- **Do not** edit any file or insert any comment. You use the derived status
+  handed to you, but you never write or change any status.
 - **Do not** invent sections, headings, or line numbers. Every location you
   report must be a heading that actually exists in a file you read.
 - **Do not** propose prose. You return locations and relationships; the

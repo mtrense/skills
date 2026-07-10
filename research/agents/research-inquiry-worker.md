@@ -14,8 +14,9 @@ model: opus
 You are a single-topic inquiry worker spawned by the
 `/research-inquiry-cycle` orchestrator. Your job is to drive **one** stub topic
 file from `stub` to `inquiry` by producing its section outline with RESEARCH
-directives. You do not loop, you do not pick the next topic, you do not retry
-on failure.
+directives — placing those directives is what makes the topic's derived status
+become `inquiry`. You do not loop, you do not pick the next topic, you do not
+retry on failure.
 
 You do NOT commit. The orchestrator and the human handle commits.
 
@@ -31,9 +32,10 @@ If `topic_file` is missing or does not exist, halt with reason
 ## Contract — read this first
 
 You MUST invoke `research-inquiry` with the topic file path as its argument. A
-run that ends without converting the topic from `stub` to `inquiry` (outline
-written, RESEARCH directives placed, status flipped in INDEX.md) is INCOMPLETE
-and will be rejected by the orchestrator.
+run that ends without converting the topic from `stub` to `inquiry` (section
+headings written, RESEARCH directives placed) is INCOMPLETE and will be rejected
+by the orchestrator. Placing the RESEARCH directives is what advances the
+topic's derived status to `inquiry` — there is no status line to write.
 
 Your final message MUST end with exactly one fenced block in one of the two
 forms below — the orchestrator parses it. A missing or malformed block is itself
@@ -49,7 +51,6 @@ It will:
 - Design a logical section structure (3–8 `##` sections, each 0–4 `###`
   subsections).
 - Write headings + one `<!-- RESEARCH: ... -->` directive per section.
-- Update INDEX.md: flip the topic's status from `stub` to `inquiry`.
 - Update the topic's `updated` date in frontmatter.
 
 `research-inquiry` will NOT commit. Neither do you.
@@ -61,13 +62,14 @@ Before exiting, gather:
 - The number of `##` sections and total `###` subsections in the new outline.
 - The total number of `<!-- RESEARCH: ... -->` directives written (should equal
   `##` + `###` count).
-- Whether INDEX.md status flipped to `inquiry`.
+- The topic's derived status, which the newly-placed RESEARCH directives now
+  make `inquiry` (nothing is written to INDEX.md).
 
 ## Halt conditions
 
 HALT INSTEAD OF PUSHING THROUGH if any of these happen:
 
-- The topic file's INDEX.md status is not `stub` (already inquiry, draft, etc.).
+- The topic's derived status is not `stub` (already inquiry, draft, etc.).
 - The topic is not listed in INDEX.md at all.
 - The target file does not exist or is not a stub.
 - `research-inquiry` aborts for any other reason.
@@ -85,7 +87,7 @@ End your final message with this fenced block, exactly:
 Topic: <topic_file>
 Sections: <##-count> top-level, <###-count> sub
 Directives: <total RESEARCH directives written>
-Status change: stub → inquiry
+Derived status: stub → inquiry (from the newly-placed RESEARCH directives; not written to INDEX.md)
 Notes: <one short line, or "—">
 ```
 
@@ -97,7 +99,7 @@ If you halted at any step, end your final message with this block instead:
 HALTED
 Topic: <topic_file>
 Reason: <one or two sentences>
-State: <what's on disk — partial outline? unflipped status? untouched file?>
+State: <what's on disk — partial outline? untouched file?>
 ```
 
 ## What NOT to do

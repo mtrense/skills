@@ -141,21 +141,17 @@ Structure:
 <abstract for this topic group>
 
 ### [<directory-topic>/<chapter-file>.md](content/<directory-topic>/<chapter-file>.md)
-**Status**: stub
-
 <1-2 sentence abstract>
 
 ## [<single-chapter-topic>.md](content/<single-chapter-topic>.md)
-**Status**: stub
-
 <1-2 sentence abstract>
 ```
 
 If a topic warrants nested sub-chapter groups during inception, mirror them with deeper headings — `####` for chapters two levels below `content/`, `#####` for three levels, etc.
 
 Rules:
-- Directory entries (whether `##` for top-level or deeper for nested groups) group their children, carry no status field, and are plain-text path headings (no link — there is no single file to point at)
-- Leaf chapter files carry `**Status**: stub` and use a heading level matching their depth (`##` for a single-chapter top-level topic, `###` for a chapter in a top-level directory, `####` for a chapter one level deeper, …)
+- Directory entries (whether `##` for top-level or deeper for nested groups) group their children and are plain-text path headings (no link — there is no single file to point at)
+- Leaf chapter entries carry no status line — chapter status (`stub → inquiry → draft → audited → done`) is *derived* on demand from on-disk signals by the `research-status.sh` helper, never stored in INDEX.md — and use a heading level matching their depth (`##` for a single-chapter top-level topic, `###` for a chapter in a top-level directory, `####` for a chapter one level deeper, …)
 - Every leaf chapter heading is a markdown link: the link text is the path relative to `content/`, and the link target is that same path prefixed with `content/` (relative to `INDEX.md`) — e.g. `### [api/rest.md](content/api/rest.md)`. This keeps the path visible as the entry's stable identifier while making the tree navigable and machine-parsable.
 - Order topics and chapters logically, not alphabetically
 - Every chapter in the tree appears in INDEX.md regardless of depth; sections within a chapter do not

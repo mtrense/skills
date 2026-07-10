@@ -4,7 +4,7 @@ description: "Generate graphics (SVG diagrams, charts, tables, schematics) from 
 argument-hint: "[topic-path | file:line]"
 disable-model-invocation: true
 model: opus
-allowed-tools: Read, Write, Glob, Grep, Edit, Bash(grep *), Bash(bash */skills/research-refine/list-audits.sh *), Bash(mkdir *), Bash(ls *)
+allowed-tools: Read, Write, Glob, Grep, Edit, Bash(grep *), Bash(bash */skills/research-refine/list-audits.sh *), Bash(bash */skills/research-status/research-status.sh *), Bash(mkdir *), Bash(ls *)
 ---
 
 # Research Graphics
@@ -25,7 +25,7 @@ If `$ARGUMENTS` is empty, auto-discover the next graphics AUDIT:
 
 ## Prerequisites
 
-1. Read `research/INDEX.md` to check the topic's status.
+1. Derive the topic's status: `bash <skills-root>/research-status/research-status.sh research --path <topic>` and read the first field of the output line.
    - Topics with status `stub` or `inquiry` are skipped — abort if targeted.
    - Topics with status `draft`, `audited`, or `done` are eligible.
 2. Read `research/CLAUDE.md` for project conventions, especially any graphical language or style guidance.
@@ -107,7 +107,7 @@ For markdown tables: embed directly in the topic file at the AUDIT comment locat
 3. **Update `updated` date** in the topic file's frontmatter.
 4. **Check remaining graphics AUDIT comments** in the file:
    - If none remain, the graphics audit pass is complete for this file.
-5. **Do NOT change topic status** in INDEX.md — graphics resolution does not affect the topic lifecycle.
+5. **Write no status** — status is derived, not stored, and graphics resolution does not affect the derived status.
 6. **Present a summary**:
    - What graphic was created and where it was placed
    - Format chosen and why

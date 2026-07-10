@@ -73,8 +73,6 @@ Add the new chapter entries to `research/INDEX.md` under the existing directory 
 
 ```markdown
 ### [data-pipelines/<chapter-file>.md](content/data-pipelines/<chapter-file>.md)
-**Status**: stub
-
 <1-2 sentence abstract>
 ```
 
@@ -82,8 +80,6 @@ Or for a new chapter under `api-design/rest/` (depth 2):
 
 ```markdown
 #### [api-design/rest/<chapter-file>.md](content/api-design/rest/<chapter-file>.md)
-**Status**: stub
-
 <1-2 sentence abstract>
 ```
 

@@ -4,7 +4,7 @@ description: "Audit research topics for opportunities to add graphical represent
 argument-hint: "[topic-path]"
 disable-model-invocation: true
 model: opus
-allowed-tools: Read, Write, Glob, Grep, Bash(grep *), Edit, WebSearch, WebFetch
+allowed-tools: Read, Write, Glob, Grep, Bash(grep *), Bash(bash */skills/research-status/research-status.sh *), Edit, WebSearch, WebFetch
 ---
 
 # Research Audit — Graphics
@@ -16,10 +16,10 @@ You are auditing research content for places that would benefit from graphical r
 
 ## Prerequisites
 
-1. Read `research/INDEX.md` to identify which topics are in scope.
-   - Topics with status `stub` or `inquiry` are skipped (not yet ready for audit).
-   - Topics with status `draft`, `audited`, or `done` are eligible.
-   - If a specific file is targeted and its status is `stub` or `inquiry`, abort with an error.
+1. Derive each topic's status to identify which topics are in scope. Run `bash <skills-root>/research-status/research-status.sh research` for the whole project (or `--path <target>` when a topic is targeted) and read the first whitespace-delimited field of each line. (`<skills-root>` is the `.claude/skills/` directory the research skills are installed in — `~/.claude/skills` for a global install, `<project>/.claude/skills` for a project install.)
+   - Topics with derived status `stub` or `inquiry` are skipped (not yet ready for audit).
+   - Topics with derived status `draft`, `audited`, or `done` are eligible.
+   - If a specific file is targeted and its derived status is `stub` or `inquiry`, abort with an error.
 2. Read `research/CLAUDE.md` for project conventions.
 3. Read all in-scope topic files.
 4. Read `research/DECISIONS.md` for prior decisions.
@@ -62,7 +62,7 @@ For each finding:
    - List of major findings (high-impact visuals that would substantially improve the content)
    - Which files were modified
 
-Note: the `graphics` audit is supplementary — it does not affect whether a topic reaches `audited` status in INDEX.md. Do NOT change topic status based on this audit alone.
+Note: the `graphics` audit is supplementary — appending `graphics` to the `audit` field does not affect the derived status (only the four core lenses advance a topic to `audited`). Do NOT treat this audit alone as advancing status.
 
 ## Git
 

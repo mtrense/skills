@@ -4,7 +4,7 @@ description: "Audit research topics for depth and sourcing adequacy. Produces AU
 argument-hint: "[topic-path]"
 disable-model-invocation: true
 model: opus
-allowed-tools: Read, Write, Glob, Grep, Bash(grep *), Edit, Agent, WebFetch
+allowed-tools: Read, Write, Glob, Grep, Bash(grep *), Bash(bash */skills/research-status/research-status.sh *), Edit, Agent, WebFetch
 ---
 
 # Research Audit — Quality
@@ -16,10 +16,10 @@ You are auditing research content for depth and sourcing adequacy. You produce s
 
 ## Prerequisites
 
-1. Read `research/INDEX.md` to identify which topics are in scope.
-   - Topics with status `stub` or `inquiry` are skipped (not yet ready for audit).
-   - Topics with status `draft`, `audited`, or `done` are eligible.
-   - If a specific file is targeted and its status is `stub` or `inquiry`, abort with an error.
+1. Derive each topic's status to identify which topics are in scope. Run `bash <skills-root>/research-status/research-status.sh research` for the whole project (or `--path <target>` when a topic is targeted) and read the first whitespace-delimited field of each line. (`<skills-root>` is the `.claude/skills/` directory the research skills are installed in — `~/.claude/skills` for a global install, `<project>/.claude/skills` for a project install.)
+   - Topics with derived status `stub` or `inquiry` are skipped (not yet ready for audit).
+   - Topics with derived status `draft`, `audited`, or `done` are eligible.
+   - If a specific file is targeted and its derived status is `stub` or `inquiry`, abort with an error.
 2. Read `research/CLAUDE.md` for project conventions.
 3. Read `research/DECISIONS.md` for prior decisions.
 4. Read `research/glossary.md` for term definitions.
@@ -96,13 +96,12 @@ For each finding in a subagent's report:
 
 1. **Insert AUDIT comments** directly into the topic files at the relevant locations (immediately after the problematic content).
 2. **Remove resolved CONFIDENCE markers** (those that were verified).
-3. **Update `research/INDEX.md`**: change status to `audited` only if the file's `audit` frontmatter field now contains all four types (`consistency`, `coverage`, `quality`, `coherence`). Otherwise leave the status unchanged.
-4. Update the `updated` date in frontmatter for each modified file.
-5. **Track audit progress in frontmatter**: add or update an `audit` field in each audited file's YAML frontmatter listing completed audit types — e.g. `audit: [quality]`. If the field already exists, append `quality` to the list (avoid duplicates).
-6. **Present a summary** to the user:
+3. Update the `updated` date in frontmatter for each modified file.
+4. **Track audit progress in frontmatter**: add or update an `audit` field in each audited file's YAML frontmatter listing completed audit types — e.g. `audit: [quality]`. If the field already exists, append `quality` to the list (avoid duplicates). Appending this lens is what advances the topic's derived status: once the `audit` field holds all four core types (`consistency`, `coverage`, `quality`, `coherence`), the derivation reports `audited` on its own — there is no status to write anywhere.
+5. **Present a summary** to the user:
    - Number of findings by type and severity
    - List of major findings requiring attention
-   - Which topics had their status advanced
+   - Which topics' derived status advanced (to `audited`)
    - Any CONFIDENCE markers that could not be resolved
 
 ## Git
@@ -116,4 +115,4 @@ The expected commit message format: `research(audit): <scope> quality`
 - Do NOT resolve AUDIT findings — that is the refine phase's job.
 - Severity guide: `major` = factual errors, missing critical sourcing. `minor` = weak but not wrong sourcing, missing examples.
 - If an AUDIT comment already exists at a location, do not duplicate it. Update the existing one if new information changes the assessment.
-- A topic can only reach `audited` status in INDEX.md when its frontmatter `audit` field contains all four types: `consistency`, `coverage`, `quality`, `coherence`.
+- A topic's derived status only reaches `audited` when its frontmatter `audit` field contains all four core types: `consistency`, `coverage`, `quality`, `coherence`.

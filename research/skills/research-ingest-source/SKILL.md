@@ -4,7 +4,7 @@ description: "Ingest a specific external source (URL or local file) an author al
 argument-hint: "<url-or-path> [\"topic-hint\"]"
 disable-model-invocation: true
 model: opus
-allowed-tools: Read, Write, Glob, Grep, Edit, Agent, WebSearch, WebFetch, Bash(grep *), Bash(curl *)
+allowed-tools: Read, Write, Glob, Grep, Edit, Agent, WebSearch, WebFetch, Bash(grep *), Bash(curl *), Bash(bash */skills/research-status/research-status.sh *)
 ---
 
 # Research Ingest Source
@@ -31,8 +31,9 @@ Two jobs, in order:
 
 ## Prerequisites
 
-1. Read `research/INDEX.md`. Identify topics at status `draft`, `audited`, or
-   `done` — only these have written content to weave into. If none exist,
+1. Derive topic statuses: `bash <skills-root>/research-status/research-status.sh research`
+   and keep the chapters whose first field is `draft`, `audited`, or `done` —
+   only these have written content to weave into. If none exist,
    abort: "No investigated content yet — run `/research-investigation` before
    ingesting sources."
 2. Read `research/CLAUDE.md` for tone, scope, and citation conventions.
@@ -97,8 +98,8 @@ Spawn the `corpus-locator` subagent via the `Agent` tool. Pass it:
 - The source descriptor (title, authors, date, source-class, provisional key).
 - The **claim list** with paraphrases and verbatim anchors.
 - The absolute path to `research/content/`.
-- The slice of `research/INDEX.md` naming the eligible (`draft`/`audited`/
-  `done`) topics and their status.
+- The eligible (`draft`/`audited`/`done`) topics with their derived status
+  from Prerequisite 1.
 - The topic hint, if one was given.
 
 It returns, per claim, the sections that `corroborate`, `extend`, or
@@ -188,7 +189,7 @@ coverage audit / refine phase can pick it up:
 If the material clearly deserves its own home, say so in the summary and suggest
 `/research-add-chapter` — do not create the chapter yourself.
 
-## Step 6 — Decision log and status
+## Step 6 — Decision log
 
 1. **Log the ingestion** as one source-selection decision in
    `research/DECISIONS.md` (separate from any per-contradiction `DEC` from
@@ -203,15 +204,16 @@ If the material clearly deserves its own home, say so in the summary and suggest
    **Alternatives considered**: <e.g. "cite the secondary blog vs. the primary paper it reports">
    ```
    Add its summary-table row.
-2. **Status** (in `research/INDEX.md`), per touched topic:
-   - A topic that gained an **AUDIT** comment (contradiction or gap): if it was
-     `done`, set it back to `audited` (there are now unresolved audits for
-     refine); an `audited` topic stays `audited`.
-   - A topic that gained a **CONFIDENCE** marker but no AUDIT: a `done` topic
-     drops to `audited` (a `done` section may hold no unverified claim); an
-     `audited` topic stays `audited`.
-   - A topic that gained only a **well-sourced, verified** citation (no marker,
-     no AUDIT): leave its status unchanged.
+2. **Status is not written** — it is derived, never stored. The signals you add
+   move a touched topic's derived status on their own:
+   - Adding an **AUDIT** comment (contradiction or gap) to a previously-`done`
+     chapter makes its derived status drop to `audited` (there are now
+     unresolved audits for refine); an `audited` topic stays `audited`.
+   - Adding a **CONFIDENCE** marker (or leaving a reference unverified) on a
+     previously-`done` chapter likewise drops it to `audited` (a `done` section
+     holds no unverified claim); an `audited` topic stays `audited`.
+   - Adding only a **well-sourced, verified** citation (no marker, no AUDIT)
+     leaves the derived status unchanged.
 3. Update the `updated` date in each modified topic file's frontmatter.
 
 ## Step 7 — Summarise
@@ -219,7 +221,7 @@ If the material clearly deserves its own home, say so in the summary and suggest
 Report to the user:
 - The source, its `verified` status, source-class, and overall confidence.
 - Per touched file: what was added (citations, extended prose, contradictions,
-  gaps) and any status change.
+  gaps) and any resulting derived-status change.
 - Any claims left `uncovered` and your suggestion for them.
 - The `DEC-NNN` IDs written.
 
@@ -253,6 +255,7 @@ HALT INSTEAD OF PUSHING THROUGH if:
 - Preserve all existing references, CONFIDENCE markers, and AUDIT comments —
   only add, and only edit prose where a placement requires it.
 - Always confirm the placement plan (Step 4) before editing.
-- Do NOT advance any topic's status forward; this skill can only hold or step a
-  status back (`done → audited`) when it introduces an AUDIT or CONFIDENCE
-  marker.
+- This skill never writes status (status is derived, not stored). It may only
+  ADD signals — an AUDIT comment, a CONFIDENCE marker, or an unverified
+  reference — which can *lower* a chapter's derived status; it never adds
+  signals that would raise it.

@@ -7,7 +7,7 @@ description: >
 disable-model-invocation: true
 argument-hint: "[max-topics]   (optional integer; default: run until done or blocked)"
 model: opus
-allowed-tools: Read, Edit, Glob, Grep, Agent, Bash(git status:*), Bash(git log:*)
+allowed-tools: Read, Edit, Glob, Grep, Agent, Bash(bash */skills/research-status/research-status.sh *), Bash(git status:*), Bash(git log:*)
 ---
 
 # Research Inquiry Cycle — Parallel Subagents Over Stub Topics
@@ -26,8 +26,11 @@ orchestrator stays tiny.
 ## Prerequisites
 
 1. `research/INDEX.md` exists.
-2. At least one topic in INDEX.md has status `stub`. If none, stop and tell the
-   human.
+2. At least one topic derives to status `stub`. Status is derived on demand from
+   on-disk signals, never stored — run
+   `bash <skills-root>/research-status/research-status.sh research --status stub`
+   (`<skills-root>` is the `.claude/skills/` directory these skills are installed
+   in). If it prints no lines, stop and tell the human.
 3. Working tree is clean. Run `git status --porcelain` (plain form — never
    `git -C <path>`, which bypasses the Claude Code permission allowlist). If
    dirty, stop and ask the human to commit or stash first.
@@ -44,17 +47,24 @@ Repeat the following until a stop condition triggers.
 
 ### Step 1: Enumerate stub topics
 
-Read `research/INDEX.md`. Collect every topic whose status is `stub`. For each,
-capture the topic file path (relative to `research/content/`).
+Run the status helper filtered to `stub` — a filtered run prints no footer, so
+its lines are a clean candidate list (first field is the derived status, second
+is the topic path relative to `research/content/`):
 
-If the list is empty, exit the loop (success path → Step 5).
+```
+bash <skills-root>/research-status/research-status.sh research --status stub
+```
+
+Collect the second field of each line as a candidate topic file.
+
+If the output is empty, exit the loop (success path → Step 5).
 
 ### Step 2: Build the next batch
 
 A **batch** is a set of stub topic files, each owned by exactly one worker.
-Since inquiry only writes to (a) the topic file itself and (b) INDEX.md, and no
-two workers share a topic file, the only contention point is INDEX.md — handled
-in the post-flight check.
+Inquiry writes only to the topic file itself (its headings + RESEARCH
+directives), and no two workers share a topic file, so there is no shared-file
+contention within a batch.
 
 Cap batch size at **4 workers** (concurrency limit; raise only if the human
 asks). If `$ARGUMENTS` capped the total topic count and you're close to it,
@@ -102,17 +112,11 @@ For each returned worker, verify in order. Any failure → halt the loop.
 
 After all workers in the batch pass:
 
-5. **INDEX.md status reconciliation.** Read `research/INDEX.md` and confirm
-   every topic in this batch now has status `inquiry`. Parallel edits to
-   INDEX.md can race and clobber one another, leaving a topic stuck at `stub`
-   even though its outline is fully written. If you detect any such mismatch
-   (outline exists in the topic file but INDEX.md still says `stub`), flip the
-   status yourself with `Edit` — this is the one INDEX.md write the orchestrator
-   is allowed to do, as a race-recovery measure. Log it.
-6. **Tree state is as expected.** Run `git status --porcelain` — every modified
-   path must be one of the batch's topic files or `INDEX.md`. Unexpected paths
-   → halt.
-7. **Cap not yet hit.** If `$ARGUMENTS` specified a max and you've reached it,
+5. **Tree state is as expected.** Run `git status --porcelain` — every modified
+   path must be one of the batch's topic files. (There is no INDEX.md status to
+   reconcile: once a worker writes its outline, that topic derives to `inquiry`
+   automatically on the next helper run.) Unexpected paths → halt.
+6. **Cap not yet hit.** If `$ARGUMENTS` specified a max and you've reached it,
    exit.
 
 If all checks pass, log a one-line progress note for the human per worker
@@ -126,9 +130,8 @@ inside the same run.
 When the loop ends — clean exit, cap hit, or halt — print a compact summary:
 
 - Topics inquired this cycle (count + a few `topic_file` examples).
-- Stub topics remaining (count).
-- Any INDEX.md race-recovery flips you had to apply.
-- Whether all topics are now at `inquiry` or beyond (if so, suggest
+- Stub topics remaining (count — re-derive with `--status stub`).
+- Whether all topics now derive to `inquiry` or beyond (if so, suggest
   `/research-investigation-cycle` as the next step).
 - The halt reason, if any.
 
@@ -151,9 +154,12 @@ commit anything yourself.
   is no batch state to roll back at that point and the human gets an
   unambiguous error to act on. So treat the `Agent` call itself as the
   verification step; a separate pre-check would only duplicate work.
-- **INDEX.md is the only concurrency hotspot.** Parallel status flips can race;
-  Step 5 catches and repairs that. The race is benign because every flip is
-  the same mechanical edit (`stub` → `inquiry`) on a distinct line.
+- **No shared-file contention.** Each worker writes only its own topic file, so
+  there is no INDEX.md status flip to race on — status is derived, never stored.
+  A topic advances to `inquiry` the moment its outline lands on disk.
+- **Resumable and idempotent.** The cycle re-derives the `stub` set each pass
+  (Step 1's `--status stub` run), so re-running after a partial run, a cap, or a
+  halt simply picks up whatever still derives to `stub`.
 - **No commits.** Workers don't commit. You don't commit. The human reviews
   and runs `/commit`.
 - **Inquiry only.** Do not let workers write prose, investigate sources, or

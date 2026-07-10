@@ -1,10 +1,11 @@
 ---
 name: research-investigation
-description: "Research and write content for a single section of a topic file based on its RESEARCH directive. Runs as a forked subagent: drives the web search-fetch-verify loop inline, then synthesizes the section. Arguments: topic file path, optional section heading (defaults to first inquiry-status section)."
+description: "Research and write content for a single section of a topic file based on its RESEARCH directive. Runs as a forked subagent: drives the web search-fetch-verify loop inline, then synthesizes the section. Arguments: topic file path, optional section heading (defaults to the first section still carrying a RESEARCH directive)."
 argument-hint: "<topic-file> [\"section-heading\"]"
 model: opus
 context: fork
 agent: research-investigation-worker
+allowed-tools: Bash(bash */skills/research-status/research-status.sh *)
 ---
 
 # Research Investigation
@@ -21,9 +22,9 @@ If the second argument is missing and you are running under `/research-investiga
 
 ## Prerequisites
 
-1. Read `research/INDEX.md` and confirm the topic has status `inquiry` or `draft` (partially investigated).
-   - If status is `stub`, abort: "Run `/research-inquiry` first to create the section outline."
-   - If status is `audited` or `done`, abort: "This topic has already passed investigation. Use `/research-refine` to make changes."
+1. Derive the topic's status by running `bash <skills-root>/research-status/research-status.sh research --path <topic-file>` and reading the first whitespace-delimited field of the output line. (`<skills-root>` is the `.claude/skills/` directory the research skills are installed in — `~/.claude/skills` for a global install, `<project>/.claude/skills` for a project install.) Confirm the derived status is `inquiry` or `draft` (partially investigated).
+   - If the derived status is `stub`, abort: "Run `/research-inquiry` first to create the section outline."
+   - If the derived status is `audited` or `done`, abort: "This topic has already passed investigation. Use `/research-refine` to make changes."
 2. Read `research/CLAUDE.md` for conventions, tone, citation style.
 3. Read the target topic file at `research/content/<topic-file>`.
 4. Locate the target RESEARCH directive. If a section heading was specified, find the RESEARCH directive under that heading. Otherwise, find the first `<!-- RESEARCH: ... -->` directive in the file.
@@ -176,12 +177,9 @@ Add a `### References` subheading at the end of the section (before the next `##
 - **Remove** the `<!-- RESEARCH: ... -->` directive from the investigated section.
 - **Preserve** RESEARCH directives in all other sections.
 
-### Step 10 — Status update
+### Step 10 — Status derivation (no write)
 
-Check if ALL sections in the file have been investigated (no remaining `<!-- RESEARCH: ... -->` directives).
-
-- If **all sections done**: Update `research/INDEX.md` status from `inquiry` → `draft`.
-- If **sections remain**: Leave status as `inquiry` (or keep as `draft` if it was already `draft`).
+Status is never stored; it is derived from the on-disk signals. Removing this section's RESEARCH directive in Step 9 is exactly what advances the derivation: once the file's **last** RESEARCH directive is gone, `research-status.sh` reports the topic as `draft` on its own. If other sections still carry RESEARCH directives, the derivation stays `inquiry`. Either way, do nothing here — leave the derivation to reflect the disk.
 
 Update the `updated` date in frontmatter to today.
 
@@ -195,7 +193,7 @@ HALT INSTEAD OF PUSHING THROUGH if any of these happen:
 
 - The topic file does not contain a RESEARCH directive under the named section.
 - The directive is malformed or ambiguous in a way that needs a human call.
-- INDEX.md status is `stub`, `audited`, or `done` (see Prerequisites).
+- The derived status (see Prerequisites) is `stub`, `audited`, or `done`.
 - A new `DEC-NNN` you tried to write collides with an existing ID (another fork beat you to that number). Re-read DECISIONS.md, pick the next free number, and continue — but if the collision keeps happening, halt with reason `DECISIONS.md numbering race`.
 - Web research returns zero usable sources for a load-bearing claim — write what you can but halt rather than fabricate.
 - Anything else that would normally cause you to ask the human a question.
@@ -215,7 +213,7 @@ Prose: <approx word count> words
 Citations: <comma-separated citation keys, or "—">
 New decisions: <comma-separated DEC-NNN IDs added to DECISIONS.md, or "—">
 Audits inserted: <count and severities, e.g. "1 major (gap), 1 minor (contradiction)", or "—">
-Status change: <e.g. "inquiry → draft", or "none">
+Derived status: <e.g. "inquiry → draft (RESEARCH directives remaining: 0)", or "inquiry (RESEARCH directives remaining: N)"> — derived, not written
 Notes: <one short line — e.g. "leaned brief: only 3 verified sources found", or "—">
 ```
 
@@ -238,5 +236,5 @@ Do not add free-form prose after the report block.
 - Do NOT restructure the topic or change headings — if the section scope is wrong, leave an AUDIT comment.
 - Do NOT fabricate sources, URLs, authors, dates, or quotes. Every citation must come from a page you actually fetched.
 - If the RESEARCH directive's query is ill-defined or overlaps with another section, leave an AUDIT comment with `type: gap, severity: major` and write best-effort content from whatever you could surface.
-- Do NOT advance status beyond `draft`.
+- Do NOT run audit lenses or touch the frontmatter `audit:` field — this skill's scope ends at filling section content; advancing the derivation beyond `draft` is the audit phase's job.
 - Do NOT commit.

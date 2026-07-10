@@ -38,7 +38,6 @@ A single chapter has grown too large and needs to become multiple chapters.
    - Create the file with proper frontmatter (`created` = today, `updated` = today).
    - Move the relevant content.
    - Preserve all references and AUDIT/CONFIDENCE markers. Move relevant entries from the original `_references.yaml` to each new chapter's `_references.yaml`.
-   - Maintain the same status as the original chapter.
 4. If the split creates a new sub-directory, create the directory and place files inside it.
 5. Delete the original chapter file and its `_references.yaml`.
 6. Update `INDEX.md`:
@@ -58,8 +57,7 @@ Two chapters overlap too much and should become one. They need not be siblings; 
    - Use the first chapter's path as the destination (or a new path if appropriate).
    - Merge frontmatter: use earliest `created`, today for `updated`.
    - Combine references, deduplicate. Merge both `_references.yaml` files and consolidate the markdown `### References` lists.
-   - Keep the most advanced status of the two chapters.
-   - Preserve all AUDIT/CONFIDENCE markers.
+   - Preserve all AUDIT/CONFIDENCE markers. The merged file's derived status follows automatically from its combined on-disk signals.
 4. Delete the second chapter and its `_references.yaml`.
 5. If merging empties a directory, remove the empty directory and its `INDEX.md` directory entry.
 6. Update `INDEX.md`: remove the second entry, update the first; recompute heading levels for any entries whose depth changed.
@@ -75,7 +73,7 @@ A chapter at any depth needs to become a directory with child chapters. Works th
 4. Create child chapter files inside the directory, distributing content.
 5. Delete the original chapter file.
 6. Update `INDEX.md`:
-   - Convert the chapter entry to a directory entry at the same heading level (no status field).
+   - Convert the chapter entry to a directory entry at the same heading level.
    - Add child entries one level deeper.
 7. Rewrite ALL cross-references. Old references to `<path>/<name>.md#section` become `<path>/<name>/<child>.md#section`.
 
@@ -91,7 +89,7 @@ A directory is too granular and should become a single chapter file at the same 
 6. Delete the directory and all its contents.
 7. Update `INDEX.md`:
    - Remove all child entries (at every depth under the directory).
-   - Convert the directory entry to a chapter entry at the same heading level, with the merged content's status.
+   - Convert the directory entry to a chapter entry at the same heading level.
 8. Rewrite ALL cross-references. Old references to `<path>/<name>/<child>.md#section` become `<path>/<name>.md#<rehomed-anchor>` — pick the best matching anchor in the new combined file.
 
 ### `nest` — Move a Chapter Under Another Chapter

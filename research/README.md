@@ -43,6 +43,8 @@ A phased workflow with four broad steps — bootstrap, inquiry, investigation, a
 
 9. **`/research-glossary-sync`** — Reconciles `glossary.md` with current topic content. Adds new terms introduced during investigation or refinement, updates changed definitions, removes unused terms. Should be run after any content-changing phase.
 
+10. **`/research-status [path] [--status S]`** — Read-only progress report. Runs the shared `research-status.sh` helper to derive and print each chapter's status (live, from on-disk signals) with detail counts of what is still missing. The human-facing front end to the same helper every other skill consults for status. See [Status Lifecycle](#status-lifecycle).
+
 ## Project Layout
 
 Everything lives under a `research/` folder so the same repository can host other workflows (milestone-driven, codebase-survey) without collision:
@@ -182,43 +184,33 @@ Outline of the project plus a brief abstract per node. Every leaf chapter headin
 <abstract>
 
 ### [data-pipelines/batch-processing.md](content/data-pipelines/batch-processing.md)
-**Status**: stub | inquiry | draft | audited | done
-
 <abstract>
 
 ### [data-pipelines/stream-processing.md](content/data-pipelines/stream-processing.md)
-**Status**: draft
-
 <abstract>
 
 ## [authentication.md](content/authentication.md)
-**Status**: inquiry
-
 <abstract>
 
 ## api-design/
 <abstract>
 
 ### [api-design/overview.md](content/api-design/overview.md)
-**Status**: done
-
 <abstract>
 
 ### api-design/rest/
 <abstract for this sub-chapter group>
 
 #### [api-design/rest/conventions.md](content/api-design/rest/conventions.md)
-**Status**: draft
-
 <abstract>
 
 #### [api-design/rest/versioning.md](content/api-design/rest/versioning.md)
-**Status**: stub
-
 <abstract>
 ```
 
-Directory entries (whether top-level `##` or nested `###`/`####`) group their children, carry no status, and stay plain-text path headings (no single file to link). Only leaf `.md` chapters carry a status and are rendered as markdown links. Every chapter in the tree appears in `INDEX.md` regardless of depth — sections within a chapter do not.
+Directory entries (whether top-level `##` or nested `###`/`####`) group their children and stay plain-text path headings (no single file to link). Leaf `.md` chapters are rendered as markdown links. Every chapter in the tree appears in `INDEX.md` regardless of depth — sections within a chapter do not.
+
+`INDEX.md` carries **no status field**. A chapter's status is not stored — it is derived on demand from the signals on disk (see [Status Lifecycle](#status-lifecycle)) by the `research-status.sh` helper. `INDEX.md` is purely the outline plus abstracts.
 
 ### `glossary.md`
 
@@ -240,13 +232,51 @@ All URLs in `references.yaml` must be verified via web fetch before a section ca
 
 `stub` → `inquiry` → `draft` → `audited` → `done`.
 
-- `stub`: topic file created during inception, no content yet.
-- `inquiry`: section headings and RESEARCH directives placed.
-- `draft`: section content written.
-- `audited`: section reviewed; may have AUDIT directive comments pending.
-- `done`: all audit findings resolved, content finalized.
+Status is **derived, never stored**. There is no status enum in `INDEX.md` or in a
+frontmatter field — a chapter's status is computed from the signals that actually
+live on disk, so it can never drift out of sync with the work:
 
-Each skill may only advance status forward (e.g., investigation moves `inquiry` → `draft`). `refine` does not change status unless it resolves the last outstanding AUDIT comment, in which case it advances `audited` → `done`.
+- `stub`: no section headings and no RESEARCH directives — a bare file from inception.
+- `inquiry`: at least one open `<!-- RESEARCH: -->` directive (outline placed, not yet investigated).
+- `draft`: no RESEARCH directives remain and the file has sections, but fewer than the four core audit lenses are recorded in the frontmatter `audit:` field.
+- `audited`: all four core lenses (`consistency`, `coverage`, `quality`, `coherence`) are recorded in `audit:`, but open `<!-- AUDIT: -->` directives, open `<!-- CONFIDENCE: -->` markers, or unverified references remain.
+- `done`: all four core lenses recorded and nothing open — no AUDIT directives, no CONFIDENCE markers, every reference verified.
+
+Skills that used to advance a stored status now simply do their work and leave the
+signals that make the derivation move forward: investigation removes RESEARCH
+directives (`inquiry` → `draft`), the audit lenses append to the `audit:` field
+(`draft` → `audited`), and refine clears AUDIT directives (`audited` → `done`). No
+skill writes a status label anywhere.
+
+### The `research-status.sh` helper
+
+A single shared script computes the derivation. It ships in the `research-status`
+skill directory and is the source of truth every skill consults instead of reading a
+status from `INDEX.md`:
+
+```
+bash <skills-root>/research-status/research-status.sh <research-dir> [--path P] [--status S]
+```
+
+- `<skills-root>` — the `.claude/skills/` directory the skills are installed in
+  (`~/.claude/skills` global, `<project>/.claude/skills` project-local).
+- `<research-dir>` — the project's research directory (default `research`).
+- `--path P` — scope to one chapter (`--path api-design/rest/conventions.md`) or a
+  subtree (`--path api-design/`).
+- `--status S` — emit only chapters whose derived status is `S` (used by the cycle
+  skills to enumerate candidates: `--status stub`, `--status draft`, etc.).
+
+It prints one line per chapter, ordered by `INDEX.md`, with detail counts of what is
+still missing before `done`:
+
+```
+<status>  <rel_path>  research=N conf=lo/me audit=mi/ma lenses=D/4 gfx=y|n refs=V/T [warn=...]
+```
+
+`#`-prefixed lines are the header and the trailing `summary:` / `untracked:` footers
+(a filtered run suppresses the footer, leaving a clean candidate list). `warn=`
+appears only when signals contradict each other. The `/research-status` skill is the
+human-facing wrapper around this helper.
 
 ## Process
 

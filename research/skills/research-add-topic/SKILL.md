@@ -89,8 +89,6 @@ For a single-chapter topic:
 
 ```markdown
 ## [<topic-name>.md](content/<topic-name>.md)
-**Status**: stub
-
 <1-2 sentence abstract>
 ```
 
@@ -101,16 +99,12 @@ For a multi-chapter topic, possibly with nested sub-chapter groups:
 <abstract for this topic>
 
 ### [<topic-name>/<chapter-file>.md](content/<topic-name>/<chapter-file>.md)
-**Status**: stub
-
 <1-2 sentence abstract>
 
 ### <topic-name>/<sub-group>/
 <abstract for this sub-chapter group>
 
 #### [<topic-name>/<sub-group>/<chapter-file>.md](content/<topic-name>/<sub-group>/<chapter-file>.md)
-**Status**: stub
-
 <1-2 sentence abstract>
 ```
 

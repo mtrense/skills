@@ -33,9 +33,14 @@ shapes, same severity calls, same `audit:` frontmatter tracking.
 
 ## Prerequisites
 
-1. Read `research/INDEX.md`. Resolve the argument to the in-scope file(s).
-   - A topic at status `stub` or `inquiry` is **not ready** — halt with reason
-     `topic not ready for audit (status: <status>)`.
+1. Resolve the argument to the in-scope file(s) and **derive** each one's status
+   with the helper: `bash <skills-root>/research-status/research-status.sh research --path <topic>`,
+   reading the first whitespace-delimited field. (`<skills-root>` is the
+   `.claude/skills/` directory the research skills are installed in —
+   `~/.claude/skills` global, `<project>/.claude/skills` project. The helper is
+   available inside this fork.)
+   - A topic at derived status `stub` or `inquiry` is **not ready** — halt with
+     reason `topic not ready for audit (status: <status>)`.
    - Eligible statuses: `draft`, `audited`, `done`. (Re-auditing an already
      `audited`/`done` topic is allowed but should be rare — the cycle skips
      these; a direct invocation may re-run.)
@@ -44,8 +49,9 @@ shapes, same severity calls, same `audit:` frontmatter tracking.
 4. Read `research/glossary.md` for term definitions.
 5. Read the in-scope topic file(s) end-to-end. You may also **read** sibling
    topics (read-only) when a lens needs cross-topic comparison — but you write
-   **only** to your own topic's file(s) and their sibling `_references.yaml`,
-   plus `INDEX.md` status for your own topic.
+   **only** to your own topic's file(s) and their sibling `_references.yaml`.
+   (You derive your own topic's status from the helper; there is no stored status
+   to write.)
 
 Process each in-scope file fully (all lenses) before moving to the next. Never
 touch a file outside your argument's path.
@@ -222,11 +228,11 @@ visual would be nice but prose is adequate.
 3. **`audit:` frontmatter** — add/update the list to include every lens you
    completed on this file. The four **core** lenses are `consistency`,
    `coverage`, `quality`, `coherence`; `graphics` is supplementary. Append
-   without duplicating.
-4. **INDEX.md status** — flip this topic's status `draft → audited` **only** when
-   the file's `audit:` list contains all four core types. `graphics` alone never
-   advances status. Leave `audited`/`done` topics as-is.
-5. Update the `updated` date in each modified file's frontmatter.
+   without duplicating. This is what advances the topic's derived status: once
+   the `audit:` list contains all four core types, the derivation reports
+   `audited` on its own — there is no status to flip anywhere. `graphics` alone
+   never advances status.
+4. Update the `updated` date in each modified file's frontmatter.
 
 ## Rules
 
@@ -250,6 +256,6 @@ files_audited: <n>
 lenses_completed: [consistency, coverage, quality, coherence, graphics]
 findings: contradiction=<n> gap=<n> weak-source=<n> flow=<n> graphics=<n>
 confidence_resolved: <n resolved> / <n found>  (unresolved: <keys or none>)
-status_advanced: <files flipped draft→audited, or none>
+derived_status: <e.g. draft → audited, or unchanged — derived from the `audit:` field now holding all four core lenses, not a written flip>
 halt_reason: <verbatim reason, or none>
 ```

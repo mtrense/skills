@@ -2,7 +2,7 @@
 name: research-refine
 description: "Refine a topic file by resolving AUDIT comments or applying content-level corrections. Arguments: topic file path, operation (correct|expand|condense|restructure|cross-reference|update|free-text), optional details."
 argument-hint: "<topic-file> <operation> [\"details\"]"
-allowed-tools: Read, Write, Glob, Grep, Edit, Bash(bash */skills/research-refine/list-audits.sh *), Bash(curl *), Bash(grep *), Bash(python3 -m json.tool), WebSearch, WebFetch
+allowed-tools: Read, Write, Glob, Grep, Edit, Bash(bash */skills/research-refine/list-audits.sh *), Bash(bash */skills/research-status/research-status.sh *), Bash(curl *), Bash(grep *), Bash(python3 -m json.tool), WebSearch, WebFetch
 ---
 
 # Research Refine
@@ -30,7 +30,7 @@ If `$ARGUMENTS` is empty, auto-discover the next AUDIT comment to resolve:
 
 ## Prerequisites
 
-1. Read `research/INDEX.md` and check the topic's status.
+1. Derive the topic's status: `bash <skills-root>/research-status/research-status.sh research --path <topic-file>` and read the first field of the output line.
    - Status should be `draft` or `audited`. The refine skill can operate on either.
    - If `stub` or `inquiry`, abort: "Content has not been written yet. Run investigation first."
 2. Read `research/CLAUDE.md` for conventions.
@@ -94,10 +94,10 @@ For any operation not listed above, interpret the user's instruction and apply i
 
 1. **Update the topic file** with refined content.
 2. **Remove resolved AUDIT comments** — only those directly addressed by this refinement.
-3. **Check remaining AUDIT comments** in the file:
-   - If **ALL** AUDIT comments are resolved AND the topic status is `audited`: advance status to `done` in INDEX.md.
-   - If AUDIT comments remain: keep status as `audited`.
-   - If status was `draft` (refining without a prior audit): keep as `draft`.
+3. **Check remaining AUDIT comments** in the file. Do NOT write any status — status is derived, never stored. Clearing AUDIT directives is the real work; the derivation reflects it on its own:
+   - When you clear the **last** open AUDIT directive on a fully-audited chapter (all four core lenses recorded, references verified, no open CONFIDENCE), its derived status becomes `done` automatically.
+   - While AUDIT directives (or CONFIDENCE markers / unverified references) remain, the chapter stays `audited`.
+   - A chapter that was only `draft` (refining without a prior audit) stays `draft` — refine does not add the audit lenses that would raise it.
 4. Update `updated` date in frontmatter.
 5. Present a summary of changes to the user.
 

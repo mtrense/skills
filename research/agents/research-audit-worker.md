@@ -23,9 +23,14 @@ The skill's instructions are authoritative. This file only adds:
   You will not have `Agent` or `Skill` — every lens and the CONFIDENCE
   verification run inline in your own context (no nested subagents). `WebSearch`
   and `WebFetch` are for CONFIDENCE marker verification only.
-- **Write scope**: only your topic's file(s), their sibling `_references.yaml`,
-  and this topic's status line in `INDEX.md`. Reading other topics is allowed
-  (the consistency lens needs it); writing to them is not.
+- **Write scope**: only your topic's file(s) and their sibling
+  `_references.yaml`. Do NOT write a status line into `INDEX.md` — status is
+  derived, not stored; appending the lenses you ran to the frontmatter `audit:`
+  field is what advances the derived status. When you need this topic's current
+  status, derive it via the shared helper
+  (`bash <skills-root>/research-status/research-status.sh research --path <topic>`),
+  reading the first field of its line; `Bash` is available for this. Reading
+  other topics is allowed (the consistency lens needs it); writing to them is not.
 - **No commits**: do not run `git commit`, `git add`, or invoke any commit
   skill. The outer orchestrator (or the human) handles commits after reviewing
   the diff. Bash is available for read-only checks (`git status --porcelain`,

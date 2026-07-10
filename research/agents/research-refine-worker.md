@@ -94,9 +94,10 @@ Before exiting, gather:
 - The number of AUDIT directives resolved (by type).
 - The number of AUDIT directives still open in the file (deferred to a later
   cycle because of the cap, or left by a partial run).
-- Whether the file's status advanced in `INDEX.md` (`research-refine` advances
-  `audited → done` only when the file's LAST AUDIT is cleared; otherwise status
-  is unchanged).
+- The file's derived status. `research-refine` just clears AUDIT directives;
+  when a fully-audited file's LAST open AUDIT is cleared (and nothing else is
+  open), its derived status becomes `done` automatically — nothing is written to
+  INDEX.md. Otherwise the derived status stays `audited`.
 - The verbatim text of any `DECISIONS.md` entry you (via refine) added — the
   orchestrator needs it to reconcile parallel `DECISIONS.md` writes.
 
@@ -104,8 +105,8 @@ Before exiting, gather:
 
 HALT INSTEAD OF PUSHING THROUGH if any of these happen:
 
-- `topic_file` is missing, unlisted in `INDEX.md`, or has status `stub` /
-  `inquiry` (no content to refine yet).
+- `topic_file` is missing, unlisted in `INDEX.md`, or has derived status
+  `stub` / `inquiry` (no content to refine yet).
 - The file has no open AUDIT directives at start.
 - A `research-refine` invocation aborts, errors, or would require asking the
   human a question.
@@ -123,7 +124,7 @@ End your final message with this fenced block, exactly:
 Topic: <topic_file>
 Resolved: <n> AUDIT (<by-type breakdown, e.g. 2 gap, 1 contradiction>)
 Remaining: <m> AUDIT still open in this file
-Status change: <e.g. audited → done, or "unchanged (audited)">
+Derived status: <e.g. audited → done, or "unchanged (audited)" — derived from open signals, not written to INDEX.md>
 Decisions: <one line per DECISIONS.md entry added, or "none">
 Notes: <one short line, or "—">
 ```

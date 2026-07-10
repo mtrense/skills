@@ -9,7 +9,7 @@ description: >
 disable-model-invocation: true
 argument-hint: "[<count>|all][@<workers>]   (e.g. `all`, `12`, `12@3`, `@4`; defaults: all audits, 4 workers)"
 model: opus
-allowed-tools: Read, Edit, Glob, Grep, Agent, Bash(bash */skills/research-refine-cycle/list-open-audits.sh *), Bash(git status:*), Bash(git log:*)
+allowed-tools: Read, Edit, Glob, Grep, Agent, Bash(bash */skills/research-refine-cycle/list-open-audits.sh *), Bash(bash */skills/research-status/research-status.sh *), Bash(git status:*), Bash(git log:*)
 ---
 
 # Research Refine Cycle — Parallel Workers Over Open AUDIT Directives
@@ -92,10 +92,19 @@ If the output is empty, exit the loop (success path → Step 6).
 
 ### Step 2: Confirm the files are refinable
 
-For each candidate file (a `rel_path` with open AUDITs), its `INDEX.md` status
+For each candidate file (a `rel_path` with open AUDITs), its **derived** status
 must be `draft` or `audited` — those are the only statuses `research-refine`
-accepts. Skip (and note) any file whose status is `stub`/`inquiry` (it should
-not carry AUDITs) so a stray directive can't wedge the cycle.
+accepts. Status is derived on demand, never stored; derive a single file's
+status by running the helper scoped to it:
+
+```
+bash <skills-root>/research-status/research-status.sh research --path <rel_path>
+```
+
+(`<skills-root>` is the `.claude/skills/` directory these skills are installed
+in; read the first field of the one output line.) Skip (and note) any file whose
+derived status is `stub`/`inquiry` (it should not carry AUDITs) so a stray
+directive can't wedge the cycle.
 
 ### Step 3: Build the next batch
 
@@ -152,23 +161,17 @@ For each returned worker, verify in order. Any failure → halt the loop.
    worker's file) and confirm the file now has fewer open AUDITs, matching the
    worker's `Resolved:` count. A file byte-for-byte unchanged whose report
    claims resolutions is a contradiction → halt.
-4. **Status reconciliation.** `research-refine` advances `audited → done` only
-   when a file's LAST AUDIT is cleared. Parallel edits to `INDEX.md` can race
-   and clobber one another; if a worker's report says `→ done` (or a file you
-   can confirm has zero remaining AUDITs and was `audited`) but `INDEX.md` still
-   says `audited`, flip the status yourself with `Edit` — this is one of the two
-   `INDEX.md`/`DECISIONS.md` writes the orchestrator is allowed, as a race-
-   recovery measure. Log it.
-5. **DECISIONS.md reconciliation.** Parallel workers may both append to
+4. **DECISIONS.md reconciliation.** Parallel workers may both append to
    `DECISIONS.md` and clobber each other. For every `Decisions:` entry a worker
    reported, confirm it is present in `research/DECISIONS.md`; if a reported
    entry is missing, re-append it yourself with `Edit` (the orchestrator holds
-   the verbatim text in the report). Log any re-append.
-6. **Tree state is as expected.** Run `git status --porcelain` — every modified
+   the verbatim text in the report). Log any re-append. (There is no INDEX.md
+   status to reconcile: clearing a file's last AUDIT makes it derive to `done`
+   on its own.)
+5. **Tree state is as expected.** Run `git status --porcelain` — every modified
    path must belong to one of the batch's files (its topic file or its
-   directory's `_references.yaml`), or `INDEX.md`, or `DECISIONS.md`. Unexpected
-   paths → halt.
-7. **Budget update.** Decrement `B` by the total AUDITs resolved this batch. If
+   directory's `_references.yaml`), or `DECISIONS.md`. Unexpected paths → halt.
+6. **Budget update.** Decrement `B` by the total AUDITs resolved this batch. If
    `B` was an integer and has reached 0, exit the loop (cap hit).
 
 If all checks pass, log a one-line progress note per worker (e.g.
@@ -183,12 +186,11 @@ inside the same run.
 When the loop ends — clean exit, cap hit, or halt — print a compact summary:
 
 - AUDIT directives resolved this cycle (count + a per-type breakdown).
-- Files fully cleared and advanced to `done` (count + a few path examples).
+- Files fully cleared and now deriving to `done` (count + a few path examples).
 - Open AUDIT directives remaining across the project (count) — the leftover the
   next `/research-refine-cycle` run will pick up.
-- Files whose status you had to race-recover in `INDEX.md`, and any
-  `DECISIONS.md` entries you had to re-append.
-- Any files skipped because their status wasn't `draft`/`audited`.
+- Any `DECISIONS.md` entries you had to re-append.
+- Any files skipped because their derived status wasn't `draft`/`audited`.
 - The halt reason, if any.
 
 Then remind the human to review the diff and run `/commit` when ready. Do not
@@ -215,10 +217,11 @@ commit anything yourself.
   unknown subagent — a fine halt signal, with no batch state to roll back. So
   treat the `Agent` call itself as the verification step; a separate pre-check
   would only duplicate work.
-- **INDEX.md and DECISIONS.md are the concurrency hotspots.** Parallel status
-  flips and decision appends can race; Steps 5b.4 and 5b.5 catch and repair
-  that. Both races are benign because the orchestrator holds enough in the
-  worker reports to re-apply the lost write deterministically.
+- **DECISIONS.md is the one concurrency hotspot.** There is no INDEX.md status
+  flip to race on — status is derived, never stored, so a file advances to `done`
+  the moment its last AUDIT is cleared. Parallel decision appends can still race;
+  Step 5b.4 catches and repairs that, benign because the orchestrator holds
+  enough in the worker reports to re-apply the lost write deterministically.
 - **Resumable and idempotent.** The cycle only ever picks up AUDITs that are
   still open (the script re-derives them each Step 1), so re-running after a
   partial run, a cap, or a halt simply continues where it left off.

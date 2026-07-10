@@ -3,7 +3,7 @@ name: research-inquiry
 description: "Create a detailed section outline with RESEARCH directives for a topic file. Use after inception to structure a stub topic before investigation. Argument: topic file path relative to research/content/."
 argument-hint: "<topic-file>"
 model: opus
-allowed-tools: Read, Glob, Edit, WebSearch, WebFetch
+allowed-tools: Read, Glob, Edit, WebSearch, WebFetch, Bash(bash */skills/research-status/research-status.sh *)
 ---
 
 # Research Inquiry
@@ -14,9 +14,9 @@ You are creating a detailed outline for a topic file, adding section headings an
 
 ## Prerequisites
 
-1. Read `research/INDEX.md` and confirm the topic exists with status `stub`.
-   - If status is not `stub`, abort with an error explaining which phase should have run and what the current status means.
-   - If the topic is not listed in INDEX.md, abort with an error.
+1. Derive the topic's status by running `bash <skills-root>/research-status/research-status.sh research --path $ARGUMENTS` and reading the first whitespace-delimited field of the output line. (`<skills-root>` is the `.claude/skills/` directory the research skills are installed in — `~/.claude/skills` for a global install, `<project>/.claude/skills` for a project install.) Confirm the derived status is `stub`.
+   - If the derived status is not `stub`, abort with an error explaining which phase should have run and what the current status means.
+   - If the helper emits no line for the topic (it is not present under `research/content/`), abort with an error.
 2. Read `research/CLAUDE.md` for project conventions, tone, and scope guidance.
 3. Read the target topic file to confirm it exists and is a stub.
 4. Read `research/INDEX.md` fully to understand related topics and avoid overlap.
@@ -65,8 +65,9 @@ Use the `related` field to link to other topics or sections that the investigato
 ## Output
 
 1. **Update the topic file** with the full outline (preserve existing frontmatter).
-2. **Update `research/INDEX.md`**: change the topic's status from `stub` to `inquiry`.
-3. Present the outline to the user for review.
+2. Present the outline to the user for review.
+
+Status is not written anywhere: placing the section headings and RESEARCH directives is exactly what makes the derived status report `inquiry` on the next `research-status.sh` run, so no INDEX.md status update is needed.
 
 ## Git
 
