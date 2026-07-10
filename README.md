@@ -17,6 +17,7 @@ The repo root carries a `.claude-plugin/marketplace.json` catalog (`mtrense-skil
 /plugin install milestone-driven@mtrense-skills
 /plugin install research@mtrense-skills
 /plugin install codebase-survey@mtrense-skills
+/plugin install synaptic-authoring@mtrense-skills
 /plugin install common@mtrense-skills
 ```
 
@@ -35,7 +36,7 @@ Updates: `/plugin marketplace update`. No `version` field is pinned, so each com
 ./install.sh research /path/to/project
 ```
 
-The first argument is the workflow name (`codebase-survey`, `common`, `milestone-driven`, `research`) or `all`. The optional second argument is the install target (defaults to `$HOME`). The installer creates symlinks, so skills stay up to date as you pull changes.
+The first argument is the workflow name (`codebase-survey`, `common`, `milestone-driven`, `research`, `synaptic-authoring`) or `all`. The optional second argument is the install target (defaults to `$HOME`). The installer creates symlinks, so skills stay up to date as you pull changes.
 
 ## Skills
 
@@ -102,6 +103,23 @@ A workflow for bootstrapping and maintaining an AI-consumable map of an existing
 | - | `/codebase-survey-update [range/PR#]` | Incremental refresh driven by per-module `surveyed_sha`; only re-surveys modules whose code changed |
 
 The workflow uses six bundled subagents (`structural-discovery`, `dep-grapher`, `api-surface-extractor`, `wire-api-extractor`, `test-auditor`, `ops-detective`) that live in `codebase-survey/agents/` and are installed alongside the workflow's skills.
+
+### Synaptic Authoring Workflow
+
+Skills for authoring content for **Synaptic**, an interactive online learning platform. A Synaptic *track* is a git directory of content files validated and snapshotted by the deterministic `synaptic` CLI; these skills draft that content against the CLI's file contract without ever adjudicating validity, minting ids, or hashing themselves. See [`synaptic-authoring/README.md`](synaptic-authoring/README.md) for the content-kind and grounding contract these skills target.
+
+| Phase | Command | What it does |
+|-------|---------|-------------|
+| 1 | `/author-ingest` | Distil repo-local source material (a research KB or plain docs — never the web) into un-`id`'d `reference/` files tagged with resolvable grounding refs. Spawns `material-extractor` |
+| 2 | `/author-structure` | Propose the track DAG (nodes, prerequisite edges, priority) from `reference/` + a track goal, then mint node ids via `synaptic scaffold` once the human approves. Spawns `concept-mapper` |
+| 3 | `/author-snippet` | Draft the learner-facing body of a scaffolded node from `reference/` — playful low-stakes voice, always *why it matters* / *what it unlocks*, each claim grounded |
+| 3 | `/author-questions` | Draft multiple-choice questions with tight reference lists honoring "assessment is feedback, never a gate", then mint question ids and write files. Spawns `question-smith` |
+| 4 | `/author-gap-scan` | Audit an existing or proposed DAG for foundational gaps — concepts referenced but never taught, orphan roots, prerequisite leaps, redundant nodes. Spawns `concept-mapper` and `coverage-auditor` |
+| 5 | `/author-selfcheck` | The standing hand-off gate: run `synaptic validate --json`, summarise findings, and refuse to present an integrity-breaking snapshot |
+
+**Typical flow:** `ingest` -> `structure` -> `snippet` (per node) -> `questions` (per node) -> `gap-scan` -> `selfcheck` before hand-off.
+
+The workflow uses four bundled read-only proposal subagents (`material-extractor`, `concept-mapper`, `question-smith`, `coverage-auditor`) that return structured reports and write no files — the orchestrating skill does the scaffolding and writing. All live in `synaptic-authoring/agents/` and are installed alongside the workflow's skills.
 
 ### Utility
 
@@ -226,6 +244,20 @@ research/
     research-investigation-worker.md
     research-refine-worker.md
     term-extractor.md
+synaptic-authoring/
+  README.md                  # content-kind + grounding contract the skills target
+  skills/
+    author-gap-scan/SKILL.md
+    author-ingest/SKILL.md
+    author-questions/SKILL.md
+    author-selfcheck/SKILL.md
+    author-snippet/SKILL.md
+    author-structure/SKILL.md
+  agents/
+    concept-mapper.md
+    coverage-auditor.md
+    material-extractor.md
+    question-smith.md
 documentation/
   anthropic/skills.md      # official Anthropic skills docs
 install.sh                 # symlink installer (skills + agents) — takes <workflow|all> [target]

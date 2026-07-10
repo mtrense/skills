@@ -1,0 +1,11 @@
+{
+  "name": "synaptic-authoring",
+  "description": "Authoring workflow for Synaptic interactive-learning tracks: ingest source material into grounded reference material, propose the prerequisite DAG, draft grounded node bodies and assessment questions, audit foundational gaps, and gate hand-off on CLI integrity.",
+  "author": {
+    "name": "Max Trense",
+    "email": "dev@trense.info"
+  },
+  "homepage": "https://github.com/mtrense/skills",
+  "repository": "https://github.com/mtrense/skills",
+  "keywords": ["synaptic", "authoring", "learning", "content", "dag"]
+}

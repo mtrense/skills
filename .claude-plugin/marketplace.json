@@ -25,6 +25,12 @@
       "category": "workflow"
     },
     {
+      "name": "synaptic-authoring",
+      "source": "./synaptic-authoring",
+      "description": "Authoring workflow for Synaptic interactive-learning tracks: grounded ingestion, prerequisite-DAG structuring, node/question drafting, gap auditing, and CLI integrity gating.",
+      "category": "workflow"
+    },
+    {
       "name": "common",
       "source": "./common",
       "description": "Cross-workflow utilities: /commit, /pr, /audit-context, /deckset.",

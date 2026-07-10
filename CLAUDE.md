@@ -87,6 +87,20 @@ The full research specification is in `research/README.md`.
 
 The subagents live in `codebase-survey/agents/` and are installed alongside skills by `install.sh`.
 
+**Synaptic-authoring workflow** — skills for authoring content for **Synaptic**, an interactive online learning platform built in parallel by the user. A Synaptic *track* is a git directory of content files validated and snapshotted by the deterministic `synaptic` CLI; these skills draft that content against the CLI's file contract and defer every integrity judgment to it — they never adjudicate validity, mint ids, or hash anything themselves (ids are minted only by `synaptic scaffold`). The content contract, DAG invariants, and `grounding` metadata block the skills target are specified in `synaptic-authoring/README.md`:
+1. `/author-ingest` → Distils repo-local source material (a citable research KB or plain repo docs — never the web) into un-`id`'d `reference/` files tagged with resolvable grounding refs. Delegates fact extraction to the `material-extractor` subagent
+2. `/author-structure` → Proposes the track's prerequisite DAG (node list, edges, priority) from the `reference/` corpus + a track goal, then mints node ids via `synaptic scaffold` once the human approves. Delegates DAG proposal to the `concept-mapper` subagent
+3. `/author-snippet` → Drafts the learner-facing body of a scaffolded node from `reference/` material — playful low-stakes voice, always stating *why it matters* / *what it unlocks*, each claim carrying a resolvable grounding ref; proposes the glossary/cheatsheet slug links the prose needs
+4. `/author-questions` → Drafts multiple-choice questions with tight reference lists honoring "assessment is feedback, never a gate", then mints question ids via `synaptic scaffold` and writes the files. Delegates question drafting to the `question-smith` subagent
+5. `/author-gap-scan` → Audits an existing or proposed DAG for foundational gaps (concepts referenced but never taught, orphan roots, prerequisite leaps, redundant nodes) and produces a prioritized gap report + authoring plan; read-only. Delegates to the `concept-mapper` and `coverage-auditor` subagents
+6. `/author-selfcheck` → The standing hand-off gate: runs `synaptic validate --json` over the track, summarizes findings, and refuses to present an integrity-breaking snapshot to a human
+
+The synaptic-authoring workflow ships four custom read-only proposal subagents under `synaptic-authoring/agents/`, installed alongside skills by `install.sh`. Each carries `tools: Read, Glob, Grep`, returns a structured report, and writes no files — the orchestrating skill does all scaffolding and writing:
+- `material-extractor` — pulls atomic knowledge units from `reference/` files (each with candidate prerequisites, a "why it matters" hook, and a source line) and reports which grounding kind applies (research vs document). For `/author-ingest`.
+- `concept-mapper` — turns knowledge units into a proposed prerequisite DAG with a one-line rationale per edge and an explicit acyclicity self-check. For `/author-structure` and `/author-gap-scan`.
+- `question-smith` — drafts multiple-choice questions with per-distractor rationale and flags any question whose reference list is too broad. For `/author-questions`.
+- `coverage-auditor` — audits a track's DAG for foundational gaps keyed to node ids. For `/author-gap-scan`.
+
 **Common workflow** — skills and agents that aren't owned by any single workflow live under `common/`. This currently houses two kinds of skill:
 
 Cross-workflow tools (used by, or invoked from, multiple workflow families):
