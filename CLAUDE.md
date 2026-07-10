@@ -21,7 +21,7 @@ When working in this repo, the goal is typically to iterate on skill prompts, te
 ./install.sh research /path/to/project
 ```
 
-`install.sh` takes the workflow name (or `all`) as the first argument and an optional target directory as the second. All selected skills are symlinked into `<target>/.claude/skills/`, agents into `<target>/.claude/agents/`, and any Workflow scripts (`<workflow>/workflows/*.js`) into `<target>/.claude/workflows/` — the flat layout Claude Code expects — so workflow grouping exists only at the source. Two workflows that ship a skill or agent with the same filename will shadow each other when installed together; this is intentional, so a workflow can re-define a skill by name when installed alone.
+`install.sh` takes an optional `--copy` flag, then the workflow name (or `all`), then an optional target directory. All selected skills are symlinked into `<target>/.claude/skills/`, agents into `<target>/.claude/agents/`, and any Workflow scripts (`<workflow>/workflows/*.js`) into `<target>/.claude/workflows/` — the flat layout Claude Code expects — so workflow grouping exists only at the source. Passing `--copy` copies the files instead of symlinking them, vendoring a self-contained snapshot into the target that is decoupled from this repo (useful for checking the tools into a project tree). Two workflows that ship a skill or agent with the same filename will shadow each other when installed together; this is intentional, so a workflow can re-define a skill by name when installed alone.
 
 ## Skill Architecture
 

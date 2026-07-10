@@ -9,7 +9,7 @@ WORKFLOWS=(codebase-survey common milestone-driven research)
 
 usage() {
   cat <<EOF
-Usage: $(basename "$0") <workflow|all> [target]
+Usage: $(basename "$0") [--copy] <workflow|all> [target]
 
 Workflows:
 $(printf '  %s\n' "${WORKFLOWS[@]}")
@@ -19,20 +19,35 @@ Target defaults to \$HOME (global install). Pass a project path for a
 per-project install (skills land in <target>/.claude/skills, agents in
 <target>/.claude/agents, workflow scripts in <target>/.claude/workflows).
 
+By default each skill/agent/workflow is symlinked from this repo. Pass
+--copy to copy the files instead (vendors a self-contained snapshot into
+the target, decoupled from this repo).
+
 Examples:
   $(basename "$0") all
   $(basename "$0") milestone-driven
   $(basename "$0") research /path/to/project
+  $(basename "$0") --copy research /path/to/project
 EOF
 }
 
-if [ $# -lt 1 ] || [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+COPY=0
+positional=()
+for arg in "$@"; do
+  case "$arg" in
+    --copy) COPY=1 ;;
+    -h | --help) usage; exit 1 ;;
+    *) positional+=("$arg") ;;
+  esac
+done
+
+if [ "${#positional[@]}" -lt 1 ]; then
   usage
   exit 1
 fi
 
-SELECTION="$1"
-TARGET="${2:-$HOME}"
+SELECTION="${positional[0]}"
+TARGET="${positional[1]:-$HOME}"
 SKILLS_DST="$TARGET/.claude/skills"
 AGENTS_DST="$TARGET/.claude/agents"
 WORKFLOWS_DST="$TARGET/.claude/workflows"
@@ -57,7 +72,25 @@ else
   fi
 fi
 
-echo "Installing workflows: ${selected[*]}"
+if [ "$COPY" -eq 1 ]; then
+  MODE="copy"
+  VERB="Copied"
+else
+  MODE="symlink"
+  VERB="Linked"
+fi
+
+# install_path <src> <dst> — symlink or copy src to dst per $COPY.
+install_path() {
+  local src="$1" dst="$2"
+  if [ "$COPY" -eq 1 ]; then
+    cp -R "$src" "$dst"
+  else
+    ln -s "$src" "$dst"
+  fi
+}
+
+echo "Installing workflows (${MODE}): ${selected[*]}"
 echo "  Skills target:    $SKILLS_DST"
 echo "  Agents target:    $AGENTS_DST"
 echo "  Workflows target: $WORKFLOWS_DST"
@@ -84,8 +117,8 @@ for wf in "${selected[@]}"; do
         rm -rf "$dst"
       fi
 
-      ln -s "$skill_dir" "$dst"
-      echo "  Linked skill    [$wf] $skill_name"
+      install_path "${skill_dir%/}" "$dst"
+      echo "  $VERB skill    [$wf] $skill_name"
       skill_count=$((skill_count + 1))
     done
   fi
@@ -101,8 +134,8 @@ for wf in "${selected[@]}"; do
         rm -f "$dst"
       fi
 
-      ln -s "$agent_file" "$dst"
-      echo "  Linked agent    [$wf] ${agent_name%.md}"
+      install_path "$agent_file" "$dst"
+      echo "  $VERB agent    [$wf] ${agent_name%.md}"
       agent_count=$((agent_count + 1))
     done
   fi
@@ -118,8 +151,8 @@ for wf in "${selected[@]}"; do
         rm -f "$dst"
       fi
 
-      ln -s "$workflow_file" "$dst"
-      echo "  Linked workflow [$wf] ${workflow_name%.js}"
+      install_path "$workflow_file" "$dst"
+      echo "  $VERB workflow [$wf] ${workflow_name%.js}"
       workflow_count=$((workflow_count + 1))
     done
   fi
