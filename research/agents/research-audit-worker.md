@@ -4,7 +4,8 @@ description: >
   Execution environment for the `research-audit-topic` skill when it runs as a
   forked subagent (via `context: fork`). The skill body — supplied as this
   subagent's prompt — audits one topic across every lens (consistency, coverage,
-  quality, coherence, graphics) and resolves its CONFIDENCE markers inline. This
+  quality, coherence, graphics) and clears its CONFIDENCE markers inline —
+  verifying-and-removing each or converting it to an AUDIT, so none survive. This
   file only declares the tool surface and enforces the no-commit rule. Spawned by
   `/research-audit-cycle` (one fork per topic in a batch) or directly by a human
   invoking `/research-audit-topic`.

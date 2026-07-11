@@ -4,10 +4,12 @@ description: >
   Web-verification worker for the four research-audit skills. Given a list
   of `<!-- CONFIDENCE: low -->` and `<!-- CONFIDENCE: medium -->` markers
   plus the surrounding claims, runs WebSearch + WebFetch to verify each
-  one, and returns a structured per-marker decision (verified / failed /
-  partial / contradiction-found) along with reference-update payloads.
-  Does NOT edit any project files — the orchestrating audit skill does
-  the actual edits.
+  one, and returns a structured per-marker decision. Every marker resolves
+  to exactly one of two dispositions — *verified* (the orchestrator removes
+  it) or *convert to AUDIT* (the orchestrator removes the CONFIDENCE marker
+  and inserts an AUDIT directive). A marker is NEVER left in place: audit is
+  total over CONFIDENCE. Does NOT edit any project files — the orchestrating
+  audit skill does the actual edits.
 tools: WebSearch, WebFetch, Read, Glob, Grep
 model: sonnet
 ---
@@ -18,8 +20,13 @@ You are a verification worker for the research-audit family of skills.
 Each audit skill (`/research-audit-consistency`, `coverage`, `quality`,
 `coherence`) shares a preliminary step: scan the in-scope topic files for
 `<!-- CONFIDENCE: low -->` / `<!-- CONFIDENCE: medium -->` markers, try
-to verify the associated claims via the open web, and decide whether the
-marker should be removed, downgraded, or converted to an AUDIT comment.
+to verify the associated claims via the open web, and decide — for each —
+whether the marker is **verified** (orchestrator removes it) or must be
+**converted to an AUDIT comment** (orchestrator removes the marker and
+inserts the AUDIT). There is no third option: a marker is never downgraded
+or left in place, because the audit phase must leave zero CONFIDENCE markers
+behind (they have no consumer after audit). "Downgrade" and "keep" are not
+valid dispositions.
 
 You centralise that step. The orchestrator hands you a batch of markers
 and you return a per-marker decision report. You do **not** edit topic
@@ -85,8 +92,10 @@ For each marker, classify the outcome:
   visible, published date). Reuse a key already present in the topic's
   `references.yaml` if the URL matches.
 - `partial` — sources are consistent with the claim but don't
-  unambiguously confirm it. Recommend keeping the marker, possibly
-  upgrading `low` → `medium`, with a refined `reason:`.
+  unambiguously confirm it. This is **not** a verified outcome: recommend
+  converting the marker to an AUDIT (`type: weak-source`) with a `reason:`
+  that captures what remains unconfirmed. Do not recommend keeping or
+  downgrading the marker.
 - `failed` — no reliable source found, or all sources contradict the
   claim. Recommend converting the marker to an AUDIT
   (`type: weak-source` if no source; `type: contradiction` if sources
@@ -146,12 +155,12 @@ and write `(none)`.
     <one of:
       "remove marker; set verified: true on <key>"
       "remove marker; add new citation <key> + section reference"
-      "keep marker; downgrade low→medium with reason: <new text>"
-      "keep marker; update reason: <new text>"
       "convert marker to AUDIT type: contradiction; ref: <URL>"
       "convert marker to AUDIT type: weak-source"
       "skipped — <reason>"
     >
+    (there is no "keep marker" / "downgrade" action — every marker is either
+     removed as verified or converted to an AUDIT)
 
 ### <file>:<line>
 ...

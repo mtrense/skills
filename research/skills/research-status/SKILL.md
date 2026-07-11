@@ -52,19 +52,24 @@ Each chapter line reads:
 ```
 
 - **research** — open RESEARCH directives (inquiry work still pending).
-- **conf** — open CONFIDENCE markers, `low`/`medium` (verification pending in audit).
+- **conf** — open CONFIDENCE markers, `low`/`medium`. Their sole consumer is the
+  audit phase (which is total over them), so an open marker means the chapter is
+  still `draft`; it never lingers past `audited`.
 - **audit** — open AUDIT directives, `minor`/`major` (refine work pending).
 - **lenses** — core audit lenses recorded (of consistency, coverage, quality,
   coherence); all four are required to reach `audited`. `gfx` flags the supplementary
   graphics lens.
-- **refs** — verified / total references; a chapter cannot reach `done` while any
-  reference is unverified.
+- **refs** — verified / total references (reported detail, not an independent gate):
+  an unverified reference rides the marker pipeline as a CONFIDENCE marker pre-audit
+  and an AUDIT post-audit, so it reaches `done` the same way every other finding does.
 - **warn** — appears only when signals contradict (e.g. an audit lens was recorded
-  while RESEARCH directives are still open); surface these to the user as anomalies.
+  while RESEARCH directives are still open, or a stray CONFIDENCE marker survives to
+  four lenses — `stray-confidence`); surface these to the user as anomalies.
 
-The status map: `stub` (no outline yet) → `inquiry` (outline placed, not investigated)
-→ `draft` (investigated, not fully audited) → `audited` (all four lenses run, open
-findings remain) → `done` (nothing open). `missing` means a chapter is listed in
+Status is the earliest phase with an open worklist marker (`RESEARCH ≺ CONFIDENCE ≺
+AUDIT`): `stub` (no outline yet) → `inquiry` (open RESEARCH) → `draft` (open
+CONFIDENCE, or investigated with fewer than four lenses) → `audited` (four lenses
+run, no CONFIDENCE, open AUDIT) → `done` (nothing open). `missing` means a chapter is listed in
 `INDEX.md` but absent on disk; the footer also lists `untracked` chapters (on disk,
 absent from `INDEX.md`).
 

@@ -46,13 +46,12 @@ For very large batches (>30 markers spread across many topics), split by topic f
 
 ### Step P3 — apply decisions
 
-Apply the subagent's `recommended-action` per marker:
+Apply the subagent's `recommended-action` per marker. Every marker resolves one of two ways — **verified** (removed) or **converted to an AUDIT** — and this pass must leave **zero** CONFIDENCE markers in the in-scope files. A CONFIDENCE marker is never left in place or downgraded; its only consumer is this audit phase, so anything not verified here must become an AUDIT directive for refine to pick up.
 - `remove marker; set verified: true on <key>` — delete the marker; update `references.yaml` (`verified: true`, `last-checked: <today>`); ensure the key is in the section's `### References` list.
 - `remove marker; add new citation <key> + section reference` — delete the marker; add the new entry to `references.yaml`; add the in-text `[citation-key]` and the `### References` line.
-- `keep marker; downgrade low→medium` or `update reason:` — edit the marker in place.
-- `convert marker to AUDIT type: contradiction; ref: <URL>` — leave the CONFIDENCE marker; insert an AUDIT comment immediately after the claim. Severity is the audit skill's call (see this skill's severity guide).
-- `convert marker to AUDIT type: weak-source` — leave the CONFIDENCE marker; insert an AUDIT comment.
-- `skipped` — leave as-is and note in the user-facing summary.
+- `convert marker to AUDIT type: contradiction; ref: <URL>` — **delete the CONFIDENCE marker** and insert an AUDIT comment immediately after the claim. Severity is the audit skill's call (see this skill's severity guide).
+- `convert marker to AUDIT type: weak-source` — **delete the CONFIDENCE marker** and insert an AUDIT comment.
+- `skipped` — the verifier had no usable `claim`; convert to an AUDIT `type: weak-source` so the marker still leaves the file. Never leave it in place.
 
 Spot-check with WebFetch only when a `recommended-action` carries unusually high weight (e.g., a contradiction that would force a DECISIONS.md entry).
 
@@ -77,14 +76,14 @@ For each finding:
 ## Output
 
 1. **Insert AUDIT comments** directly into the topic files at the relevant locations (immediately after the problematic content).
-2. **Remove resolved CONFIDENCE markers** (those that were verified).
+2. **Clear every CONFIDENCE marker** — deleted when verified, converted to an AUDIT otherwise. None may remain after this pass.
 3. Update the `updated` date in frontmatter for each modified file.
 4. **Track audit progress in frontmatter**: add or update an `audit` field in each audited file's YAML frontmatter listing completed audit types — e.g. `audit: [coverage]`. If the field already exists, append `coverage` to the list (avoid duplicates). Appending this lens is what advances the topic's derived status: once the `audit` field holds all four core types (`consistency`, `coverage`, `quality`, `coherence`), the derivation reports `audited` on its own — there is no status to write anywhere.
 5. **Present a summary** to the user:
    - Number of findings by type and severity
    - List of major findings requiring attention
    - Which topics' derived status advanced (to `audited`)
-   - Any CONFIDENCE markers that could not be resolved
+   - CONFIDENCE markers converted to AUDIT directives (count) — none should remain open
 
 ## Git
 

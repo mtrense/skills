@@ -17,17 +17,27 @@
 #   lenses      audit types recorded in the frontmatter `audit:` field; the four
 #               core lenses are consistency, coverage, quality, coherence
 #               (graphics is supplementary and does NOT gate `audited`)
-#   refs        verified / total entries in <name>_references.yaml
+#   refs        verified / total entries in <name>_references.yaml (reported detail,
+#               no longer an independent gate — see below)
 #   sections    count of `##`+ headings (distinguishes a bare stub from a draft)
 #
-# Status is then:
+# Status is the earliest phase with an open worklist marker (RESEARCH ≺ CONFIDENCE
+# ≺ AUDIT), with the `audit:` lens field disambiguating a clean draft from `done`:
 #   stub      no sections and no RESEARCH directives (freshly created)
 #   inquiry   >=1 RESEARCH directive still open (outline placed, not investigated)
-#   draft     no RESEARCH left, has sections, fewer than 4 core lenses recorded
-#   audited   all 4 core lenses recorded, but open AUDIT / CONFIDENCE / unverified
-#             references remain
-#   done      all 4 core lenses recorded and nothing open
+#   draft     no RESEARCH left, has sections, and either an open CONFIDENCE marker
+#             or fewer than 4 core lenses recorded (investigated, not yet audited)
+#   audited   all 4 core lenses recorded, no open CONFIDENCE, open AUDIT remains
+#   done      all 4 core lenses recorded and no open marker of any kind
 #   missing   listed in INDEX.md but the file is absent on disk
+#
+# CONFIDENCE markers and reference verification no longer gate `done` on their own.
+# The audit phase is *total* over CONFIDENCE: it verifies-and-removes each marker or
+# converts it to an AUDIT directive, so no CONFIDENCE marker survives audit. An
+# unverified reference surfaces as a CONFIDENCE marker pre-audit / an AUDIT directive
+# post-audit. Thus `done` reduces to "4 core lenses recorded and no open
+# RESEARCH / CONFIDENCE / AUDIT marker". A stray CONFIDENCE marker at 4 lenses
+# regresses the chapter to `draft` (surfaced as warn=stray-confidence).
 #
 # ── Output ────────────────────────────────────────────────────────────────────
 # One line per chapter (INDEX.md order):
@@ -152,24 +162,31 @@ emit() {
 
   local audit_open=$(( amin + amaj + aunk ))
   local conf_open=$(( cl + cm ))
-  local refs_pending=$(( rt - rv ))
 
+  # Status = earliest phase with an open worklist marker. CONFIDENCE routes to
+  # `draft` (its consumer is audit) even at 4 lenses — a stray marker there is a
+  # regression that must be re-audited. The lens count only disambiguates a clean
+  # draft (no CONFIDENCE, <4 lenses) from `done`. Reference verification and
+  # CONFIDENCE no longer gate `done` independently (see header).
   local status
   if (( rs > 0 )); then
     status="inquiry"
   elif (( sec == 0 )); then
     status="stub"
+  elif (( conf_open > 0 )); then
+    status="draft"
   elif (( lenses < 4 )); then
     status="draft"
-  elif (( audit_open == 0 && conf_open == 0 && refs_pending == 0 )); then
-    status="done"
-  else
+  elif (( audit_open > 0 )); then
     status="audited"
+  else
+    status="done"
   fi
 
   # contradictory signals worth surfacing
   local warn=""
   (( rs > 0 && lenses > 0 )) && warn="audit-before-investigation"
+  (( conf_open > 0 && lenses == 4 )) && warn="stray-confidence"
 
   [[ -n "$status_filter" && "$status_filter" != "$status" ]] && return
   [[ -n "$path_filter" ]] && ! path_matches "$rel" && return

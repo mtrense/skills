@@ -112,6 +112,8 @@ Apply confidence markers from Step 5 immediately after the claim they qualify:
 
 `well-sourced` claims need no marker.
 
+**Unverified references always get a marker.** If a claim's only support is a reference you recorded as `verified: false` (paywalled, failed fetch, or content mismatch), place at least a `<!-- CONFIDENCE: low -->` marker on it — an unverified reference is not a separate status gate, it rides the marker pipeline. The audit phase will then verify-and-remove it or convert it to an AUDIT, so the chapter can only reach `done` once every reference has been resolved through that pipeline.
+
 ### Step 7 — Handle contradictions
 
 For each contradiction noted in Step 4:

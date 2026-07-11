@@ -226,7 +226,7 @@ Structured list of decisions taken (excluding a source, choosing between competi
 
 ## Source Verification
 
-All URLs in `references.yaml` must be verified via web fetch before a section can advance to `audited`. Each reference carries a `verified` field. Newly added references default to `verified: false`. The investigation skill attempts to fetch each URL; on success, sets `verified: true`. Unverified references are treated as `CONFIDENCE: low` claims by the audit phase. A section cannot reach `done` while any of its references remains unverified.
+Each reference carries a `verified` field. Newly added references default to `verified: false`. The investigation skill attempts to fetch each URL; on success, sets `verified: true`. An **unverified reference is folded into the marker scheme** rather than acting as a separate gate: investigation places a `<!-- CONFIDENCE: low -->` marker on the claim it backs (so the chapter stays `draft`), and the audit phase — being total over CONFIDENCE — either verifies-and-removes it or converts it to an `<!-- AUDIT: type: weak-source -->` directive (so the chapter stays `audited` until refine resolves it). Reference verification therefore reaches `done` through the ordinary marker pipeline; there is no independent "unverified references remain" gate.
 
 ## Status Lifecycle
 
@@ -236,17 +236,28 @@ Status is **derived, never stored**. There is no status enum in `INDEX.md` or in
 frontmatter field — a chapter's status is computed from the signals that actually
 live on disk, so it can never drift out of sync with the work:
 
+Status is the **earliest phase with an open worklist marker** — `RESEARCH ≺ CONFIDENCE ≺ AUDIT` — with the `audit:` lens field disambiguating a clean draft from `done`. Each marker type is the worklist of exactly one phase and has exactly one producer and one consumer:
+
+| Marker present | Derived status | Producer → Consumer |
+|---|---|---|
+| `<!-- RESEARCH: -->` | `inquiry` | inquiry → investigation |
+| `<!-- CONFIDENCE: -->` | `draft` | investigation → audit |
+| `<!-- AUDIT: -->` | `audited` | audit → refine |
+| none | `done` | refine → ∎ |
+
 - `stub`: no section headings and no RESEARCH directives — a bare file from inception.
 - `inquiry`: at least one open `<!-- RESEARCH: -->` directive (outline placed, not yet investigated).
-- `draft`: no RESEARCH directives remain and the file has sections, but fewer than the four core audit lenses are recorded in the frontmatter `audit:` field.
-- `audited`: all four core lenses (`consistency`, `coverage`, `quality`, `coherence`) are recorded in `audit:`, but open `<!-- AUDIT: -->` directives, open `<!-- CONFIDENCE: -->` markers, or unverified references remain.
-- `done`: all four core lenses recorded and nothing open — no AUDIT directives, no CONFIDENCE markers, every reference verified.
+- `draft`: no RESEARCH directives remain and the file has sections, and either an open `<!-- CONFIDENCE: -->` marker or fewer than the four core lenses recorded (investigated, not yet audited).
+- `audited`: all four core lenses (`consistency`, `coverage`, `quality`, `coherence`) are recorded in `audit:`, **no open CONFIDENCE markers** (audit is total over them — see below), and open `<!-- AUDIT: -->` directives remain.
+- `done`: all four core lenses recorded and no open marker of any kind.
+
+The audit phase is **total over CONFIDENCE**: it verifies-and-removes each marker or converts the unresolved ones to an `<!-- AUDIT: -->` directive (`type: weak-source` / `contradiction`). No CONFIDENCE marker survives audit, so CONFIDENCE never gates `done` on its own — a stray marker at four lenses instead regresses the chapter to `draft` for re-audit (surfaced as `warn=stray-confidence`).
 
 Skills that used to advance a stored status now simply do their work and leave the
 signals that make the derivation move forward: investigation removes RESEARCH
-directives (`inquiry` → `draft`), the audit lenses append to the `audit:` field
-(`draft` → `audited`), and refine clears AUDIT directives (`audited` → `done`). No
-skill writes a status label anywhere.
+directives (`inquiry` → `draft`), the audit lenses clear CONFIDENCE markers and
+append to the `audit:` field (`draft` → `audited`), and refine clears AUDIT
+directives (`audited` → `done`). No skill writes a status label anywhere.
 
 ### The `research-status.sh` helper
 

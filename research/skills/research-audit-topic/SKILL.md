@@ -66,7 +66,12 @@ marker's `reason:`, the 1–3 sentences of `claim` it qualifies, any
 entries (url, title, authors, published, `verified`).
 
 Verify each marker inline with `WebSearch` + `WebFetch` (you are the verifier —
-there is no `confidence-verifier` subagent to delegate to). Then apply:
+there is no `confidence-verifier` subagent to delegate to). This pass is **total
+over CONFIDENCE**: every marker is either verified-and-removed or converted to an
+AUDIT directive. A CONFIDENCE marker is never kept, downgraded, or left in place —
+its only consumer is this audit pass, so anything unresolved must become an AUDIT
+for the refine phase. Zero CONFIDENCE markers may remain in the file when Pass 0
+finishes. Apply:
 
 - **Verified** → remove the marker; set `verified: true` and
   `last-checked: <today>` on the citation in `references.yaml`; ensure the key
@@ -74,14 +79,13 @@ there is no `confidence-verifier` subagent to delegate to). Then apply:
 - **Verified via a new source** → remove the marker; add the new entry to
   `references.yaml`; add the in-text `[citation-key]` and the `### References`
   line.
-- **Still shaky** → keep the marker; downgrade `low→medium` or update `reason:`.
-- **Contradiction found** → leave the CONFIDENCE marker; insert an AUDIT comment
-  (`type: contradiction`, `ref:` the source URL) after the claim. If the
+- **Contradiction found** → **delete the CONFIDENCE marker** and insert an AUDIT
+  comment (`type: contradiction`, `ref:` the source URL) after the claim. If the
   contradiction is decision-worthy, note it for the report (the cycle surfaces
   it; DECISIONS.md entries are the refine phase's job, not yours).
-- **Weak source** → leave the marker; insert an AUDIT comment
-  (`type: weak-source`).
-- **Unresolvable** → leave as-is; list it in the report.
+- **Weak source / still shaky / unresolvable** → **delete the CONFIDENCE marker**
+  and insert an AUDIT comment (`type: weak-source`) whose `reason:` captures what
+  remains unconfirmed. Never leave the marker behind.
 
 ## The lenses
 
@@ -224,7 +228,8 @@ visual would be nice but prose is adequate.
 ## Write-out (per in-scope file)
 
 1. AUDIT comments inserted (Passes/Lenses above).
-2. Resolved CONFIDENCE markers removed; `references.yaml` updated.
+2. Every CONFIDENCE marker cleared — removed when verified, converted to an AUDIT
+   otherwise; none remain. `references.yaml` updated.
 3. **`audit:` frontmatter** — add/update the list to include every lens you
    completed on this file. The four **core** lenses are `consistency`,
    `coverage`, `quality`, `coherence`; `graphics` is supplementary. Append
@@ -255,7 +260,7 @@ topic: <argument path>
 files_audited: <n>
 lenses_completed: [consistency, coverage, quality, coherence, graphics]
 findings: contradiction=<n> gap=<n> weak-source=<n> flow=<n> graphics=<n>
-confidence_resolved: <n resolved> / <n found>  (unresolved: <keys or none>)
+confidence_cleared: <n found> → verified=<n removed> converted=<n to AUDIT> (must sum to found; 0 left in file)
 derived_status: <e.g. draft → audited, or unchanged — derived from the `audit:` field now holding all four core lenses, not a written flip>
 halt_reason: <verbatim reason, or none>
 ```

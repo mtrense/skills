@@ -95,8 +95,8 @@ For any operation not listed above, interpret the user's instruction and apply i
 1. **Update the topic file** with refined content.
 2. **Remove resolved AUDIT comments** — only those directly addressed by this refinement.
 3. **Check remaining AUDIT comments** in the file. Do NOT write any status — status is derived, never stored. Clearing AUDIT directives is the real work; the derivation reflects it on its own:
-   - When you clear the **last** open AUDIT directive on a fully-audited chapter (all four core lenses recorded, references verified, no open CONFIDENCE), its derived status becomes `done` automatically.
-   - While AUDIT directives (or CONFIDENCE markers / unverified references) remain, the chapter stays `audited`.
+   - When you clear the **last** open AUDIT directive on a fully-audited chapter (all four core lenses recorded), its derived status becomes `done` automatically. CONFIDENCE markers and reference verification were already resolved by the audit phase (it is total over them), so on an audited chapter "no AUDIT left" means nothing is left.
+   - While AUDIT directives remain, the chapter stays `audited`. If a refinement introduces a new weakly-sourced claim, mark it `<!-- CONFIDENCE: low -->` — that regresses the chapter to `draft` for re-audit rather than leaving a silent gap.
    - A chapter that was only `draft` (refining without a prior audit) stays `draft` — refine does not add the audit lenses that would raise it.
 4. Update `updated` date in frontmatter.
 5. Present a summary of changes to the user.
