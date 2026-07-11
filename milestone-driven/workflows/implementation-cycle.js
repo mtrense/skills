@@ -1,5 +1,5 @@
 export const meta = {
-  name: 'implementation-cycle',
+  name: 'implementation-cycle-run',
   description: 'Drive PLAN.md to completion — one task-worker + doc-updater subagent per task, sequentially, with independent git/PLAN.md verification between iterations',
   whenToUse: 'Burn down PLAN.md tasks unattended, keeping the main session lean',
   model: 'sonnet',
