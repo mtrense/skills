@@ -121,7 +121,7 @@ Skills for authoring content for **Synaptic**, an interactive online learning pl
 **Typical flow:** `ingest` -> `structure` -> `snippet` (per node) -> `questions` (per node) -> `gap-scan` -> `selfcheck` before hand-off.
 **Update loop:** when the ingested source moves on, `ingest-update <range>` refreshes `reference/` and returns a worklist of STALE/BROKEN nodes -> re-run `snippet`/`questions` on those -> `selfcheck`.
 
-The workflow uses four bundled read-only proposal subagents (`material-extractor`, `concept-mapper`, `question-smith`, `coverage-auditor`) that return structured reports and write no files — the orchestrating skill does the scaffolding and writing. All live in `synaptic-authoring/agents/` and are installed alongside the workflow's skills.
+The workflow uses five bundled read-only proposal subagents (`material-extractor`, `concept-mapper`, `question-smith`, `coverage-auditor`, `grounding-tracer`) that return structured reports and write no files — the orchestrating skill does the scaffolding and writing. All live in `synaptic-authoring/agents/` and are installed alongside the workflow's skills.
 
 ### Utility
 
