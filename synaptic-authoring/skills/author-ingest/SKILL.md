@@ -18,7 +18,16 @@ wants a *fresh* online article folded in, that is the **graft** on-ramp (`author
 1. **Spawn `material-extractor`** on the input files. It classifies the corpus and returns atomic
    knowledge units with candidate prerequisites, why-it-matters hooks, source line refs, and a
    proposed `grounding_ref` + `confidence` per unit.
-2. Set `grounding.source` from what it found:
+   - **Small corpus (a handful of files)** — one `material-extractor` call over all of them. Its
+     cross-file dedup and `candidate_prerequisites` linking are strongest when it sees everything.
+   - **Large corpus (many files / subtrees)** — **fan out in parallel**: split the source tree into
+     per-file or per-directory batches and issue one `Agent` call per batch **in a single message**.
+     Each returns its own units manifest; then **merge in this session** — concatenate the unit
+     lists, dedup units that restate the same claim, and reconcile `candidate_prerequisites` across
+     batches (a prereq named in one batch may be defined in another). The merge is yours to own
+     because each drafter saw only its slice; keep it here so no cross-batch link is lost. Prefer
+     directory-aligned batches so a batch's `candidate_prerequisites` mostly resolve within it.
+2. Set `grounding.source` from what it found (whether one call or a merged fan-out):
    - **research kind** — the material carries `references.yaml` + `<!-- CONFIDENCE: … -->` markers
      and heading anchors. Lift citations and confidence forward verbatim; refs are
      `research:<path>#<heading-anchor>`. This is the honest, high-credibility base layer.

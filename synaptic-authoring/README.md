@@ -26,12 +26,14 @@ Two invariants run through every skill:
 | `/author-ingest` | Distil repo-local source material (research KB or plain docs — never the web) into un-`id`'d `reference/` files tagged with grounding refs; record `reference/.ingest-state.yaml` (source root, watermark SHA, provenance) for later updates | `material-extractor` |
 | `/author-ingest-update` | Delta-aware re-ingest from a git commit range: re-extract only changed source, reconcile against `reference/` by grounding ref, and report which track nodes went STALE/BROKEN so they can be re-drafted | `material-extractor`, `grounding-tracer` |
 | `/author-structure` | Propose the track DAG (nodes, prerequisite edges, priority) from `reference/` + a track goal, then mint node ids via `synaptic scaffold` | `concept-mapper` |
-| `/author-snippet` | Draft the learner-facing body of a scaffolded node from `reference/` — playful low-stakes voice, always *why it matters* / *what it unlocks*, each claim grounded | — |
+| `/author-snippet` | Draft the learner-facing body of a scaffolded node from `reference/` — playful low-stakes voice, always *why it matters* / *what it unlocks*, each claim grounded | `snippet-drafter` |
+| `/author-snippet-cycle` | Draft every un-drafted node's body by fanning `snippet-drafter` across nodes in parallel batches, then centrally scaffolding slugs and writing each node | `snippet-drafter` |
 | `/author-questions` | Draft multiple-choice questions with tight reference lists honoring "assessment is feedback, never a gate", then mint question ids and write files | `question-smith` |
+| `/author-questions-cycle` | Draft questions for every drafted-but-unquestioned node by fanning `question-smith` across nodes in parallel batches, then centrally minting ids and writing files | `question-smith` |
 | `/author-gap-scan` | Audit an existing or proposed DAG for foundational gaps — concepts referenced but never taught, orphan roots, prerequisite leaps, redundant nodes | `concept-mapper`, `coverage-auditor` |
 | `/author-selfcheck` | The standing hand-off gate: run `synaptic validate --json`, summarise findings, and refuse to present an integrity-breaking snapshot | — |
 
-**Typical flow:** `ingest` → `structure` → `snippet` (per node) → `questions` (per node) → `gap-scan` → `selfcheck` before hand-off.
+**Typical flow:** `ingest` → `structure` → `snippet` (per node, or `snippet-cycle` for the batch) → `questions` (per node, or `questions-cycle` for the batch) → `gap-scan` → `selfcheck` before hand-off.
 
 **Update loop:** when the ingested source moves on, `ingest-update <range>` refreshes `reference/` and hands you a worklist of STALE/BROKEN nodes → re-run `snippet`/`questions` on those → `selfcheck`.
 
@@ -40,9 +42,10 @@ Two invariants run through every skill:
 All read-only proposal workers (`tools: Read, Glob, Grep`); they return structured reports and
 write no files — the orchestrating skill does the scaffolding and writing.
 
-- `material-extractor` — pulls atomic knowledge units from `reference/` files, tags each with candidate prerequisites, a "why it matters" hook, and a source line, and reports which grounding kind applies (research vs document). For `/author-ingest` and `/author-ingest-update` (which runs it over only the source files a commit range changed).
+- `material-extractor` — pulls atomic knowledge units from `reference/` files, tags each with candidate prerequisites, a "why it matters" hook, and a source line, and reports which grounding kind applies (research vs document). For `/author-ingest` (one call for a small corpus, fanned out per file/subtree for a large one) and `/author-ingest-update` (which runs it over only the source files a commit range changed).
 - `concept-mapper` — turns knowledge units into a proposed prerequisite DAG with a one-line rationale per edge and an explicit acyclicity self-check. For `/author-structure` and `/author-gap-scan`.
-- `question-smith` — drafts multiple-choice questions with per-distractor rationale and flags any question whose reference list is too broad. For `/author-questions`.
+- `snippet-drafter` — locates the `reference/` unit(s) a scaffolded node should ground on (lifting confidence forward), finds the glossary/cheatsheet slugs the prose needs (existing vs to-scaffold), and drafts the learner-facing title + body — all returned as a proposal, writing nothing. For `/author-snippet` and, fanned out in parallel batches, `/author-snippet-cycle`.
+- `question-smith` — drafts multiple-choice questions with per-distractor rationale and flags any question whose reference list is too broad. For `/author-questions` and, fanned out in parallel batches, `/author-questions-cycle`.
 - `coverage-auditor` — audits a DAG for foundational gaps keyed to node ids. For `/author-gap-scan`.
 - `grounding-tracer` — downstream-impact scout: given the grounding refs a source update changed (tagged changed / anchor-moved / removed) and the track root, scans the id'd node files and returns a STALE/BROKEN re-draft worklist plus each affected node's dependents. Keeps the track-wide grep sweep out of the orchestrator. For `/author-ingest-update`.
 

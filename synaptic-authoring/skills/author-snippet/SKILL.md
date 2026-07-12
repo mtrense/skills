@@ -1,6 +1,6 @@
 ---
 name: author-snippet
-description: Draft the learner-facing body of a scaffolded knowledge node (or exercise) from reference/ material — playful low-stakes voice, always stating *why it matters* and *what it unlocks*, with each claim grounded in a resolvable grounding ref. Fills the scaffold's TODO title/grounding/body, and proposes the glossary/cheatsheet slug links the prose needs. Trigger after author-structure has scaffolded nodes, or when the user says "draft this node/snippet", "write the body", "flesh out <node>", or "/author-snippet". Scaffolds glossary/cheatsheet slugs as needed; never mints node ids or edits the changelog rules.
+description: Draft the learner-facing body of a scaffolded knowledge node (or exercise) from reference/ material — playful low-stakes voice, always stating *why it matters* and *what it unlocks*, with each claim grounded in a resolvable grounding ref. Fills the scaffold's TODO title/grounding/body, and proposes the glossary/cheatsheet slug links the prose needs. Trigger after author-structure has scaffolded nodes, or when the user says "draft this node/snippet", "write the body", "flesh out <node>", or "/author-snippet". Spawns snippet-drafter. Scaffolds glossary/cheatsheet slugs as needed; never mints node ids or edits the changelog rules.
 ---
 
 # author-snippet — draft a node body
@@ -8,6 +8,24 @@ description: Draft the learner-facing body of a scaffolded knowledge node (or ex
 You write the **learner-facing prose** for a single scaffolded node, replacing its `TODO`
 placeholders (title, grounding ref, body) with real, grounded, motivating content. The node's
 `id` already exists (minted by `author-structure` via `cli scaffold`) — you never touch it.
+
+You *propose* via the `snippet-drafter` subagent, then scaffold any new slugs and write the file.
+The read-heavy corpus/slug sweep and the draft transcript live inside the drafter and are discarded
+on return — you hold only the proposal and the write.
+
+## Procedure
+1. **Spawn `snippet-drafter`** (via `Agent`) with the scaffolded `node_path`, the `reference/` root
+   (plus the units manifest if `author-ingest` produced one), and the `track_root`. It returns a
+   proposal: real `title`, grounding `refs` with confidence lifted forward, the `glossary`/
+   `cheatsheet` slugs the prose needs (each tagged `exists` or `scaffold`), and the drafted `body` —
+   plus `notes` flagging any missing grounding.
+2. **Review the proposal against the voice and the contract** (below). Reject or send back a draft
+   that states no *why it matters* / *what it unlocks*, grounds a substantive claim on nothing, or
+   leans on a ref the drafter flagged as unresolvable.
+3. **Scaffold the `scaffold`-state slugs** (§ "Supplementary references"), then **write** the node —
+   fill `title`, `grounding`, the `glossary:`/`cheatsheet:` frontmatter lists + inline links, and the
+   `body`. Leave the scaffold's initial `major` changelog entry untouched.
+4. **Close the loop** (§ "Close the loop") — `author-selfcheck` until clean.
 
 ## The voice and the credo (README.md, AUTHORING_SKILLS.md §3)
 - **Playful, low-stakes tone** ("Challenge me!") — but *only* in learner-facing body prose, never
