@@ -35,6 +35,12 @@ wants a *fresh* online article folded in, that is the **graft** on-ramp (`author
   `doc:@sha256` refs, leave the original file byte-for-byte (the hash must match).
 - Do **not** draft learner-facing nodes here, do **not** build the DAG, do **not** mint ids. Output
   is reference material + a manifest of units and their grounding refs for `author-structure`.
+- Record an **ingest-state manifest** at `reference/.ingest-state.yaml` so the delta-aware
+  `author-ingest-update` can later tell what changed: `source_root` (where the ingested source
+  lives), `grounding_kind`, `ingested_through` (`git rev-parse HEAD` — the source commit this ingest
+  reflects, or `(no git)`), `ingested_at`, and a `provenance` list mapping each upstream source file
+  → its distilled `reference/` file → the grounding refs it produced. Skip only if the repo has no
+  git.
 
 ## Grounding refs you emit (must later validate — §5.6)
 | kind | grammar | CLI check downstream |
@@ -47,4 +53,7 @@ filled when the referenced file is stable, and `author-selfcheck` catches any mi
 
 ## Hand-off
 Produce: (1) `reference/` files, (2) a units manifest `{claim, why_it_matters, candidate_prereqs,
-grounding_ref, confidence}`. Point the user at `author-structure` next. Do not commit or push.
+grounding_ref, confidence}`, (3) `reference/.ingest-state.yaml` (above). Point the user at
+`author-structure` next. When the source material later changes, `/author-ingest-update` refreshes
+`reference/` incrementally from a commit range rather than re-running this from scratch. Do not
+commit or push.

@@ -110,7 +110,8 @@ Skills for authoring content for **Synaptic**, an interactive online learning pl
 
 | Phase | Command | What it does |
 |-------|---------|-------------|
-| 1 | `/author-ingest` | Distil repo-local source material (a research KB or plain docs — never the web) into un-`id`'d `reference/` files tagged with resolvable grounding refs. Spawns `material-extractor` |
+| 1 | `/author-ingest` | Distil repo-local source material (a research KB or plain docs — never the web) into un-`id`'d `reference/` files tagged with resolvable grounding refs; record `reference/.ingest-state.yaml` (source root, watermark SHA, provenance) for later updates. Spawns `material-extractor` |
+| ↻ | `/author-ingest-update` | Delta-aware re-ingest from a git commit range (or the recorded watermark): re-extract only changed source, reconcile against `reference/` by grounding ref, and report which track nodes went STALE/BROKEN so they can be re-drafted. Repo-local only. Spawns `material-extractor` and `grounding-tracer` |
 | 2 | `/author-structure` | Propose the track DAG (nodes, prerequisite edges, priority) from `reference/` + a track goal, then mint node ids via `synaptic scaffold` once the human approves. Spawns `concept-mapper` |
 | 3 | `/author-snippet` | Draft the learner-facing body of a scaffolded node from `reference/` — playful low-stakes voice, always *why it matters* / *what it unlocks*, each claim grounded |
 | 3 | `/author-questions` | Draft multiple-choice questions with tight reference lists honoring "assessment is feedback, never a gate", then mint question ids and write files. Spawns `question-smith` |
@@ -118,6 +119,7 @@ Skills for authoring content for **Synaptic**, an interactive online learning pl
 | 5 | `/author-selfcheck` | The standing hand-off gate: run `synaptic validate --json`, summarise findings, and refuse to present an integrity-breaking snapshot |
 
 **Typical flow:** `ingest` -> `structure` -> `snippet` (per node) -> `questions` (per node) -> `gap-scan` -> `selfcheck` before hand-off.
+**Update loop:** when the ingested source moves on, `ingest-update <range>` refreshes `reference/` and returns a worklist of STALE/BROKEN nodes -> re-run `snippet`/`questions` on those -> `selfcheck`.
 
 The workflow uses four bundled read-only proposal subagents (`material-extractor`, `concept-mapper`, `question-smith`, `coverage-auditor`) that return structured reports and write no files — the orchestrating skill does the scaffolding and writing. All live in `synaptic-authoring/agents/` and are installed alongside the workflow's skills.
 
@@ -248,6 +250,7 @@ synaptic-authoring/
   skills/
     author-gap-scan/SKILL.md
     author-ingest/SKILL.md
+    author-ingest-update/SKILL.md
     author-questions/SKILL.md
     author-selfcheck/SKILL.md
     author-snippet/SKILL.md
@@ -255,6 +258,7 @@ synaptic-authoring/
   agents/
     concept-mapper.md
     coverage-auditor.md
+    grounding-tracer.md
     material-extractor.md
     question-smith.md
 documentation/
