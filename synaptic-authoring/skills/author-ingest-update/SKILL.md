@@ -77,8 +77,11 @@ Stop and ask before doing work if:
 ## Step 3 — Re-extract only the changed source
 Spawn `material-extractor` (via `Agent`) on the **Added + Modified** source files only — never the
 whole tree. It returns fresh atomic units with `grounding_ref`, `confidence`, `why_it_matters`, and
-`source_ref`, exactly as in a first ingest, and reports the grounding kind. Deleted/renamed files
-need no extraction — you handle those from the diff in Step 4.
+`source_ref`, **plus the write-ready `reference/` body per changed file**, exactly as in a first
+ingest, and reports the grounding kind. Use those returned bodies for the added/changed edits in
+Step 4 — do **not** re-open the source yourself to re-distil (same lean-context rule as
+`author-ingest`; that re-read is what blows the budget). Deleted/renamed files need no extraction —
+you handle those from the diff in Step 4.
 
 ## Step 4 — Reconcile against the existing reference/ layer
 Join the freshly-extracted units to the current `reference/` content **by grounding ref** (the
