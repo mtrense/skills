@@ -1,43 +1,58 @@
 ---
 name: task-append
 description: >
-  Capture one task into the domain-driven backlog as a new `draft` from human
-  input of ANY quality — a polished spec or a half-formed brain-dump both welcome.
-  Trigger whenever the user wants to record, capture, add, jot down, or "note for
-  later" a task, idea, feature, or piece of work into the backlog — e.g. "add a
-  task to…", "capture this…", "put this on the backlog", "we should also…",
-  "remember to…", "new task:", or /task-append. Mints the next id via tasks.sh,
+  Capture one or more tasks into the domain-driven backlog as new `draft`s from
+  human input of ANY quality — a polished spec or a half-formed brain-dump both
+  welcome. Trigger whenever the user wants to record, capture, add, jot down, or
+  "note for later" a task, idea, feature, or piece of work into the backlog — e.g.
+  "add a task to…", "capture this…", "put this on the backlog", "we should also…",
+  "remember to…", "new task:", or /task-append. Accepts several tasks at once when
+  the input is split by markdown document delimiters (a line containing only `---`)
+  — each block becomes its own draft. Mints the next id per task via tasks.sh,
   writes tasks/NNNN-slug.md with minimal frontmatter, and does NOT interview,
   size, or wire dependencies (that is /task-refine's job). The low-friction front
   door to the backlog. Requires a tasks/ backlog (domain-driven workflow); do NOT
   trigger for read-only backlog questions ("what's next?", "what's the status?" —
   those are /whats-next and /task-status), for refining an existing task, or for
   ad-hoc code edits.
-argument-hint: "<the idea, in any form — a sentence, a paragraph, a dump>"
+argument-hint: "<the idea(s), in any form — one dump, or several separated by --- lines>"
 model: sonnet
 allowed-tools: Read, Write, Bash(mkdir -p tasks), Bash(bash */skills/task-status/tasks.sh *), Bash(date *)
 ---
 
-# Task Append — Capture a Draft
+# Task Append — Capture Draft(s)
 
-You capture one task into the backlog as a `draft`. **This is a capture step, not
-a design step.** Do not interview, do not assess completeness, do not add
+You capture one or more tasks into the backlog as `draft`s. **This is a capture
+step, not a design step.** Do not interview, do not assess completeness, do not add
 dependencies or a context — `/task-refine` does all of that. Your job is to get
-the human's idea onto disk faithfully and with the least friction, so nothing is
+the human's idea(s) onto disk faithfully and with the least friction, so nothing is
 lost in the moment it occurs to them.
 
 Raw, incomplete, or unpolished input is explicitly fine. If the human hands you a
 one-liner, capture the one-liner. If they hand you a rambling brain-dump, preserve
 it. Never demand more before saving.
 
-## Steps
+## Splitting the input into tasks
 
-1. **Ensure the backlog exists:** `mkdir -p tasks`.
+First decide how many tasks the input holds. **A line containing only `---`
+(a markdown document delimiter) separates one task from the next.** Split the input
+on such lines into blocks, trim surrounding blank lines from each block, and drop
+any empty blocks. Each remaining block is one task. Input with no `---` delimiter
+is a single task — the common case.
+
+Then run the steps below **once per block**, minting a fresh id for each (mint →
+write → mint the next), so each task lands in its own `tasks/NNNN-slug.md`.
+
+## Steps (per task block)
+
+1. **Ensure the backlog exists:** `mkdir -p tasks` (only needed once).
 2. **Mint the id:** run `bash <skills-root>/task-status/tasks.sh next-id` (the
    helper is a sibling skill directory; `<skills-root>` is the directory this
-   skill lives in). Use the returned 4-digit id.
-3. **Derive a title and slug.** Make a short imperative title from the input
-   (invent a reasonable one if the input is a raw dump). The slug is the title
+   skill lives in). Use the returned 4-digit id. Because `next-id` is derived from
+   the files on disk (max existing id + 1), always mint the id *after* the previous
+   task's file has been written, so each task gets a distinct id.
+3. **Derive a title and slug.** Make a short imperative title from the block
+   (invent a reasonable one if the block is a raw dump). The slug is the title
    lowercased, non-alphanumerics collapsed to single hyphens.
 4. **Get the timestamp:** `date -u +%Y-%m-%dT%H:%M:%SZ`.
 5. **Write** `tasks/NNNN-slug.md` with exactly this shape:
@@ -78,6 +93,8 @@ surprises).
 
 ## After writing
 
-Confirm in one line: the id, the title, and that it is a `draft`. Remind the human
-that `/task-refine` will turn it into a ready `todo` (interviewing them, sizing it,
-wiring dependencies, and checking it against the domain). Do not refine it now.
+Confirm each captured task in one line: its id, its title, and that it is a
+`draft` (one line per task when several were captured). Then remind the human once
+that `/task-refine` will turn each into a ready `todo` (interviewing them, sizing
+it, wiring dependencies, and checking it against the domain). Do not refine them
+now.

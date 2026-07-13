@@ -132,7 +132,7 @@ A build workflow that takes a project from a blank page to shipped code via Doma
 | 1 | `/grounding` | Socratic vision session (adapted from the Agentheim brainstorm skill); produces a tight `vision.md` and stops there so the human controls each later phase |
 | 2 | `/domain-model` | Big-picture EventStorming: domain-event timeline, commands/actors, policies, external systems, aggregates, and a hotspots list → `domain-model.md`. Seeds with `domain-seed-extractor`; offers hotspots as ADRs |
 | 3 | `/context-mapping` | Draws bounded contexts around the aggregate clusters + their DDD relationships + per-context ubiquitous language → `context-map/INDEX.md` + `context-map/<context>.md`. Seeds with `boundary-proposer`. The domain-compliance referent for every task |
-| 4 | `/task-append` | Capture a task into the backlog as a `draft` from input of any quality (spec or raw dump); mints the id, writes `tasks/NNNN-slug.md`, no interview |
+| 4 | `/task-append` | Capture one or more tasks into the backlog as `draft`s from input of any quality (spec or raw dump), splitting on `---` delimiters; mints an id per task, writes `tasks/NNNN-slug.md`, no interview |
 | 5 | `/task-refine` | Draft → ready `todo`: assess completeness/domain-compliance/size (via `task-analyzer`), interview, split oversized tasks (tombstone + rewire), wire `depends_on`, attach ADRs. `check-dag` hard gate |
 | 6 | `/task-cycle` | Drive ready `todo` tasks to `done` via `task-worker` (TDD → verify → commit). `[<limit>\|all][@<workers>]` (default `all@1`); `@N` uses parallel git worktrees + serial `integrator` merge-back |
 | ✓ | `/task-status` | Read-only backlog board; the human front end to the bundled `tasks.sh` query helper |
