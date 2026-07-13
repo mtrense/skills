@@ -1,26 +1,28 @@
 # Recording an Architecture Decision Record (ADR)
 
-This is the shared mechanics for writing a decision to `docs/decisions/`. The
-calling skill decides *when* a decision is worth recording; this file describes
-*how* to record it consistently.
+This is the shared mechanics for writing a decision to the project's decisions
+directory (`<decisions-dir>/`). The
+calling skill decides *when* a decision is worth recording — and resolves
+`<decisions-dir>` (the default is `decisions/`, overridable per project); this
+file describes *how* to record it consistently.
 
 ## Where it goes
 
-- **Full record:** `docs/decisions/NNNN-kebab-title.md` — one file per decision.
-- **Index line:** one sentence in `docs/decisions/INDEX.md` — the abbreviated form
+- **Full record:** `<decisions-dir>/NNNN-kebab-title.md` — one file per decision.
+- **Index line:** one sentence in `<decisions-dir>/INDEX.md` — the abbreviated form
   an agent can read without opening the full record.
 
 ## Steps
 
-1. **Find the next number.** Look in `docs/decisions/` for the highest existing
+1. **Find the next number.** Look in `<decisions-dir>/` for the highest existing
    `NNNN-*.md`. If the directory (or `INDEX.md`) does not exist yet, create it and
    seed `INDEX.md` with the header shown below. The next number is the highest
    existing value plus one, zero-padded to four digits (`0001`, `0002`, …).
-2. **Write the record** to `docs/decisions/NNNN-kebab-title.md` from the template
+2. **Write the record** to `<decisions-dir>/NNNN-kebab-title.md` from the template
    below, using today's date and filling *every* section with real content. The
    rationale and the alternatives are the reason the record exists — a record
    without them is not worth writing.
-3. **Append one line to `docs/decisions/INDEX.md`** — a single sentence stating what
+3. **Append one line to `<decisions-dir>/INDEX.md`** — a single sentence stating what
    was decided and its outcome, so an agent grasps it without opening the record:
 
    ```

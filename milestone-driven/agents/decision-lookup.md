@@ -1,9 +1,10 @@
 ---
 name: decision-lookup
 description: >
-  Read-only query worker for a project's Architecture Decision Records under
-  `docs/decisions/`. Given a topic or an action the caller is about to take, reads
-  `docs/decisions/INDEX.md`, selects the relevant records, reads only those, and
+  Read-only query worker for a project's Architecture Decision Records (in the
+  project's decisions directory — `decisions/` by default, overridable via
+  `decision-path:` in CLAUDE.md). Given a topic or an action the caller is about to
+  take, reads that directory's INDEX.md, selects the relevant records, reads only those, and
   returns a compact briefing of the decisions that constrain the caller — so the
   orchestrator never loads the whole decision log into its own context. Reports
   cleanly when no decision log exists. Does NOT edit anything.
@@ -32,17 +33,19 @@ If the input is empty, say so and stop.
 
 ## Step 1 — locate the log
 
-Look for `docs/decisions/INDEX.md`. If it (and `docs/decisions/`) does not exist,
-return exactly this and stop — do not hunt elsewhere or invent decisions:
+First resolve the decisions directory (`<decisions-dir>`): it is `decisions/` unless the
+project's `CLAUDE.md` contains a `decision-path: <directory>` line, in which case use that
+directory. Look for `<decisions-dir>/INDEX.md`. If it (and `<decisions-dir>/`) does not
+exist, return exactly this and stop — do not hunt elsewhere or invent decisions:
 
 ```report
 # Decision Lookup — <topic>
-No decision log found (`docs/decisions/` absent). No prior decisions constrain this work.
+No decision log found (`<decisions-dir>/` absent). No prior decisions constrain this work.
 ```
 
 ## Step 2 — shortlist from the index
 
-Read `docs/decisions/INDEX.md`. Each line is a one-sentence summary linking a
+Read `<decisions-dir>/INDEX.md`. Each line is a one-sentence summary linking a
 record. Select every entry whose subject plausibly touches the caller's topic — by
 component, subsystem, technology, or goal. When unsure, include it: a false
 positive costs one file read, a false negative hides a binding constraint.
@@ -52,7 +55,7 @@ do not read records just to have something to return.
 
 ## Step 3 — read the shortlisted records
 
-Read only the shortlisted `NNNN-*.md` files. For each, extract:
+Read only the shortlisted `<decisions-dir>/NNNN-*.md` files. For each, extract:
 
 - the **decision** (what was chosen — the source-of-truth statement),
 - its **status** (`Accepted` / `Superseded` — a superseded record is history; flag it),

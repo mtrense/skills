@@ -44,7 +44,9 @@ in what exists.
 **Consult prior architectural decisions.** Before shaping a new milestone, find out what
 has already been decided so the milestone doesn't contradict or unknowingly re-open a
 settled direction. Spawn the `decision-lookup` subagent (Agent tool, `subagent_type:
-decision-lookup`) with the area the user wants to work on — it reads `docs/decisions/INDEX.md`,
+decision-lookup`) with the area the user wants to work on — it locates and reads the
+project's decision index (`decisions/INDEX.md` by default, or the `decision-path:`
+directory set in `CLAUDE.md`),
 pulls only the relevant records, and returns a compact briefing, keeping the full decision
 log out of this session. If it reports no log exists, proceed normally. Treat any `Accepted`
 decision it returns as a standing constraint; if the milestone the user is describing would
@@ -144,9 +146,11 @@ is, the ADR preserves *why the direction was chosen* and what was rejected.
 
 Record one only when the decision **splits the architecture or commits the project to a
 direction that would be expensive to reverse** — not for ordinary scoping. For each that
-clears the bar, read `references/decision-record.md` and follow it: number the record,
-write `docs/decisions/NNNN-kebab-title.md`, and append the one-sentence entry to
-`docs/decisions/INDEX.md`. If a decision would contradict one the `decision-lookup`
+clears the bar, read `references/decision-record.md` and follow it. Records live in
+`<decisions-dir>/` — `decisions/` by default, or the directory named by a `decision-path:
+<directory>` line in `CLAUDE.md`. Number the record,
+write `<decisions-dir>/NNNN-kebab-title.md`, and append the one-sentence entry to
+`<decisions-dir>/INDEX.md`. If a decision would contradict one the `decision-lookup`
 briefing surfaced in Step 1, do not overwrite that record silently — flag the conflict to
 the user; superseding a decision is their call and produces a new ADR that marks the old
 one superseded.

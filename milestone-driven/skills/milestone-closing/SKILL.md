@@ -87,13 +87,15 @@ marker, then append to the milestone file:
 3. <Point out what changed / what's new>
 ```
 
-**Reconcile the decision log.** If `docs/decisions/` exists, read
-`docs/decisions/INDEX.md` (one cheap file — no subagent needed here) and cross-check it
+**Reconcile the decision log.** The decision log lives in `<decisions-dir>/` — `decisions/`
+by default, or the `decision-path:` directory set in `CLAUDE.md`. If `<decisions-dir>/`
+exists, read
+`<decisions-dir>/INDEX.md` (one cheap file — no subagent needed here) and cross-check it
 against what actually shipped:
 
 - **New decisions:** if this milestone made an architectural decision that isn't yet in
   the log, name it in the *Decision changes* closing note and point the human at recording
-  it (a decision surfaced during planning belongs in `docs/decisions/` via the recording
+  it (a decision surfaced during planning belongs in `<decisions-dir>/` via the recording
   convention).
 - **Revised decisions:** if implementation contradicted an `Accepted` record, that record
   is now stale. Flag it explicitly in the *Decision changes* note — the correct fix is a

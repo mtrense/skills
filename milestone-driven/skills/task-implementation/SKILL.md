@@ -59,12 +59,14 @@ Build a mental model of:
 - The naming conventions for files, functions, variables, and tests
 
 **Read any decision records the task points to.** If the task's **Architecture &
-Decisions** notes reference an ADR (e.g. "per ADR 0007"), open that
-`docs/decisions/NNNN-*.md` file and read it — it is the binding source of truth for
+Decisions** notes reference an ADR (e.g. "per ADR 0007"), open that record in the
+project's decisions directory (`decisions/` by default, or the `decision-path:`
+directory set in `CLAUDE.md`) — `<decisions-dir>/NNNN-*.md` — and read it — it is the
+binding source of truth for
 how this area must be built, and it carries the reasoning the one-line plan note
 omits. (Read the file directly; do not spawn a subagent — this skill may itself be
-running inside a worker subagent.) If the notes reference no ADR but `docs/decisions/`
-exists and plausibly governs the files you're touching, skim `docs/decisions/INDEX.md`
+running inside a worker subagent.) If the notes reference no ADR but `<decisions-dir>/`
+exists and plausibly governs the files you're touching, skim `<decisions-dir>/INDEX.md`
 and read any record that clearly applies.
 
 ### Step 3: Write the Tests FIRST
