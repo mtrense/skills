@@ -1,0 +1,11 @@
+{
+  "name": "domain-driven",
+  "description": "Domain-driven build workflow: Socratic vision grounding, big-picture EventStorming, bounded-context mapping, and a dependency-ordered task backlog driven to done by TDD workers (single-checkout or parallel git worktrees).",
+  "author": {
+    "name": "Max Trense",
+    "email": "dev@trense.info"
+  },
+  "homepage": "https://github.com/mtrense/skills",
+  "repository": "https://github.com/mtrense/skills",
+  "keywords": ["domain-driven-design", "eventstorming", "context-map", "backlog", "tdd"]
+}

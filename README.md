@@ -36,7 +36,7 @@ Updates: `/plugin marketplace update`. No `version` field is pinned, so each com
 ./install.sh research /path/to/project
 ```
 
-The first argument is the workflow name (`codebase-survey`, `common`, `milestone-driven`, `research`, `synaptic-authoring`) or `all`. The optional second argument is the install target (defaults to `$HOME`). The installer creates symlinks, so skills stay up to date as you pull changes.
+The first argument is the workflow name (`codebase-survey`, `common`, `domain-driven`, `milestone-driven`, `research`, `synaptic-authoring`) or `all`. The optional second argument is the install target (defaults to `$HOME`). The installer creates symlinks, so skills stay up to date as you pull changes.
 
 ## Skills
 
@@ -122,6 +122,24 @@ Skills for authoring content for **Synaptic**, an interactive online learning pl
 **Update loop:** when the ingested source moves on, `ingest-update <range>` refreshes `reference/` and returns a worklist of STALE/BROKEN nodes -> re-run `snippet`/`questions` on those -> `selfcheck`.
 
 The workflow uses five bundled read-only proposal subagents (`material-extractor`, `concept-mapper`, `question-smith`, `coverage-auditor`, `grounding-tracer`) that return structured reports and write no files — the orchestrating skill does the scaffolding and writing. All live in `synaptic-authoring/agents/` and are installed alongside the workflow's skills.
+
+### Domain-Driven Workflow
+
+A build workflow that takes a project from a blank page to shipped code via Domain-Driven Design strategic modeling, then drives a dependency-ordered task backlog to completion. It favors *flow over batches* — there is **no milestone layer**, just a growing backlog whose scheduling is governed by an explicit dependency DAG and organized by bounded context. Depends on the **`common`** workflow (installed alongside) for `/adr` and `/commit`. See [`domain-driven/README.md`](domain-driven/README.md) for the full specification.
+
+| Phase | Command | What it does |
+|-------|---------|-------------|
+| 1 | `/grounding` | Socratic vision session (adapted from the Agentheim brainstorm skill); produces a tight `vision.md` and stops there so the human controls each later phase |
+| 2 | `/domain-model` | Big-picture EventStorming: domain-event timeline, commands/actors, policies, external systems, aggregates, and a hotspots list → `domain-model.md`. Seeds with `domain-seed-extractor`; offers hotspots as ADRs |
+| 3 | `/context-mapping` | Draws bounded contexts around the aggregate clusters + their DDD relationships + per-context ubiquitous language → `context-map/INDEX.md` + `context-map/<context>.md`. Seeds with `boundary-proposer`. The domain-compliance referent for every task |
+| 4 | `/task-append` | Capture a task into the backlog as a `draft` from input of any quality (spec or raw dump); mints the id, writes `tasks/NNNN-slug.md`, no interview |
+| 5 | `/task-refine` | Draft → ready `todo`: assess completeness/domain-compliance/size (via `task-analyzer`), interview, split oversized tasks (tombstone + rewire), wire `depends_on`, attach ADRs. `check-dag` hard gate |
+| 6 | `/task-cycle` | Drive ready `todo` tasks to `done` via `task-worker` (TDD → verify → commit). `[<limit>\|all][@<workers>]` (default `all@1`); `@N` uses parallel git worktrees + serial `integrator` merge-back |
+| ✓ | `/task-status` | Read-only backlog board; the human front end to the bundled `tasks.sh` query helper |
+
+**The scaling law:** the backlog can grow large, so no skill ever scans the task corpus — every question (`ready`, `next-id`, `by-status`, `get`, `blockers`, `dependents`, `check-dag`, `board`) is answered by the deterministic `tasks.sh` helper (bundled in the `task-status` skill dir), which parses only YAML frontmatter (`yj` → `jq`) and returns ids/counts. Ids derive from the `NNNN-` filename prefix. Requires `yj` and `jq`.
+
+The workflow uses five bundled subagents in `domain-driven/agents/`: three read-only proposal scouts (`domain-seed-extractor`, `boundary-proposer`, `task-analyzer`) that write nothing, and two write-side workers (`task-worker` — TDD-implements and commits one claimed task, never touching `status`; `integrator` — sequential worktree merge-back, bounce-on-conflict). The orchestrating `/task-cycle` owns every status write.
 
 ### Utility
 

@@ -31,6 +31,12 @@
       "category": "workflow"
     },
     {
+      "name": "domain-driven",
+      "source": "./domain-driven",
+      "description": "Domain-driven build workflow: vision grounding, EventStorming, bounded-context mapping, and a dependency-ordered task backlog driven to done by TDD workers.",
+      "category": "workflow"
+    },
+    {
       "name": "common",
       "source": "./common",
       "description": "Cross-workflow utilities: /commit, /pr, /audit-context, /deckset.",
