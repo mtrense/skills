@@ -1,12 +1,18 @@
 ---
 name: task-append
 description: >
-  Capture a task into the backlog as a new `draft`, from human input of ANY
-  quality — a polished spec or a half-formed brain-dump both welcome. Mints the
-  next id via the tasks.sh helper, writes tasks/NNNN-slug.md with minimal
-  frontmatter, and does NOT interview or refine (that is /task-refine's job). The
-  low-friction front door to the domain-driven backlog.
-disable-model-invocation: true
+  Capture one task into the domain-driven backlog as a new `draft` from human
+  input of ANY quality — a polished spec or a half-formed brain-dump both welcome.
+  Trigger whenever the user wants to record, capture, add, jot down, or "note for
+  later" a task, idea, feature, or piece of work into the backlog — e.g. "add a
+  task to…", "capture this…", "put this on the backlog", "we should also…",
+  "remember to…", "new task:", or /task-append. Mints the next id via tasks.sh,
+  writes tasks/NNNN-slug.md with minimal frontmatter, and does NOT interview,
+  size, or wire dependencies (that is /task-refine's job). The low-friction front
+  door to the backlog. Requires a tasks/ backlog (domain-driven workflow); do NOT
+  trigger for read-only backlog questions ("what's next?", "what's the status?" —
+  those are /whats-next and /task-status), for refining an existing task, or for
+  ad-hoc code edits.
 argument-hint: "<the idea, in any form — a sentence, a paragraph, a dump>"
 model: sonnet
 allowed-tools: Read, Write, Bash(mkdir -p tasks), Bash(bash */skills/task-status/tasks.sh *), Bash(date *)
