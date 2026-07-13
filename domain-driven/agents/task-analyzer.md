@@ -33,8 +33,9 @@ nothing and you do not talk to the user.
   context it *should* belong to. Consult `INDEX.md` for the relationship patterns
   when the task looks cross-boundary.
 - `domain-model.md` — for the events/commands/aggregates the task touches.
-- `docs/decisions/INDEX.md` — the one-line ADR index (read individual ADR files
-  only if one is clearly on-point).
+- The ADR index — `decisions/INDEX.md` by default, or `<decision-path>/INDEX.md`
+  if the project's `CLAUDE.md` sets a `decision-path: <directory>` line — the
+  one-line ADR index (read individual ADR files only if one is clearly on-point).
 
 Do not scan the whole `tasks/` backlog. To reference other tasks by id, the
 orchestrator can query them — you focus on this one task's substance.

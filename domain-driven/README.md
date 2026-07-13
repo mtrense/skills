@@ -63,7 +63,7 @@ domain-model.md               # /domain-model
 context-map/
   INDEX.md                    # overview + relationship map (mermaid)
   <context>.md                # per-context: responsibility, boundary, relationships, ubiquitous language
-docs/decisions/               # ADRs (shared convention with common/adr)
+decisions/                    # ADRs (shared convention with common/adr; default dir, override via `decision-path:` in CLAUDE.md)
   INDEX.md
   NNNN-title.md
 tasks/

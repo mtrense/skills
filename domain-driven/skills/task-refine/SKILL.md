@@ -32,7 +32,8 @@ are wired. Getting there is an **interview**, not a rewrite.
 Spawn the **task-analyzer** subagent (`subagent_type: task-analyzer`) with the task
 file path and the project root. It reads the task, the relevant
 `context-map/<context>.md` (and `context-map/INDEX.md` for relationships),
-`domain-model.md`, and `docs/decisions/INDEX.md`, then returns a structured
+`domain-model.md`, and the decision index (`decisions/INDEX.md` by default, or the
+`decision-path:` directory set in `CLAUDE.md`), then returns a structured
 assessment:
 
 - **Completeness** — what the spec is missing (unclear outcome, no success

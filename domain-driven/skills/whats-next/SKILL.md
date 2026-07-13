@@ -49,7 +49,8 @@ grounded in their actual language.
   contexts, their responsibilities and relationships, and each one's ubiquitous
   language. If a `<context>` argument was given, load that context's file and scope
   the whole assessment to it.
-- **`docs/decisions/INDEX.md`** if present — so you can tell which hotspots have
+- **The decision index** if present — `decisions/INDEX.md` by default, or the
+  `decision-path:` directory set in `CLAUDE.md` — so you can tell which hotspots have
   already been settled as ADRs (and needn't be re-flagged).
 
 ## Step 2 — Load the current state (backlog frontmatter only)

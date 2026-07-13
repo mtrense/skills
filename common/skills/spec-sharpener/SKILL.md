@@ -199,7 +199,8 @@ nature of what's left.
 
 ## Relationship to the decision log
 
-This skill **never writes** to `docs/decisions/`. It runs pre-implementation,
+This skill **never writes** to the project's decision log (`decisions/` by default,
+or the `decision-path:` directory set in `CLAUDE.md`). It runs pre-implementation,
 where every resolution is cheap to change and the sharpened spec text is the
 durable record. ADRs enter a project's life later, when the milestone-driven
 skills (`/project-inception`, `/strategic-planning`, `/milestone-breakdown`)
