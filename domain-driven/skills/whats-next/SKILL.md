@@ -55,14 +55,25 @@ grounded in their actual language.
 
 ## Step 2 — Load the current state (backlog frontmatter only)
 
-Let `SH = <skills-root>/task-status/tasks.sh` (a sibling skill directory). Get the
-whole backlog in **one** call:
+The two blocks below are the captured stdout of the `tasks.sh` helper (a sibling
+skill directory), run **before** this skill loaded against the default `./tasks`
+backlog. They are the source of truth — do not re-run these queries. Each task's
+`_id`, `title`, `status`, `context`, and `depends_on` is derived from frontmatter
+alone. This is the compliant way to see the corpus: **never open task bodies to
+assess coverage** — title + context + status is enough for a gap scan, and the
+backlog is allowed to grow large.
 
-- `bash "$SH" list` → every task's `_id`, `title`, `status`, `context`, and
-  `depends_on`, derived from frontmatter alone. This is the compliant way to see
-  the corpus: **never open task bodies to assess coverage** — title + context +
-  status is enough for a gap scan, and the backlog is allowed to grow large.
-- `bash "$SH" board` → counts per status, for framing.
+### Whole backlog (frontmatter as JSON)
+
+```
+!`bash "${CLAUDE_SKILL_DIR}/../task-status/tasks.sh" list 2>&1`
+```
+
+### Counts per status (for framing)
+
+```
+!`bash "${CLAUDE_SKILL_DIR}/../task-status/tasks.sh" board 2>&1`
+```
 
 Non-terminal tasks (`draft`, `todo`, `in progress`) that name an area mean that
 area is already accounted for; `done` means it is built; a `split` tombstone is
