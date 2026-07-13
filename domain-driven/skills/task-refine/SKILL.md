@@ -66,7 +66,12 @@ back what you hear. Drive to:
 ## Step 4 — Split if too big
 
 If the task can't land in one implementation pass, propose a split and get the
-human's agreement on the pieces. Then, as **two passes**:
+human's agreement on the pieces.
+
+**Never** derive child ids by suffixing the original (no `0007a` / `0007b`, no
+`0007-1`). A split produces genuinely new, top-level tasks: the original becomes an
+inert `split` tombstone and each child is minted a fresh sequential id via
+`tasks.sh next-id`. Then, as **two passes**:
 
 **Pass A — create children and tombstone the original.**
 1. For each child, mint an id (`tasks.sh next-id`, one at a time) and write a new
