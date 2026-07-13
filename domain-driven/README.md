@@ -14,7 +14,10 @@ flowchart LR
   g["/grounding"] --> dm["/domain-model"] --> cm["/context-mapping"]
   cm --> ap["/task-append"] --> rf["/task-refine"] --> wc["/task-cycle"]
   ap -.-> rf -.-> wc
-  st["/task-status"] -.read-only.-> wc
+  ts["/whats-next"] -.suggests.-> ap
+  cm --> ts
+  wc -.-> ts
+  stat["/task-status"] -.read-only.-> wc
 ```
 
 1. **`/grounding`** — a Socratic vision session (adapted from the Agentheim
@@ -42,6 +45,12 @@ flowchart LR
    `@N` implements in parallel git worktrees and merges back sequentially via the
    `integrator` subagent (bounce-on-conflict).
 7. **`/task-status`** — read-only backlog board (the human front end to `tasks.sh`).
+8. **`/whats-next`** — the forward-looking companion to `/task-status`: assesses
+   `vision.md`, `domain-model.md`, and `context-map/` against the backlog state
+   (read through `tasks.sh`, frontmatter only), surfaces coverage gaps (uncovered
+   aggregates, thin contexts, unrepresented vision outcomes, blocking hotspots), and
+   proposes a prioritized list of next tasks. **Advisory** — it hands approved
+   suggestions to `/task-append` and mints/wires/refines nothing itself.
 
 Uses **`common`**'s `/adr` (record decisions) and `/commit` (the single commit
 point). **The `common` workflow must be installed alongside `domain-driven`.**

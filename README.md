@@ -136,6 +136,7 @@ A build workflow that takes a project from a blank page to shipped code via Doma
 | 5 | `/task-refine` | Draft → ready `todo`: assess completeness/domain-compliance/size (via `task-analyzer`), interview, split oversized tasks (tombstone + rewire), wire `depends_on`, attach ADRs. `check-dag` hard gate |
 | 6 | `/task-cycle` | Drive ready `todo` tasks to `done` via `task-worker` (TDD → verify → commit). `[<limit>\|all][@<workers>]` (default `all@1`); `@N` uses parallel git worktrees + serial `integrator` merge-back |
 | ✓ | `/task-status` | Read-only backlog board; the human front end to the bundled `tasks.sh` query helper |
+| ✓ | `/whats-next` | Assess `vision.md` + `domain-model.md` + `context-map/` against the backlog state (via `tasks.sh`, frontmatter only), surface coverage gaps, and propose a prioritized list of next tasks; advisory — hands approved suggestions to `/task-append`, mints nothing |
 
 **The scaling law:** the backlog can grow large, so no skill ever scans the task corpus — every question (`ready`, `next-id`, `by-status`, `get`, `blockers`, `dependents`, `check-dag`, `board`) is answered by the deterministic `tasks.sh` helper (bundled in the `task-status` skill dir), which parses only YAML frontmatter (`yj` → `jq`) and returns ids/counts. Ids derive from the `NNNN-` filename prefix. Requires `yj` and `jq`.
 
