@@ -32,8 +32,15 @@ Return a single report with these sections:
 - **Domain events** — past-tense facts the domain would record (`OrderPlaced`,
   `PaymentSettled`). Name them in the domain's own words drawn from the vision.
   Order them roughly chronologically and flag any timeline gaps you notice.
-- **Commands & actors** — for each event, the command that would cause it and the
-  actor (human role or system) that issues it, where the vision implies it.
+  Include events that happen **outside the software** too — real-world happenings,
+  emissions from external systems, and time/schedule-driven events — and mark each
+  event as **in-software** or **external** (say "unclear" and add a hotspot when the
+  vision doesn't settle it). For each event note **the situation that triggers it**
+  (the condition/circumstance under which it fires), not only what it means.
+- **Commands & actors** — for each *in-software* event, the command that would cause
+  it and the actor (human role or system) that issues it, where the vision implies
+  it. For external events, give the triggering situation instead of a command — the
+  software only learns of them.
 - **External systems** — systems the project does not own that it clearly must talk
   to, and in which direction.
 - **Aggregates** — candidate consistency boundaries: cluster related

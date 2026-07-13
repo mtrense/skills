@@ -47,16 +47,34 @@ Work the seed into a real model **one question at a time**, in roughly this orde
 
 1. **Chaotic exploration → domain events.** Confirm/prune/add the past-tense
    events (`OrderPlaced`, `PaymentSettled`, `ShipmentDispatched`). Events are
-   *facts that already happened*, named in the domain's own words.
+   *facts that already happened*, named in the domain's own words. **Not every
+   event happens inside the software** — big-picture EventStorming deliberately
+   includes events that originate *outside* the system: real-world happenings
+   (`CustomerChangedTheirMind`), emissions from systems you don't own
+   (`PaymentAuthorized` from a gateway), and the clock (`SubscriptionExpired`).
+   Include them — they show the full flow and reveal where the software's
+   boundary actually falls. Mark each event's **origin** (in-software vs external)
+   as you go; it will not always be obvious, and disagreement there is itself a
+   hotspot worth surfacing.
 2. **Enforce the timeline.** Order the events chronologically and hunt the gaps —
    *"what happens between OrderPlaced and PaymentSettled?"* Missing events hide here.
-3. **Commands & actors.** For each event, what command caused it and who issued
-   that command (a human role or another system).
+   For each event, also capture **the situation it happens in** — the trigger or
+   circumstance: *"under what conditions does this occur?"* An in-software event's
+   trigger is usually a command; an external event's is a real-world condition, a
+   schedule, or another system acting. Noting the situation stops events from
+   floating free of *why* they fire.
+3. **Commands & actors.** For each *in-software* event, what command caused it and
+   who issued that command (a human role or another system). External events have
+   **no command you own** — record their triggering situation instead (see the
+   timeline above), so it is clear the software only *learns of* them rather than
+   causing them.
 4. **Policies & external systems.** The reactive rules — *"whenever X happens,
    then Y"* — and the systems you don't own that you send to or receive from.
 5. **Aggregates.** Cluster commands+events into consistency boundaries: the thing
    that accepts a command, enforces its invariants, and emits the events. These
-   clusters are what `/context-mapping` will draw boundaries around.
+   clusters are what `/context-mapping` will draw boundaries around. Only
+   in-software events belong to an aggregate; an external event has no owning
+   aggregate — instead note which aggregate *reacts to* it (often via a policy).
 6. **Hotspots.** Mark every contested term, unknown, conflict, or "we haven't
    decided this yet". Hotspots are the honest edge of the model.
 
@@ -81,20 +99,25 @@ Write `./domain-model.md`. Keep it a working model, not an essay:
 # Domain Model: <project name>
 
 ## Event timeline
-<domain events in chronological order; group into phases if it helps>
-1. **OrderPlaced** — <one line: what it means>
-2. **PaymentSettled** — ...
+<domain events in chronological order; group into phases if it helps.
+mark external-origin events with (external) — real-world happenings, emissions
+from systems you don't own, or the clock. give each event its triggering situation.>
+1. **OrderPlaced** — <what it means> · _when:_ <situation/trigger>
+2. **PaymentAuthorized** (external) — gateway approved the charge · _when:_ card cleared upstream
+3. **PaymentSettled** — ... · _when:_ ...
 
 ## Commands & actors
+<in-software events only; external events are triggered by a situation, not a command you own>
 | command | actor | emits event(s) |
 |---|---|---|
 | PlaceOrder | Customer | OrderPlaced |
 
 ## Policies
 - Whenever **PaymentSettled**, then **DispatchShipment** (issues DispatchShipment command).
+- Whenever **PaymentAuthorized** (external) arrives, then **SettlePayment**.
 
 ## External systems
-- <system you don't own> — <what crosses the boundary, which direction>
+- <system you don't own> — <what crosses the boundary, which direction, which external events it emits>
 
 ## Aggregates
 ### <AggregateName>

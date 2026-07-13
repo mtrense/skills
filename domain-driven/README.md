@@ -24,9 +24,11 @@ flowchart LR
    brainstorm skill). Produces a single tight `vision.md` and stops there — every
    later phase is deliberately separate so the human keeps control of each.
 2. **`/domain-model`** — big-picture **EventStorming**: a chronological domain-event
-   timeline, the commands/actors that trigger them, policies, external systems, the
-   **aggregates** that own consistency, and a **hotspots** list of unresolved
-   decisions. Seeded by the `domain-seed-extractor` subagent, refined Socratically.
+   timeline (marking events that originate outside the software and the situation
+   that triggers each), the commands/actors that trigger the in-software ones,
+   policies, external systems, the **aggregates** that own consistency, and a
+   **hotspots** list of unresolved decisions. Seeded by the `domain-seed-extractor`
+   subagent, refined Socratically.
    Offers to turn hotspots into ADRs. Produces `domain-model.md`.
 3. **`/context-mapping`** — draws the **bounded contexts** around the model's
    aggregate clusters, and records the **relationships** between them (partnership,
