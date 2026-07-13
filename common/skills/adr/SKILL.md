@@ -1,14 +1,20 @@
 ---
 name: adr
 description: >-
-  Manually record one or more Architecture Decision Records from the current
-  conversation. The human's override for when they see a decision worth
-  preserving that no skill recorded on its own — invoked explicitly, it captures
-  the decision(s) just made (or discussed) in this session as full ADRs under
-  the decisions directory (./decisions/ by default, overridable via a
-  decision-path: line in CLAUDE.md) using the shared NNNN-title.md + INDEX.md convention.
+  Record one or more Architecture Decision Records from the current
+  conversation. Trigger whenever the user wants to capture, record, log, or
+  write down a decision, an architectural choice, or "the call we just made" —
+  e.g. "record this decision", "let's ADR this", "capture this as an ADR",
+  "write an ADR for…", "log this architectural decision", or /adr. Also the
+  human override for when a decision worth preserving was settled in-session but
+  no build skill recorded it on its own. Writes each as a full ADR under the
+  decisions directory (./decisions/ by default, overridable via a decision-path:
+  line in CLAUDE.md) using the shared NNNN-title.md + INDEX.md convention.
+  Grounds every section in what was actually discussed and confirms the list
+  before writing; treats the invocation itself as the worth-recording call, so
+  do NOT trigger for read-only questions about existing decisions ("what did we
+  decide about…", "show me the ADRs") — those are lookups, not new records.
 argument-hint: "[which decision(s) to record — blank to infer from the conversation]"
-disable-model-invocation: true
 ---
 
 # ADR — record a decision from this conversation
