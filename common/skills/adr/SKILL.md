@@ -5,7 +5,8 @@ description: >-
   conversation. The human's override for when they see a decision worth
   preserving that no skill recorded on its own — invoked explicitly, it captures
   the decision(s) just made (or discussed) in this session as full ADRs under
-  docs/decisions/ using the shared NNNN-title.md + INDEX.md convention.
+  the decisions directory (./decisions/ by default, overridable via a
+  decision-path: line in CLAUDE.md) using the shared NNNN-title.md + INDEX.md convention.
 argument-hint: "[which decision(s) to record — blank to infer from the conversation]"
 disable-model-invocation: true
 ---
@@ -18,6 +19,14 @@ ADRs only when *they* judge a decision architecture-splitting; this skill is
 the human override for everything they miss. **The user's invocation is the
 worth-recording call — do not second-guess it.** The usual "what not to
 record" bar is waived: if they asked for an ADR, they get one.
+
+## Step 0 — Resolve the decisions directory
+
+Records live in `./decisions/` by default. If the project's `CLAUDE.md` (root,
+or the nearest one governing the working directory) contains a line of the form
+`decision-path: <directory>`, use that directory instead — resolved relative to
+the project root. Everywhere below and in `references/decision-record.md`,
+`<decisions-dir>` means this resolved directory (`decisions/` unless overridden).
 
 ## Step 1 — Identify the decision(s)
 
@@ -40,9 +49,9 @@ Then **confirm before writing**:
 ## Step 2 — Write each record
 
 Read `references/decision-record.md` (in this skill directory) and follow its
-mechanics exactly: find the next number under `docs/decisions/` (create the
+mechanics exactly: find the next number under `<decisions-dir>/` (create the
 directory and seed `INDEX.md` if absent), write
-`docs/decisions/NNNN-kebab-title.md` from the template, append the one-sentence
+`<decisions-dir>/NNNN-kebab-title.md` from the template, append the one-sentence
 `INDEX.md` line. (Its "What not to record" section does not apply here — see
 above.) When recording several decisions, number and write them sequentially in
 one pass.
@@ -72,7 +81,7 @@ section, ask the user the one missing question instead of inventing content.
 ## Step 3 — Report
 
 Tell the user what was written, one line per record:
-`NNNN — <title> → docs/decisions/NNNN-kebab-title.md`. Do not paste the
+`NNNN — <title> → <decisions-dir>/NNNN-kebab-title.md`. Do not paste the
 records back into the conversation.
 
 Do **not** commit — the user invokes `/commit` when ready.
