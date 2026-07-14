@@ -40,7 +40,7 @@ that the backlog tooling (`jq`/`yj`) or the `tasks/` directory is missing and st
 ### Blocked todos — todo tasks with at least one unmet dependency (id · title · waiting on)
 
 ```
-!`SH="${CLAUDE_SKILL_DIR}/tasks.sh"; any=0; for id in $(bash "$SH" by-status todo 2>/dev/null); do b=$(bash "$SH" blockers "$id" 2>/dev/null | tr '\n' ',' | sed 's/,$//'); if [ -n "$b" ]; then any=1; t=$(bash "$SH" get "$id" 2>/dev/null | jq -r '.title'); printf '%s  %s  (waiting on: %s)\n' "$id" "$t" "$b"; fi; done; [ "$any" = 0 ] && echo '(none)'`
+!`SH="${CLAUDE_SKILL_DIR}/tasks.sh"; any=0; for id in $(bash "$SH" by-status todo 2>/dev/null); do b=$(bash "$SH" blockers "$id" 2>/dev/null | tr '\n' ',' | sed 's/,$//'); if [ -n "$b" ]; then any=1; t=$(bash "$SH" get "$id" 2>/dev/null | jq -r '.title'); printf '%s  %s  (waiting on: %s)\n' "$id" "$t" "$b"; fi; done; if [ "$any" = 0 ]; then echo '(none)'; fi`
 ```
 
 ### In progress (id · title) — a task stuck here across runs likely means a crashed `/task-cycle`
