@@ -59,8 +59,12 @@ Repeat until `limit` is reached or no tasks are ready:
 4. **Claim** each batch task: edit its frontmatter `status: todo → in progress`.
 5. Dispatch by mode (below).
 6. Apply results: each completed task → `status: done` + `completed:
-   <date -u +%Y-%m-%dT%H:%M:%SZ>`, committed via `Skill(commit)`; each
-   failed/bounced task → back to `status: todo` (record why in its `## Notes`).
+   <date -u +%Y-%m-%dT%H:%M:%SZ>`, and write the worker report's `MANUAL_TESTING`
+   and `DEVIATIONS` blocks verbatim into that task's `## Manual testing` and
+   `## Deviations from plan` sections (replacing their placeholders), committed via
+   `Skill(commit)`; each failed/bounced task → back to `status: todo` (record why in
+   its `## Notes`). **You are the only writer of the task file** — the worker returns
+   these records in its report and never edits the file itself.
 7. Recompute and continue.
 
 ## Mode A — single worker (`@1`, the default): in-place, sequential

@@ -84,6 +84,12 @@ polishing it away>
 
 ## Notes
 <the raw input, verbatim, if it was unstructured>
+
+## Manual testing
+<filled at implementation by /task-cycle — leave as-is>
+
+## Deviations from plan
+<filled at implementation by /task-cycle — leave as-is>
 ```
 
 Write `id`, `status`, and `context` as quoted strings; keep `depends_on`,

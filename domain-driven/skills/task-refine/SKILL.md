@@ -101,7 +101,9 @@ the implementer needs (e.g. the context file) to `related_documents`.
 For each resulting task (the single refined task, or each split child), set:
 `status: todo`, `context: <slug>`, filled-in `## Outcome` / `## Acceptance
 criteria` / `## Why this matters`, and a `## Notes` section capturing what the
-refinement settled. Wire `depends_on` to the ids the interview identified.
+refinement settled. Wire `depends_on` to the ids the interview identified. Leave the
+`## Manual testing` and `## Deviations from plan` placeholders untouched — `/task-cycle`
+fills them at implementation.
 
 Then **guard the graph:** run `bash <skills-root>/task-status/tasks.sh check-dag`.
 If it reports a cycle or a dangling reference, you introduced it — fix the offending

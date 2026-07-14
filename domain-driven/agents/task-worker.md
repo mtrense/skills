@@ -49,12 +49,23 @@ were given; do not wander into other tasks or opportunistic refactors.
 
 ## Report (parser-friendly, last thing you output)
 
+The two block fields come **last** and may each span multiple lines; the orchestrator
+writes them verbatim into the task file's `## Manual testing` and `## Deviations from
+plan` sections. **Do not edit the task file yourself** — return these in the report.
+
 ```
 RESULT: ok | failed
 TASK: NNNN
 COMMIT: <sha or "none">
 SUMMARY: <one or two lines on what you did, or why it failed>
 TESTS: <what you ran and the outcome>
+MANUAL_TESTING:
+<how a human verifies this task's outcome by hand: prerequisites, numbered steps, and
+the expected result of each — a short demo of the capability, not a restatement of the
+automated tests. "none" only if the task has no human-observable surface.>
+DEVIATIONS:
+<where the shipped implementation departed from the task's ## Outcome / ## Acceptance
+criteria / related ADRs, and why — or "none" if it matched the plan exactly.>
 ```
 
 ## Failure path

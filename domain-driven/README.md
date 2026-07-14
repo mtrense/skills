@@ -92,7 +92,13 @@ split_into: []                # child ids, only on a `split` tombstone
 ## Why this matters
 ## Acceptance criteria
 ## Notes
+## Manual testing          # filled at implementation by /task-cycle
+## Deviations from plan     # filled at implementation by /task-cycle
 ```
+
+The last two sections are **implementation-phase records**: empty placeholders at
+capture, filled by `/task-cycle` from the `task-worker`'s report when the task lands
+(human-verification/demo steps, and where the shipped code departed from the spec).
 
 **Task lifecycle:** `draft →(refine) todo →(cycle claim) in progress →(cycle
 complete) done`. A task judged too big is **split**: its children are minted as new
