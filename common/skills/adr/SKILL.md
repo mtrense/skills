@@ -19,6 +19,16 @@ argument-hint: "[which decision(s) to record — blank to infer from the convers
 
 # ADR — record a decision from this conversation
 
+## Git identity of the current user
+
+Captured stdout of a shell command run *before* this skill loaded — use it verbatim
+as the human decider in the **Deciders** field (Step 2), so the record names who
+made the call rather than the anonymous "the user":
+
+```
+!`name=$(git config user.name 2>/dev/null); email=$(git config user.email 2>/dev/null); if [ -n "$name" ] && [ -n "$email" ]; then printf '%s <%s>\n' "$name" "$email"; elif [ -n "$name" ]; then printf '%s\n' "$name"; elif [ -n "$email" ]; then printf '%s\n' "$email"; else printf '(git identity not configured — use "the user")\n'; fi`
+```
+
 The user has decided that something discussed or settled in this session
 deserves a durable Architecture Decision Record. The automated skills record
 ADRs only when *they* judge a decision architecture-splitting; this skill is
@@ -74,8 +84,10 @@ Ground every section in what actually happened in this conversation:
   include). If none were, write "None seriously considered — <one line on why
   the choice was direct>" rather than fabricating a comparison. A padded
   alternatives section is worse than a short honest one.
-- **Deciders** — the user, plus this session (name the skill or workflow that
-  was running when the decision was made, if any).
+- **Deciders** — the human decider from the "Git identity of the current user"
+  block above (the `Name <email>` string; fall back to "the user" only if it
+  reported no identity), plus this session (name the skill or workflow that was
+  running when the decision was made, if any).
 - **Affected documents** — if the decision is already encoded in project docs
   (spec, README, ROADMAP, code), add an `- **Affected documents:**` line to the
   record's header list naming them; the ADR records the *reasoning*, the docs
