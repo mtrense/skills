@@ -71,7 +71,11 @@ human's agreement on the pieces.
 **Never** derive child ids by suffixing the original (no `0007a` / `0007b`, no
 `0007-1`). A split produces genuinely new, top-level tasks: the original becomes an
 inert `split` tombstone and each child is minted a fresh sequential id via
-`tasks.sh next-id`. Then, as **two passes**:
+`tasks.sh next-id`. This is not a style preference: a file named `0007a-slug.md`
+does not match the loader's `NNNN-slug.md` glob, so it is **invisible** to every
+`tasks.sh` command — it would never schedule, never count, never check. (The
+`check-dag` you run at the end of this step flags any such malformed filename, but
+the point is not to create one.) Then, as **two passes**:
 
 **Pass A — create children and tombstone the original.**
 1. For each child, mint an id (`tasks.sh next-id`, one at a time) and write a new

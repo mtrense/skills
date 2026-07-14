@@ -147,6 +147,21 @@ case "$cmd" in
     ;;
 
   check-dag)
+    # First guard: every task file must be named canonically `NNNN-slug.md`. A
+    # file the loader can't glob (e.g. a split that suffixed an id — `0007a-...`)
+    # is INVISIBLE to every other command here, so it would silently vanish from
+    # the backlog: never scheduled, never counted, never checked. Catch it loudly.
+    shopt -s nullglob
+    stray=()
+    for f in "$TASKS_DIR"/*.md; do
+      b="$(basename "$f")"
+      [[ "$b" =~ ^[0-9][0-9][0-9][0-9]-.+\.md$ ]] || stray+=("$b")
+    done
+    if [ "${#stray[@]}" -gt 0 ]; then
+      echo "MALFORMED task filename(s): ${stray[*]}" >&2
+      echo "Task files must be NNNN-slug.md. A split mints fresh top-level ids via 'tasks.sh next-id' — never id suffixes like 0007a/0007b or 0007-1. Rename these to fresh ids and repoint any dependents." >&2
+      exit 3
+    fi
     # Consider only non-terminal tasks (a `split` tombstone is inert). Report the
     # first structural problem found; exit 0 only when the graph is clean.
     _load | jq -e '
