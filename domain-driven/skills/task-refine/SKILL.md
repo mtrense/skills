@@ -63,6 +63,20 @@ back what you hear. Drive to:
   silently "fix" the task around a broken map).
 - The right **context** for the task's frontmatter.
 
+**Capture what you scope out.** Refinement narrows: to make the task land in one
+pass you will often cut functionality out of it — an edge case deferred, a
+follow-on capability pushed to "later", a nice-to-have set aside. Anything cut
+this way must not evaporate. For each piece of scoped-out functionality, create a
+new `draft` task so it stays on the backlog: mint an id (`tasks.sh next-id`, one
+at a time) and write `tasks/NNNN-slug.md` in `status: draft` with a short body
+capturing the deferred outcome (a later `/task-refine` pass will flesh it out).
+Do **not** interview on these drafts now — a draft is a placeholder, not a ready
+task. This is different from a **split** (Step 4): a split divides *all* of an
+oversized task's work among `todo` children and tombstones the original; scoping-out
+*keeps* this task and merely spins off the bits you deliberately dropped as fresh
+drafts. If the human isn't sure whether a cut piece is worth keeping, ask — but
+default to capturing it.
+
 ## Step 4 — Split if too big
 
 If the task can't land in one implementation pass, propose a split and get the
@@ -119,6 +133,7 @@ If it reports a cycle or a dangling reference, you introduced it — fix the off
 
 ## When you are done
 
-Report: which task(s) are now `todo`, any tombstoned split, the dependencies wired,
-and any ADRs recorded or attached. If drafts remain, mention that `/task-refine`
+Report: which task(s) are now `todo`, any tombstoned split, any new `draft` tasks
+you spun off for scoped-out functionality, the dependencies wired, and any ADRs
+recorded or attached. If drafts remain, mention that `/task-refine`
 can take the next one. Do not implement anything — `/task-cycle` does that.
