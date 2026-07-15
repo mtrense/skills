@@ -2,8 +2,8 @@
 name: context-mapping
 description: >
   Draw the project's bounded contexts and the relationships between them, working
-  from the aggregate clusters in domain-model.md. Produces context-map/INDEX.md
-  (the overview + relationship map) and one context-map/<context>.md per context
+  from the aggregate clusters in domain-model.md. Produces context-map.md
+  (the overview + relationship map) and one bounded-contexts/<context>.md per context
   (its responsibility, boundary, relationships, and ubiquitous language). Seeds a
   first-pass boundary proposal with the boundary-proposer subagent, then refines
   it with the human. Offers to record boundary/relationship decisions as ADRs. The
@@ -12,7 +12,7 @@ description: >
 disable-model-invocation: true
 argument-hint: "(no argument — starts or resumes the context-mapping session)"
 model: opus
-allowed-tools: Read, Write, Edit, Glob, Agent, Skill, Bash(mkdir -p context-map)
+allowed-tools: Read, Write, Edit, Glob, Agent, Skill, Bash(mkdir -p bounded-contexts)
 ---
 
 # Context Mapping — Bounded Contexts & Relationships
@@ -39,7 +39,7 @@ responsibility), the ubiquitous-language terms that belong to each, and candidat
 relationships between contexts tagged with a DDD pattern and a one-line rationale.
 This is a draft to argue with, not a decision.
 
-If `context-map/INDEX.md` already exists, skip the proposal and read the existing
+If `context-map.md` already exists, skip the proposal and read the existing
 map instead — this run is a **revision**.
 
 ## Step 2 — Refine with the human (Socratic)
@@ -73,16 +73,16 @@ one, **offer** to record it as an ADR via `Skill(adr)`. Never auto-create ADRs.
 
 ## Producing the map
 
-Create `context-map/` if needed. Write the overview and one file per context.
+Create `bounded-contexts/` if needed. Write the overview and one file per context.
 
-`context-map/INDEX.md` — the overview + relationship map:
+`context-map.md` — the overview + relationship map, at the project root:
 
 ```markdown
 # Context Map: <project name>
 
 ## Contexts
-- **[Sales](sales.md)** — <one-line responsibility>
-- **[Fulfilment](fulfilment.md)** — <one-line responsibility>
+- **[Sales](bounded-contexts/sales.md)** — <one-line responsibility>
+- **[Fulfilment](bounded-contexts/fulfilment.md)** — <one-line responsibility>
 
 ## Relationships
 <a mermaid graph of the context relationships — NEVER ASCII art>
@@ -94,7 +94,7 @@ flowchart LR
   Fulfilment -->|ACL| Billing
 ```
 
-`context-map/<context>.md` — one per context:
+`bounded-contexts/<context>.md` — one per context:
 
 ```markdown
 # Context: <Name>

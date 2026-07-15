@@ -17,7 +17,7 @@
 #
 # ── Frontmatter fields consulted ──────────────────────────────────────────────
 #   status         draft | todo | in progress | done | split
-#   context        context-map context name (may be empty until refine)
+#   context        bounded-context slug (may be empty until refine)
 #   depends_on     list of task ids this task waits on
 #   split_into     list of child ids (only on a `split` tombstone)
 #   related_adrs   list of ADR numbers (reported, not used for scheduling)

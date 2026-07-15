@@ -2,7 +2,7 @@
 name: task-analyzer
 description: >
   Read-only assessment worker for the task-refine skill. Given one draft task file
-  and the project root, reads the task plus its bounded context (context-map/), the
+  and the project root, reads the task plus its bounded context (bounded-contexts/), the
   domain-model.md, and the ADR index, and returns a structured assessment:
   spec completeness gaps, domain-compliance (does it fit a context, use that
   context's ubiquitous language, respect boundary relationships, and read as an
@@ -31,8 +31,8 @@ nothing and you do not talk to the user.
 
 - The task file itself.
 - The task's bounded context: if its `context` frontmatter is set, read
-  `context-map/<context>.md`; otherwise read `context-map/INDEX.md` to judge which
-  context it *should* belong to. Consult `INDEX.md` for the relationship patterns
+  `bounded-contexts/<context>.md`; otherwise read `context-map.md` to judge which
+  context it *should* belong to. Consult `context-map.md` for the relationship patterns
   when the task looks cross-boundary.
 - `domain-model.md` — for the events/commands/aggregates the task touches.
 - The architecture guidelines — read the crisp per-topic summaries

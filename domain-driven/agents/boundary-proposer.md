@@ -22,7 +22,7 @@ files.
 
 ## Input
 
-Paths to `domain-model.md` and `vision.md` (and an existing `context-map/INDEX.md`
+Paths to `domain-model.md` and `vision.md` (and an existing `context-map.md`
 if present, to extend rather than restart). Read them fully — the aggregate clusters
 in the domain model are your primary raw material.
 

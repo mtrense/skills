@@ -3,7 +3,7 @@ name: architecture-foundation
 description: >
   Facilitate a Socratic session that defines a project's architectural
   foundation — the boundaries and guidelines every later task is built against —
-  once vision.md, domain-model.md, and context-map/ exist. Works general → specific:
+  once vision.md, domain-model.md, and context-map.md exist. Works general → specific:
   tech stack (languages/frameworks/runtimes), persistence/data stores, then
   communication & integration between contexts, testing principles, and
   cross-cutting concerns (error handling, observability, security, configuration,
@@ -37,7 +37,7 @@ Read that the three inputs exist:
 
 - `./vision.md` (from `/grounding`)
 - `./domain-model.md` (from `/domain-model`)
-- `./context-map/` (from `/context-mapping`)
+- `./context-map.md` and `./bounded-contexts/` (from `/context-mapping`)
 
 If any is missing, **stop** and tell the human which phase to run first — you
 define the architecture *for* the domain the earlier phases described; you do not
@@ -48,7 +48,7 @@ below, `<architecture-home>` means that resolved directory.)
 ## Step 1 — Seed the agenda (subagent)
 
 Spawn the **architecture-proposer** subagent (`subagent_type: architecture-proposer`)
-with the paths to `vision.md`, `domain-model.md`, and `context-map/`. It returns a
+with the paths to `vision.md`, `domain-model.md`, and `context-map.md`. It returns a
 *first-pass agenda*: per topic area, the open decisions, 2–4 candidate options
 each, and any artifact/environment/bounded-context binding it can already infer.
 This is a starting point to react to — **not** the answer. Its full reasoning
@@ -95,7 +95,7 @@ For each decision, pin down its **binding** before recording it:
 - **Artifact** — does it apply to the frontend, backend, mobile, CLI, a specific
   service, or the whole project?
 - **Environment** — is it production-only, testing-only, dev-only, or all?
-- **Bounded context** — does it govern one context (a slug from `context-map/`),
+- **Bounded context** — does it govern one context (a slug from `bounded-contexts/`),
   a few, or all?
 
 If a decision is genuinely project-wide, say so. If it is bound, name the binding

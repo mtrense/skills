@@ -31,7 +31,7 @@ depends on.
 
 Read `./vision.md` and `./domain-model.md`. If **either** is missing, stop and
 point the human at `/grounding` then `/domain-model` — you assess the domain those
-describe, you do not invent one. `context-map/` is strongly preferred (it is the
+describe, you do not invent one. `context-map.md` is strongly preferred (it is the
 domain-compliance referent and the primary axis you organize suggestions around);
 if it is missing, say so and give a coarser, context-agnostic assessment while
 recommending `/context-mapping`.
@@ -45,7 +45,7 @@ grounded in their actual language.
 - **`./domain-model.md`** — the event timeline, aggregates (the consistency
   boundaries that must be built), policies, external systems, and the **hotspots**
   list (unresolved decisions).
-- **`context-map/INDEX.md`** and each **`context-map/<context>.md`** — the bounded
+- **`context-map.md`** and each **`bounded-contexts/<context>.md`** — the bounded
   contexts, their responsibilities and relationships, and each one's ubiquitous
   language. If a `<context>` argument was given, load that context's file and scope
   the whole assessment to it.
@@ -110,7 +110,7 @@ doing next, ordered foundation-first — not an exhaustive enumeration of every 
 For each proposed task give:
 
 - an **imperative title** (what `/task-append` would capture),
-- the **target context** (a context-map slug),
+- the **target context** (a bounded-context slug),
 - a **one-line why**, tied to a specific vision outcome, aggregate, or event, and
 - a **build-order hint** — which existing task id or which other suggestion it
   builds on (a hint for `/task-refine`, not a wired dependency).

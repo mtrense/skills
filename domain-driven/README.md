@@ -34,7 +34,7 @@ flowchart LR
    aggregate clusters, and records the **relationships** between them (partnership,
    customer/supplier, conformist, ACL, published language, shared kernel) plus each
    context's **ubiquitous language**. Seeded by the `boundary-proposer` subagent.
-   Produces `context-map/INDEX.md` + `context-map/<context>.md`.
+   Produces `context-map.md` + `bounded-contexts/<context>.md`.
 4. **`/architecture-foundation`** — a Socratic session that defines the project's
    **architectural boundaries and guidelines** from the vision + domain model +
    context map, general → specific: tech stack (languages/frameworks/runtimes),
@@ -58,7 +58,7 @@ flowchart LR
    `integrator` subagent (bounce-on-conflict).
 8. **`/task-status`** — read-only backlog board (the human front end to `tasks.sh`).
 9. **`/whats-next`** — the forward-looking companion to `/task-status`: assesses
-   `vision.md`, `domain-model.md`, and `context-map/` against the backlog state
+   `vision.md`, `domain-model.md`, and `context-map.md` against the backlog state
    (read through `tasks.sh`, frontmatter only), surfaces coverage gaps (uncovered
    aggregates, thin contexts, unrepresented vision outcomes, blocking hotspots), and
    proposes a prioritized list of next tasks. **Advisory** — it hands approved
@@ -72,8 +72,8 @@ point). **The `common` workflow must be installed alongside `domain-driven`.**
 ```
 vision.md                     # /grounding
 domain-model.md               # /domain-model
-context-map/
-  INDEX.md                    # overview + relationship map (mermaid)
+context-map.md                # overview + relationship map (mermaid)
+bounded-contexts/
   <context>.md                # per-context: responsibility, boundary, relationships, ubiquitous language
 architecture/                 # architecture home (shared convention with common/adr; default dir, override via `architecture-path:` in CLAUDE.md)
   decisions.md                # ADR index
@@ -91,12 +91,12 @@ tasks/
 id: "0007"                    # documentation; canonical id is the NNNN filename prefix
 title: Cargo workspace setup
 status: draft                 # draft | todo | in progress | done | split
-context: build                # a context-map slug (empty until refined)
+context: build                # a bounded-context slug (empty until refined)
 created: 2026-07-13T14:22:00Z
 completed: ""                 # set when done
 depends_on: ["0003", "0005"]  # task ids
 related_adrs: [2]             # ADR numbers
-related_documents: [context-map/build.md]
+related_documents: [bounded-contexts/build.md]
 split_into: []                # child ids, only on a `split` tombstone
 ---
 

@@ -2,7 +2,7 @@
 name: architecture-proposer
 description: >
   Read-only seed worker for the architecture-foundation skill. Given the paths to
-  a project's vision.md, domain-model.md, and context-map/, proposes a FIRST-PASS
+  a project's vision.md, domain-model.md, and context-map.md, proposes a FIRST-PASS
   architecture agenda: per topic area (tech stack, persistence, communication &
   integration between contexts, testing, cross-cutting concerns), the open
   decisions to make, 2–4 candidate options each, and any artifact/environment/
@@ -23,8 +23,8 @@ you propose the *questions* and plausible options, not the answers.
 
 ## Input
 
-Paths to `vision.md`, `domain-model.md`, and the `context-map/` directory
-(`INDEX.md` plus each `<context>.md`). Read them fully. The vision tells you the
+Paths to `vision.md`, `domain-model.md`, and `context-map.md` (plus each
+`bounded-contexts/<context>.md`). Read them fully. The vision tells you the
 product shape (is there a frontend? a mobile app? a CLI? just a backend
 service?); the domain model tells you the aggregates, external systems, and
 policies; the context map tells you the bounded contexts and the relationships

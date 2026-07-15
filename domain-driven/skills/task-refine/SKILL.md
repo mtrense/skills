@@ -33,7 +33,7 @@ are wired. Getting there is an **interview**, not a rewrite.
 
 Spawn the **task-analyzer** subagent (`subagent_type: task-analyzer`) with the task
 file path and the project root. It reads the task, the relevant
-`context-map/<context>.md` (and `context-map/INDEX.md` for relationships),
+`bounded-contexts/<context>.md` (and `context-map.md` for relationships),
 `domain-model.md`, and the architecture guidelines (the crisp
 `<architecture-home>/<topic>.md` summaries plus the `architecture/decisions.md` index by
 default, or under the `architecture-path:` directory set in `CLAUDE.md`), then returns a
