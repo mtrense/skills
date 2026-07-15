@@ -37,7 +37,9 @@
 #   tasks.sh board              one summary line of counts per status
 #   tasks.sh list               full JSON array of the loaded model (debug)
 #   tasks.sh list-human         every task, one per line, ascending id, as
-#                               `<id> <status> <context> <title> [<depends_on>]`
+#                               `<id> <status> <context> <title> [<depends_on>]`;
+#                               ANSI-coloured when stdout is a terminal (status by
+#                               state, title bold, depends_on red), plain when piped
 #
 # All commands accept an optional trailing `--dir <tasks-dir>` (default ./tasks).
 #
@@ -201,8 +203,28 @@ case "$cmd" in
     ;;
 
   list-human)
-    _load | jq -r 'sort_by(._id) | .[]
-      | "\(._id) \(.status) \(if .context=="" then "-" else .context end) \(.title) [\(.depends_on|join(", "))]"'
+    # Colorize when writing to a terminal; stay plain when piped/redirected.
+    if [ -t 1 ]; then color=1; else color=0; fi
+    _load | jq -r --argjson color "$color" '
+      # ANSI helpers. When $color is 0 every wrap is a no-op (plain text), so the
+      # output stays parseable under a pipe/redirect.
+      def esc: "[";
+      def wrap($c): if $color==1 then esc + $c + "m" + . + esc + "0m" else . end;
+      # Left-justify to a given width (pad the raw text before colouring, so the
+      # ANSI codes never count toward the width).
+      def padn($w): . + ($w - length | if . > 0 then " " * . else "" end);
+      # status -> bright colour: draft=yellow todo=blue done=green else(split,…)=grey
+      def statuscolor:
+        if   .=="draft" then "93"
+        elif .=="todo"  then "94"
+        elif .=="done"  then "92"
+        else "90" end;
+      def ctx: if .context=="" then "-" else .context end;
+      sort_by(._id)
+      # Context column is as wide as the widest context name in the backlog.
+      | (map(ctx|length) | max // 0) as $cw
+      | .[]
+      | "\(._id)   \(.status as $s | ($s|padn(5)) | wrap($s|statuscolor))   \(ctx|padn($cw))   \(.title|wrap("1"))   \("[\(.depends_on|join(", "))]"|wrap("91"))"'
     ;;
 
   ""|help|-h|--help)
