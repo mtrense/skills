@@ -89,15 +89,21 @@ split_into: []                # child ids, only on a `split` tombstone
 ---
 
 ## Outcome
-## Why this matters
-## Acceptance criteria
+### Why this matters
+### Acceptance criteria
+## Implementation plan     # added by /task-refine (ordered steps + files to touch)
+### Interfaces             # added by /task-refine (HTTP/gRPC/traits/… touched)
 ## Notes
-## Manual testing          # filled at implementation by /task-cycle
-## Deviations from plan     # filled at implementation by /task-cycle
+## Closing                 # implementation-phase record
+### Manual testing         # filled at implementation by /task-cycle
+### Deviations from plan   # filled at implementation by /task-cycle
 ```
 
-The last two sections are **implementation-phase records**: empty placeholders at
-capture, filled by `/task-cycle` from the `task-worker`'s report when the task lands
+`## Implementation plan` (with its `### Interfaces` subsection) is added by
+`/task-refine` when the draft becomes a `todo`; a freshly captured draft has only
+the `## Outcome`, `## Notes`, and `## Closing` groups. The `## Closing` group holds
+the **implementation-phase records**: empty placeholders at capture, filled by
+`/task-cycle` from the `task-worker`'s report when the task lands
 (human-verification/demo steps, and where the shipped code departed from the spec).
 
 **Task lifecycle:** `draft →(refine) todo →(cycle claim) in progress →(cycle

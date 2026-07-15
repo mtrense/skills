@@ -76,19 +76,22 @@ split_into: []
 was a raw dump, capture it verbatim under a "Raw capture" note below rather than
 polishing it away>
 
-## Why this matters
+### Why this matters
 <if the human said; otherwise leave a TODO for /task-refine>
 
-## Acceptance criteria
+### Acceptance criteria
 <if the human gave any; otherwise leave a TODO for /task-refine>
 
 ## Notes
 <the raw input, verbatim, if it was unstructured>
 
-## Manual testing
+## Closing
 <filled at implementation by /task-cycle — leave as-is>
 
-## Deviations from plan
+### Manual testing
+<filled at implementation by /task-cycle — leave as-is>
+
+### Deviations from plan
 <filled at implementation by /task-cycle — leave as-is>
 ```
 

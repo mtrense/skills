@@ -29,7 +29,7 @@ were given; do not wander into other tasks or opportunistic refactors.
 
 ## Steps
 
-1. **Read the task fully.** Honor its `## Outcome` and `## Acceptance criteria`.
+1. **Read the task fully.** Honor its `## Outcome` and `### Acceptance criteria`.
    Read its `related_documents` (typically the bounded-context file — implement in
    that context's ubiquitous language) and each ADR in `related_adrs` (in the
    project's decisions directory — `decisions/NNNN-*.md` by default, or the
@@ -50,8 +50,9 @@ were given; do not wander into other tasks or opportunistic refactors.
 ## Report (parser-friendly, last thing you output)
 
 The two block fields come **last** and may each span multiple lines; the orchestrator
-writes them verbatim into the task file's `## Manual testing` and `## Deviations from
-plan` sections. **Do not edit the task file yourself** — return these in the report.
+writes them verbatim into the task file's `### Manual testing` and `### Deviations from
+plan` subsections (under `## Closing`). **Do not edit the task file yourself** — return
+these in the report.
 
 ```
 RESULT: ok | failed
@@ -64,7 +65,7 @@ MANUAL_TESTING:
 the expected result of each — a short demo of the capability, not a restatement of the
 automated tests. "none" only if the task has no human-observable surface.>
 DEVIATIONS:
-<where the shipped implementation departed from the task's ## Outcome / ## Acceptance
+<where the shipped implementation departed from the task's ## Outcome / ### Acceptance
 criteria / related ADRs, and why — or "none" if it matched the plan exactly.>
 ```
 

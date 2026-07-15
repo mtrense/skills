@@ -5,7 +5,9 @@ description: >
   domain-compliance (against its bounded context's ubiquitous language and
   relationships), and implementation size; interview the human until goal and
   success criteria are shared; split it if it is too big to land in one go; wire
-  its dependencies; and surface decisions, offering ADRs and recording the ones
+  its dependencies; document the interfaces (HTTP/gRPC/protocols/traits/…) it
+  touches and a detailed implementation plan with the files to be touched; and
+  surface decisions, offering ADRs and recording the ones
   that affect it. Delegates the read-heavy assessment to the task-analyzer
   subagent. Advances the task(s) draft -> todo (or the original -> split).
 disable-model-invocation: true
@@ -45,6 +47,12 @@ assessment:
 - **Size** — does this look like one implementation pass, or several? If several,
   a suggested split.
 - **Dependencies** — other tasks (by id) or unbuilt prerequisites this needs.
+- **Interfaces** — the interface surfaces the task touches or must introduce
+  (HTTP/REST endpoints, gRPC services, message topics/event schemas, and
+  in-process contracts: interfaces, traits, protocols), each tagged as *defined*
+  (new/changed) or *consumed* (existing).
+- **Implementation plan** — a proposed ordered sequence of steps and the concrete
+  files to be touched (existing vs new), scouted from the codebase.
 - **Decisions** — choices the human must make, and which existing ADRs
   (from the index) already bear on this task.
 
@@ -62,6 +70,20 @@ back what you hear. Drive to:
   and tell the human to revisit `/domain-model` or `/context-mapping` — do not
   silently "fix" the task around a broken map).
 - The right **context** for the task's frontmatter.
+- The **interfaces** the task touches. Confirm the analyzer's list with the human
+  and settle, for each, whether the task *defines* the contract (a new/changed
+  endpoint, service, topic, event schema, interface/trait/protocol) or merely
+  *consumes* an existing one. Note the contract at the granularity known now —
+  route + method + shape, service + method, topic + payload, trait/protocol +
+  signatures — without designing the implementation. If the task defines a
+  contract that crosses a bounded-context boundary, it is often the published
+  language of that relationship; if that surfaces a real decision, treat it under
+  Step 5 (offer an ADR).
+- The **implementation plan**. Walk the analyzer's proposed steps and file list
+  with the human, correct anything its scout got wrong (files that don't exist, a
+  seam it missed), and settle on an ordered plan the implementer can start from.
+  Keep it a plan — steps and files, not code. If refining the plan reveals the task
+  is bigger than one pass after all, go back to Step 4 and split.
 
 **Capture what you scope out.** Refinement narrows: to make the task land in one
 pass you will often cut functionality out of it — an edge case deferred, a
@@ -120,12 +142,41 @@ the implementer needs (e.g. the context file) to `related_documents`.
 
 ## Step 6 — Finalize to `todo`
 
-For each resulting task (the single refined task, or each split child), set:
-`status: todo`, `context: <slug>`, filled-in `## Outcome` / `## Acceptance
-criteria` / `## Why this matters`, and a `## Notes` section capturing what the
-refinement settled. Wire `depends_on` to the ids the interview identified. Leave the
-`## Manual testing` and `## Deviations from plan` placeholders untouched — `/task-cycle`
-fills them at implementation.
+For each resulting task (the single refined task, or each split child), set
+`status: todo`, `context: <slug>`, and wire `depends_on` to the ids the interview
+identified. The task body must have exactly these sections, in this order and at
+these heading levels:
+
+1. `## Outcome` — what is true when the task is done (the shared goal).
+   - `### Why this matters` — the value the outcome delivers.
+   - `### Acceptance criteria` — concrete, verifiable checks.
+2. `## Implementation plan` — ordered steps + files to be touched (see below).
+   - `### Interfaces` — the interface surfaces touched (see below).
+3. `## Notes` — what the refinement settled (decisions, scoped-out drafts, domain
+   fit, anything the implementer should know).
+4. `## Closing` — the post-implementation record; leave its subsections as
+   placeholders — `/task-cycle` fills them at implementation.
+   - `### Manual testing` — placeholder; `/task-cycle` fills it.
+   - `### Deviations from plan` — placeholder; `/task-cycle` fills it.
+
+Fill sections 1–3 and their subsections; leave `## Closing` and its subsections as
+their placeholders.
+
+In `### Interfaces`, record the interface surfaces the task touches, one per line,
+each tagged **define** or **consume** — e.g. `- define — POST /orders (HTTP): {…}
+→ 201`, `- define — trait OrderRepository: save, findById`, `- consume — gRPC
+PaymentService.Authorize`. This is the contract the implementer must honor, not the
+implementation. If the task genuinely touches no interface, write `- None.` so the
+absence is explicit rather than an oversight.
+
+In `## Implementation plan`, record the ordered steps the implementer will follow
+(TDD-friendly: the test to write, then the change to make it pass) and a **Files**
+list naming each file to be touched with its path and a phrase on the change,
+marking new files as such — e.g. `- src/orders/api.rs (edit) — add POST /orders
+handler`, `- src/orders/repository.rs (new) — OrderRepository trait + impl`. This
+is the plan settled in the interview, kept at plan granularity — enough for
+`/task-cycle` to start without re-deriving the layout, not line-level code. Note any
+file the analyzer marked tentative so the implementer confirms it.
 
 Then **guard the graph:** run `bash <skills-root>/task-status/tasks.sh check-dag`.
 If it reports a cycle or a dangling reference, you introduced it — fix the offending

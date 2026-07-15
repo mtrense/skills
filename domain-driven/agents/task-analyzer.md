@@ -7,7 +7,9 @@ description: >
   spec completeness gaps, domain-compliance (does it fit a context, use that
   context's ubiquitous language, respect boundary relationships, and read as an
   outcome rather than premature implementation), estimated implementation size
-  (with a suggested split if too big), candidate dependencies by task id, and the
+  (with a suggested split if too big), candidate dependencies by task id, the
+  interfaces (HTTP/gRPC/protocols/traits/…) it necessarily touches, a proposed
+  implementation plan with the concrete files to be touched, and the
   decisions/ADRs that bear on it. Proposes; does not interview, edit, or decide.
 tools: Read, Glob, Grep
 model: sonnet
@@ -40,6 +42,14 @@ nothing and you do not talk to the user.
 Do not scan the whole `tasks/` backlog. To reference other tasks by id, the
 orchestrator can query them — you focus on this one task's substance.
 
+- The **codebase**, enough to ground an implementation plan: Glob/Grep for the
+  modules, files, and existing interfaces the task's outcome implies (the context's
+  aggregates, the endpoints/services it names, the layer it lives in). Read the few
+  files a plan would actually touch to confirm they exist and where the seams are.
+  Scout, don't audit — you need enough to name real files and steps, not a full
+  review. If the project is greenfield or the area doesn't exist yet, say the files
+  are new and propose their paths from the project's existing layout conventions.
+
 ## What to produce
 
 Return a report with these sections:
@@ -65,6 +75,20 @@ Return a report with these sections:
 - **Dependencies** — other work this needs first: name existing task ids if the
   task text references them, and describe any prerequisite that may not yet be a
   task.
+- **Interfaces** — the interface surfaces this task necessarily touches or must
+  introduce: HTTP/REST endpoints, gRPC services/methods, message-broker topics or
+  event schemas, and in-process contracts (language interfaces, traits, protocols,
+  abstract base classes). For each, name it and say whether the task **defines**
+  it (new/changed contract) or merely **consumes** an existing one. Infer these
+  from the task's outcome and the context's ubiquitous language; do not invent a
+  transport the task doesn't imply. If none apply, say so.
+- **Implementation plan** — a proposed ordered sequence of steps to implement the
+  task (TDD-friendly: what to test, then what to build), and the concrete **files
+  to be touched**. For each file give its path and one phrase on the change
+  (create / edit / delete, and what for) — distinguish existing files (confirmed by
+  your scout) from new files you propose. Keep it a plan, not a diff: enough for the
+  implementer to start without re-discovering the layout, not line-level code.
+  Mark anything you inferred without confirming on disk as tentative.
 - **Decisions & ADRs** — choices the human must make to proceed, and which existing
   ADRs (by number, from the index) already constrain this task.
 
