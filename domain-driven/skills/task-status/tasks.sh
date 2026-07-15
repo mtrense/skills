@@ -36,6 +36,8 @@
 #                               otherwise prints the problem and exits non-zero
 #   tasks.sh board              one summary line of counts per status
 #   tasks.sh list               full JSON array of the loaded model (debug)
+#   tasks.sh list-human         every task, one per line, ascending id, as
+#                               `<id> <status> <context> <title> [<depends_on>]`
 #
 # All commands accept an optional trailing `--dir <tasks-dir>` (default ./tasks).
 #
@@ -196,6 +198,11 @@ case "$cmd" in
 
   list)
     _load | jq '.'
+    ;;
+
+  list-human)
+    _load | jq -r 'sort_by(._id) | .[]
+      | "\(._id) \(.status) \(if .context=="" then "-" else .context end) \(.title) [\(.depends_on|join(", "))]"'
     ;;
 
   ""|help|-h|--help)
