@@ -1,11 +1,7 @@
 ---
 name: task-status
 description: >
-  Read-only progress report for the domain-driven backlog. Runs the bundled
-  tasks.sh helper to print a board — counts per status, the ready-set (todo tasks
-  whose dependencies are all done), and what is blocked on what — derived live from
-  the task files' frontmatter, never by scanning their bodies. The human-facing
-  front end to the tasks.sh query surface every other domain-driven skill uses.
+  Read-only progress report for the domain-driven backlog. Runs the bundled tasks.sh helper to print a board — counts per status, the ready-set (todo tasks whose dependencies are all done), and what is blocked on what — derived live from the task files' frontmatter, never by scanning their bodies. The human-facing front end to the tasks.sh query surface every other domain-driven skill uses.
 argument-hint: "[<context>]   (optional — filter the board to one bounded context)"
 model: sonnet
 allowed-tools: Read, Bash(bash */skills/task-status/tasks.sh *), Bash(for *), Bash(if *)
@@ -57,15 +53,8 @@ that the backlog tooling (`jq`/`yj`) or the `tasks/` directory is missing and st
 
 ## If a context argument was given
 
-If a `<context>` argument (`$ARGUMENTS`) was supplied, scope the report to that
-bounded context: run `bash "${CLAUDE_SKILL_DIR}/tasks.sh" by-context <context>`
-once to get its id set, then present only the pre-rendered rows whose id is in that
-set. With no argument, report the whole backlog.
+If a `<context>` argument (`$ARGUMENTS`) was supplied, scope the report to that bounded context: run `bash "${CLAUDE_SKILL_DIR}/tasks.sh" by-context <context>` once to get its id set, then present only the pre-rendered rows whose id is in that set. With no argument, report the whole backlog.
 
 ## How to present it
 
-Render a compact, human-readable board (a small table is fine; use mermaid, never
-ASCII art, for any graph). Lead with the totals line, then the ready-set (what to
-do next), then what's blocked and on what, then anything stuck `in progress` or in
-a `split` tombstone. Keep it a status report — offer next steps (`/task-refine`
-if drafts exist, `/task-cycle` if tasks are ready) but do not take them.
+Render a compact, human-readable board (a small table is fine; use mermaid, never ASCII art, for any graph). Lead with the totals line, then the ready-set (what to do next), then what's blocked and on what, then anything stuck `in progress` or in a `split` tombstone. Keep it a status report — offer next steps (`/task-refine` if drafts exist, `/task-cycle` if tasks are ready) but do not take them.
