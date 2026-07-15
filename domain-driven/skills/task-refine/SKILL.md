@@ -66,7 +66,11 @@ back what you hear. Drive to:
 ## Step 4 — Split if too big
 
 If the task can't land in one implementation pass, propose a split and get the
-human's agreement on the pieces.
+human's agreement on the pieces. When you present the proposed pieces, name each
+by its **outcome / slug** (or "child 1 / child 2") — **never** as `0007a` / `0007b`
+or any suffix of the original id. That suffix wrongly implies the original id
+survives the split; it does not (see below). The `a`/`b` labels also tend to leak
+straight into the minted filenames, so keep them out of the conversation entirely.
 
 **Never** derive child ids by suffixing the original (no `0007a` / `0007b`, no
 `0007-1`). A split produces genuinely new, top-level tasks: the original becomes an
