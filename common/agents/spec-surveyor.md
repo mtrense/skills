@@ -51,10 +51,12 @@ the thing being refined.
 
 ### 2. Read the decision log
 
-If the project's `CLAUDE.md` sets a `decision-path: <directory>` line, check that
-directory first. Otherwise check the conventional locations: `decisions/`,
-`docs/decisions/`, `docs/adr/`, `adr/`, `DECISIONS.md`, `docs/decisions.md`. If an
-`INDEX.md` exists in the log directory, read it first for the
+If the project's `CLAUDE.md` sets an `architecture-path: <directory>` line, check that
+architecture home first (its ADRs are under `<home>/decisions/`, indexed by
+`<home>/decisions.md`, with crisp per-topic guidelines in `<home>/<topic>.md`). Otherwise
+check the conventional locations: `architecture/decisions/`, `decisions/`,
+`docs/decisions/`, `docs/adr/`, `adr/`, `DECISIONS.md`, `docs/decisions.md`. Read the
+decisions index (`decisions.md` or `INDEX.md`) first for the
 one-line map, then read the full records. **Findings already settled by an
 `Accepted` decision are dead — do not include them in your backlog** unless a
 *new* contradiction with a settled decision has appeared (in which case flag that

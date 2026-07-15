@@ -394,14 +394,21 @@ easily-reversible or purely-stylistic choice, nor for anything already fully cap
 as a plain convention in CLAUDE.md — over-recording buries the signal.
 
 For each decision that clears that bar, read `references/decision-record.md` and follow
-it. Records live in `<decisions-dir>/` — `decisions/` by default, or the directory named
-by a `decision-path: <directory>` line in `CLAUDE.md` if you wrote (or the user asked
-for) one this session. Number the record, write `<decisions-dir>/NNNN-kebab-title.md`
-from the template, and append the one-sentence entry to `<decisions-dir>/INDEX.md`. There
-is no prior decision log to consult at inception — you are creating the first records.
+it. Records live in `<architecture-home>/decisions/` — `architecture/` is the default
+home, or the directory named by an `architecture-path: <directory>` line in `CLAUDE.md`
+if you wrote (or the user asked for) one this session. Number the record, write
+`<architecture-home>/decisions/NNNN-kebab-title.md` from the template, and append the
+one-sentence entry to `<architecture-home>/decisions.md`. There is no prior decision log
+to consult at inception — you are creating the first records.
 
-Briefly tell the user which decisions you recorded (a line each), so they can review the
-new records alongside README.md and CLAUDE.md.
+After the records are written, spawn the **architecture-summarizer** subagent
+(`subagent_type: architecture-summarizer`) with the architecture home and the new ADR
+number(s) so the derived `<architecture-home>/<topic>.md` guideline summaries are created
+in step with the records.
+
+Briefly tell the user which decisions you recorded (a line each) and which topic
+summaries the summarizer wrote, so they can review the new records alongside README.md
+and CLAUDE.md.
 
 ### Step 7: Hand Off
 

@@ -19,9 +19,9 @@ single decision into the real docs and return a terse confirmation. The full
 edited text never goes back to the orchestrator; that's the point.
 
 The spec runs pre-implementation, so the sharpened text is the entire record:
-you do **not** write ADRs, decision-log entries, or INDEX lines — if a
-project's decision log exists (`decisions/` by default, or the `decision-path:`
-directory set in `CLAUDE.md`), leave it untouched. If a resolution's
+you do **not** write ADRs, decision-log entries, or index lines — if a
+project's decision log exists (the architecture home `architecture/` by default, or the
+`architecture-path:` directory set in `CLAUDE.md`), leave it untouched. If a resolution's
 rationale is worth keeping, encode it as a sentence in the spec itself.
 
 You handle **one decision per invocation.** You do not interview, do not sweep,

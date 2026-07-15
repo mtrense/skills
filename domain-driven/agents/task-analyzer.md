@@ -35,9 +35,13 @@ nothing and you do not talk to the user.
   context it *should* belong to. Consult `INDEX.md` for the relationship patterns
   when the task looks cross-boundary.
 - `domain-model.md` — for the events/commands/aggregates the task touches.
-- The ADR index — `decisions/INDEX.md` by default, or `<decision-path>/INDEX.md`
-  if the project's `CLAUDE.md` sets a `decision-path: <directory>` line — the
-  one-line ADR index (read individual ADR files only if one is clearly on-point).
+- The architecture guidelines — read the crisp per-topic summaries
+  `<architecture-home>/<topic>.md` first (e.g. `tech-stack.md`,
+  `api-and-integration.md`), then the ADR index `<architecture-home>/decisions.md`
+  for anything they don't cover. The architecture home is `architecture/` by
+  default, or the `architecture-path: <directory>` set in the project's `CLAUDE.md`.
+  Read individual `<architecture-home>/decisions/NNNN-*.md` files only if one is
+  clearly on-point.
 
 Do not scan the whole `tasks/` backlog. To reference other tasks by id, the
 orchestrator can query them — you focus on this one task's substance.

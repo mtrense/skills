@@ -12,7 +12,7 @@ project's **bounded contexts**.
 ```mermaid
 flowchart LR
   g["/grounding"] --> dm["/domain-model"] --> cm["/context-mapping"]
-  cm --> ap["/task-append"] --> rf["/task-refine"] --> wc["/task-cycle"]
+  cm --> af["/architecture-foundation"] --> ap["/task-append"] --> rf["/task-refine"] --> wc["/task-cycle"]
   ap -.-> rf -.-> wc
   ts["/whats-next"] -.suggests.-> ap
   cm --> ts
@@ -35,19 +35,29 @@ flowchart LR
    customer/supplier, conformist, ACL, published language, shared kernel) plus each
    context's **ubiquitous language**. Seeded by the `boundary-proposer` subagent.
    Produces `context-map/INDEX.md` + `context-map/<context>.md`.
-4. **`/task-append`** — captures a task into the backlog as a `draft`, from human
+4. **`/architecture-foundation`** — a Socratic session that defines the project's
+   **architectural boundaries and guidelines** from the vision + domain model +
+   context map, general → specific: tech stack (languages/frameworks/runtimes),
+   persistence/data stores, communication & integration between contexts, testing
+   principles, and cross-cutting concerns (error handling, observability, security,
+   configuration, versioning, deployment). Seeded by the `architecture-proposer`
+   subagent; records each decision as an ADR (via `/adr`), which keeps the crisp
+   per-topic summaries under `architecture/` in sync. Makes artifact/environment/
+   bounded-context binding explicit. These guidelines are the guardrail every task
+   is later checked against.
+5. **`/task-append`** — captures a task into the backlog as a `draft`, from human
    input of any quality (a polished spec or a raw brain-dump). Low-friction; no
    interview.
-5. **`/task-refine`** — turns a `draft` into a ready `todo`: assesses completeness,
+6. **`/task-refine`** — turns a `draft` into a ready `todo`: assesses completeness,
    **domain-compliance**, and size (delegated to the `task-analyzer` subagent);
    interviews the human; **splits** oversized tasks; wires **dependencies**;
    surfaces decisions and attaches ADRs.
-6. **`/task-cycle`** — drives ready `todo` tasks to `done` via `task-worker`
+7. **`/task-cycle`** — drives ready `todo` tasks to `done` via `task-worker`
    subagents (strict TDD → verify → commit). `all@1` works in-place sequentially;
    `@N` implements in parallel git worktrees and merges back sequentially via the
    `integrator` subagent (bounce-on-conflict).
-7. **`/task-status`** — read-only backlog board (the human front end to `tasks.sh`).
-8. **`/whats-next`** — the forward-looking companion to `/task-status`: assesses
+8. **`/task-status`** — read-only backlog board (the human front end to `tasks.sh`).
+9. **`/whats-next`** — the forward-looking companion to `/task-status`: assesses
    `vision.md`, `domain-model.md`, and `context-map/` against the backlog state
    (read through `tasks.sh`, frontmatter only), surfaces coverage gaps (uncovered
    aggregates, thin contexts, unrepresented vision outcomes, blocking hotspots), and
@@ -65,9 +75,11 @@ domain-model.md               # /domain-model
 context-map/
   INDEX.md                    # overview + relationship map (mermaid)
   <context>.md                # per-context: responsibility, boundary, relationships, ubiquitous language
-decisions/                    # ADRs (shared convention with common/adr; default dir, override via `decision-path:` in CLAUDE.md)
-  INDEX.md
-  NNNN-title.md
+architecture/                 # architecture home (shared convention with common/adr; default dir, override via `architecture-path:` in CLAUDE.md)
+  decisions.md                # ADR index
+  decisions/
+    NNNN-title.md             # full ADRs
+  <topic>.md                  # crisp per-topic guideline summaries (tech-stack, testing, …), derived from the ADRs by /architecture-foundation + /adr
 tasks/
   NNNN-slug.md                # one task per file; frontmatter is the query index
 ```
@@ -159,6 +171,9 @@ must not leave a cycle or a dangling edge), and `/task-cycle` runs it at preflig
 Read-only proposal scouts (`Read, Glob, Grep`; write nothing, decide nothing):
 - **`domain-seed-extractor`** — first-pass EventStorm from `vision.md`.
 - **`boundary-proposer`** — first-pass context map + relationships from the model.
+- **`architecture-proposer`** — first-pass architecture agenda (tech stack,
+  persistence, integration, testing, cross-cutting) from vision + domain model +
+  context map, for `/architecture-foundation`.
 - **`task-analyzer`** — refine assessment (completeness, domain-compliance, size,
   deps, decisions/ADRs) for one task.
 

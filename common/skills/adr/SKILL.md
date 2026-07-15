@@ -8,8 +8,9 @@ description: >-
   "write an ADR for…", "log this architectural decision", or /adr. Also the
   human override for when a decision worth preserving was settled in-session but
   no build skill recorded it on its own. Writes each as a full ADR under the
-  decisions directory (./decisions/ by default, overridable via a decision-path:
-  line in CLAUDE.md) using the shared NNNN-title.md + INDEX.md convention.
+  architecture home (./architecture/decisions/ by default, overridable via an
+  architecture-path: line in CLAUDE.md) using the shared NNNN-title.md +
+  decisions.md convention, then refreshes the derived per-topic summaries.
   Grounds every section in what was actually discussed and confirms the list
   before writing; treats the invocation itself as the worth-recording call, so
   do NOT trigger for read-only questions about existing decisions ("what did we
@@ -36,13 +37,16 @@ the human override for everything they miss. **The user's invocation is the
 worth-recording call — do not second-guess it.** The usual "what not to
 record" bar is waived: if they asked for an ADR, they get one.
 
-## Step 0 — Resolve the decisions directory
+## Step 0 — Resolve the architecture home
 
-Records live in `./decisions/` by default. If the project's `CLAUDE.md` (root,
-or the nearest one governing the working directory) contains a line of the form
-`decision-path: <directory>`, use that directory instead — resolved relative to
-the project root. Everywhere below and in `references/decision-record.md`,
-`<decisions-dir>` means this resolved directory (`decisions/` unless overridden).
+The architecture home is `./architecture/` by default. If the project's
+`CLAUDE.md` (root, or the nearest one governing the working directory) contains a
+line of the form `architecture-path: <directory>`, use that directory instead —
+resolved relative to the project root. Everywhere below and in
+`references/decision-record.md`, `<architecture-home>` means this resolved
+directory (`architecture/` unless overridden); records live in
+`<architecture-home>/decisions/`, the index in `<architecture-home>/decisions.md`,
+and the derived topic summaries in `<architecture-home>/<topic>.md`.
 
 ## Step 1 — Identify the decision(s)
 
@@ -65,12 +69,12 @@ Then **confirm before writing**:
 ## Step 2 — Write each record
 
 Read `references/decision-record.md` (in this skill directory) and follow its
-mechanics exactly: find the next number under `<decisions-dir>/` (create the
-directory and seed `INDEX.md` if absent), write
-`<decisions-dir>/NNNN-kebab-title.md` from the template, append the one-sentence
-`INDEX.md` line. (Its "What not to record" section does not apply here — see
-above.) When recording several decisions, number and write them sequentially in
-one pass.
+mechanics exactly: find the next number under `<architecture-home>/decisions/`
+(create the directory and seed `<architecture-home>/decisions.md` if absent),
+write `<architecture-home>/decisions/NNNN-kebab-title.md` from the template,
+append the one-sentence `decisions.md` line. (Its "What not to record" section
+does not apply here — see above.) When recording several decisions, number and
+write them sequentially in one pass.
 
 Ground every section in what actually happened in this conversation:
 
@@ -92,15 +96,31 @@ Ground every section in what actually happened in this conversation:
   (spec, README, ROADMAP, code), add an `- **Affected documents:**` line to the
   record's header list naming them; the ADR records the *reasoning*, the docs
   remain the source of truth for the *content*.
+- **Scope** — if the decision is bound to a specific artifact (frontend / backend
+  / mobile / CLI / service), environment (production / testing / dev), or bounded
+  context, name that binding in the `Scope:` field. This is what lets the derived
+  topic summary file the guideline under the right heading instead of presenting a
+  scoped rule as project-wide.
 
 If the conversation doesn't actually contain enough substance to fill a
 section, ask the user the one missing question instead of inventing content.
 
+## Step 2b — Refresh the derived summaries
+
+Once every record and its index line are written, bring the derived per-topic
+summaries back in sync. Spawn the **architecture-summarizer** subagent
+(`subagent_type: architecture-summarizer`) with the architecture home
+(`<architecture-home>`) and the ADR number(s) you just recorded. It maps each ADR
+to its topic(s) and rewrites the affected `<architecture-home>/<topic>.md`
+guideline files — you do not edit the summaries yourself. Capture its report of
+which summary files it touched for Step 3.
+
 ## Step 3 — Report
 
 Tell the user what was written, one line per record:
-`NNNN — <title> → <decisions-dir>/NNNN-kebab-title.md`. Do not paste the
-records back into the conversation.
+`NNNN — <title> → <architecture-home>/decisions/NNNN-kebab-title.md`, then one
+line listing the `<architecture-home>/<topic>.md` summaries the summarizer
+refreshed. Do not paste the records back into the conversation.
 
 Do **not** commit — the user invokes `/commit` when ready.
 

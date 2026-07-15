@@ -84,8 +84,8 @@ Note the same categories the scout would have produced.
 **Consult prior architectural decisions too.** In parallel with the scout,
 spawn the `decision-lookup` subagent (`subagent_type: decision-lookup`) with the
 milestone's title and the subsystems it touches. It locates and reads the project's
-decision index (`decisions/INDEX.md` by default, or the `decision-path:` directory set
-in `CLAUDE.md`),
+decision index (`architecture/decisions.md` by default, or under the `architecture-path:`
+directory set in `CLAUDE.md`),
 pulls only the relevant records, and returns a compact briefing of the decisions
 that constrain how this milestone should be built — so you inherit them without
 paging the whole decision log into your opus session. If it reports no log exists,
@@ -144,13 +144,16 @@ split, record it as an ADR so the reasoning survives past this planning session.
 Record one only when the decision **splits the architecture across tasks or commits to a
 direction that is costly to undo** — not for ordinary per-task choices. For each that
 clears the bar, read `references/decision-record.md` and follow it. Records live in
-`<decisions-dir>/` — `decisions/` by default, or the directory named by a `decision-path:
-<directory>` line in `CLAUDE.md`. Number the record,
-write `<decisions-dir>/NNNN-kebab-title.md`, and append the one-sentence entry to
-`<decisions-dir>/INDEX.md`. Reference the record from the affected tasks' **Architecture &
-Decisions** notes (e.g. "per ADR 0007") so the implementer follows it. If the split would
-contradict a decision the Step 2 `decision-lookup` briefing surfaced, flag it to the
-human rather than silently overriding — that is a superseding decision and their call.
+`<architecture-home>/decisions/` — `architecture/` is the default home, or the directory
+named by an `architecture-path: <directory>` line in `CLAUDE.md`. Number the record,
+write `<architecture-home>/decisions/NNNN-kebab-title.md`, and append the one-sentence
+entry to `<architecture-home>/decisions.md`. Reference the record from the affected tasks'
+**Architecture & Decisions** notes (e.g. "per ADR 0007") so the implementer follows it. If
+the split would contradict a decision the Step 2 `decision-lookup` briefing surfaced, flag
+it to the human rather than silently overriding — that is a superseding decision and their
+call. After writing the record(s), spawn the **architecture-summarizer** subagent
+(`subagent_type: architecture-summarizer`) with the architecture home and the new ADR
+number(s) so the derived `<architecture-home>/<topic>.md` summaries stay in sync.
 
 ### Step 5: Review on File
 

@@ -1,45 +1,59 @@
 # Recording an Architecture Decision Record (ADR)
 
-This is the shared mechanics for writing a decision to the project's decisions
-directory (`<decisions-dir>/`). The
-calling skill decides *when* a decision is worth recording — and resolves
-`<decisions-dir>` (the default is `decisions/`, overridable per project); this
-file describes *how* to record it consistently.
+This is the shared mechanics for writing a decision to the project's
+**architecture home** (`<architecture-home>/`). The calling skill decides *when*
+a decision is worth recording — and resolves `<architecture-home>` (the default
+is `architecture/`, overridable per project); this file describes *how* to record
+it consistently.
 
-## Where it goes
+## The architecture home
 
-- **Full record:** `<decisions-dir>/NNNN-kebab-title.md` — one file per decision.
-- **Index line:** one sentence in `<decisions-dir>/INDEX.md` — the abbreviated form
-  an agent can read without opening the full record.
+Everything architectural lives under one directory, `<architecture-home>/`
+(default `architecture/`, overridable via an `architecture-path: <directory>` line
+in `CLAUDE.md`):
+
+- **Full ADR:** `<architecture-home>/decisions/NNNN-kebab-title.md` — one file per
+  decision. This is the **single source of truth** for a decision's reasoning.
+- **ADR index:** `<architecture-home>/decisions.md` — one sentence per decision,
+  the abbreviated form an agent can read without opening the full records.
+- **Topic summaries:** `<architecture-home>/<topic>.md` (e.g. `tech-stack.md`,
+  `error-handling.md`) — crisp, current *guidelines* derived from the ADRs. You do
+  **not** write these here; the `architecture-summarizer` agent (re)derives them
+  after each ADR is recorded. Never edit a summary by hand as part of recording.
 
 ## Steps
 
-1. **Find the next number.** Look in `<decisions-dir>/` for the highest existing
-   `NNNN-*.md`. If the directory (or `INDEX.md`) does not exist yet, create it and
-   seed `INDEX.md` with the header shown below. The next number is the highest
-   existing value plus one, zero-padded to four digits (`0001`, `0002`, …).
-2. **Write the record** to `<decisions-dir>/NNNN-kebab-title.md` from the template
-   below, using today's date and filling *every* section with real content. The
-   rationale and the alternatives are the reason the record exists — a record
-   without them is not worth writing.
-3. **Append one line to `<decisions-dir>/INDEX.md`** — a single sentence stating what
-   was decided and its outcome, so an agent grasps it without opening the record:
+1. **Find the next number.** Look in `<architecture-home>/decisions/` for the
+   highest existing `NNNN-*.md`. If the directory (or `decisions.md`) does not
+   exist yet, create `<architecture-home>/decisions/` and seed
+   `<architecture-home>/decisions.md` with the header shown below. The next number
+   is the highest existing value plus one, zero-padded to four digits (`0001`,
+   `0002`, …).
+2. **Write the record** to `<architecture-home>/decisions/NNNN-kebab-title.md` from
+   the template below, using today's date and filling *every* section with real
+   content. The rationale and the alternatives are the reason the record exists —
+   a record without them is not worth writing.
+3. **Append one line to `<architecture-home>/decisions.md`** — a single sentence
+   stating what was decided and its outcome, so an agent grasps it without opening
+   the record:
 
    ```
-   - [NNNN](NNNN-kebab-title.md) — <what was decided and its outcome, one sentence> (Accepted)
+   - [NNNN](decisions/NNNN-kebab-title.md) — <what was decided and its outcome, one sentence> (Accepted)
    ```
 
 Write the record the moment the decision is confirmed, while the reasoning is
 fresh — never batch them at the end.
 
-## `INDEX.md` header (only when first creating the file)
+## `decisions.md` header (only when first creating the file)
 
 ```markdown
 # Decision Index
 
 One line per architectural decision, in number order. Each links to the full
-record in this directory — read a record for its context, rationale, and
-alternatives; read this index to know a decision exists and how it landed.
+record under `decisions/` — read a record for its context, rationale, and
+alternatives; read this index to know a decision exists and how it landed. The
+crisp per-topic guidelines derived from these decisions live in the sibling
+`<topic>.md` files in this directory.
 ```
 
 ## ADR template
@@ -50,7 +64,10 @@ alternatives; read this index to know a decision exists and how it landed.
 - **Status:** Accepted
 - **Date:** <today, YYYY-MM-DD>
 - **Deciders:** <who made the call>
-- **Scope:** <what part of the system / project this governs, and what it affects>
+- **Scope:** <what part of the system this governs — and, where the decision is
+  bound to one, name the specific artifact (frontend / backend / mobile / CLI /
+  service), environment (production / testing / dev), or bounded context it
+  applies to; write "whole project" only when it genuinely is unscoped>
 
 ## Context
 
@@ -77,6 +94,20 @@ not "we'll decide later".>
 <What this makes easy, what it makes hard, the costs knowingly accepted, and what
 would trigger revisiting it — which would be a new ADR superseding this one.>
 ```
+
+**Scope binding.** When a decision only governs one artifact, environment, or
+bounded context, say so plainly in `Scope:` (e.g. "backend service only",
+"testing environment only", "the `billing` bounded context"). This is what lets
+the derived topic summary file the guideline under the right heading rather than
+presenting it as a project-wide rule.
+
+## After recording — refresh the summaries
+
+Once the record(s) and the index line are written, the derived per-topic
+summaries in `<architecture-home>/` must be brought back in sync. The calling
+skill does this by spawning the `architecture-summarizer` agent with the
+architecture home and the new ADR number(s); it maps each ADR to its topic(s) and
+rewrites the affected `<topic>.md` files. Do not hand-edit the summaries here.
 
 ## What not to record
 

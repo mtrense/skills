@@ -2,12 +2,13 @@
 name: decision-lookup
 description: >
   Read-only query worker for a project's Architecture Decision Records (in the
-  project's decisions directory — `decisions/` by default, overridable via
-  `decision-path:` in CLAUDE.md). Given a topic or an action the caller is about to
-  take, reads that directory's INDEX.md, selects the relevant records, reads only those, and
-  returns a compact briefing of the decisions that constrain the caller — so the
-  orchestrator never loads the whole decision log into its own context. Reports
-  cleanly when no decision log exists. Does NOT edit anything.
+  project's architecture home — `architecture/` by default, overridable via
+  `architecture-path:` in CLAUDE.md). Given a topic or an action the caller is about
+  to take, reads the crisp per-topic summaries and the decisions index, selects the
+  relevant records, reads only those, and returns a compact briefing of the decisions
+  that constrain the caller — so the orchestrator never loads the whole decision log
+  into its own context. Reports cleanly when no decision log exists. Does NOT edit
+  anything.
 tools: Read, Glob, Grep
 model: sonnet
 ---
@@ -33,29 +34,38 @@ If the input is empty, say so and stop.
 
 ## Step 1 — locate the log
 
-First resolve the decisions directory (`<decisions-dir>`): it is `decisions/` unless the
-project's `CLAUDE.md` contains a `decision-path: <directory>` line, in which case use that
-directory. Look for `<decisions-dir>/INDEX.md`. If it (and `<decisions-dir>/`) does not
-exist, return exactly this and stop — do not hunt elsewhere or invent decisions:
+First resolve the **architecture home** (`<architecture-home>`): it is `architecture/`
+unless the project's `CLAUDE.md` contains an `architecture-path: <directory>` line, in
+which case use that directory. The decisions index is `<architecture-home>/decisions.md`,
+the full records are under `<architecture-home>/decisions/`, and the crisp derived
+guideline summaries are `<architecture-home>/<topic>.md`. If `decisions.md` (and
+`<architecture-home>/decisions/`) does not exist, return exactly this and stop — do not
+hunt elsewhere or invent decisions:
 
 ```report
 # Decision Lookup — <topic>
-No decision log found (`<decisions-dir>/` absent). No prior decisions constrain this work.
+No decision log found (`<architecture-home>/decisions/` absent). No prior decisions constrain this work.
 ```
 
-## Step 2 — shortlist from the index
+## Step 2 — read the summaries, then shortlist from the index
 
-Read `<decisions-dir>/INDEX.md`. Each line is a one-sentence summary linking a
-record. Select every entry whose subject plausibly touches the caller's topic — by
-component, subsystem, technology, or goal. When unsure, include it: a false
-positive costs one file read, a false negative hides a binding constraint.
+First read the derived per-topic summaries relevant to the caller's topic — glob
+`<architecture-home>/*.md` (excluding `decisions.md`) and read the one or two whose name
+matches the topic (e.g. `tech-stack.md`, `api-and-integration.md`). These are crisp
+guidelines with back-links to the ADRs and will often answer the query outright.
 
-If nothing in the index is even plausibly relevant, say so in the report and stop —
-do not read records just to have something to return.
+Then read `<architecture-home>/decisions.md`. Each line is a one-sentence summary linking
+a record. Select every entry whose subject plausibly touches the caller's topic — by
+component, subsystem, technology, or goal. When unsure, include it: a false positive costs
+one file read, a false negative hides a binding constraint.
+
+If neither the summaries nor the index are even plausibly relevant, say so in the report
+and stop — do not read records just to have something to return.
 
 ## Step 3 — read the shortlisted records
 
-Read only the shortlisted `<decisions-dir>/NNNN-*.md` files. For each, extract:
+Read only the shortlisted `<architecture-home>/decisions/NNNN-*.md` files (a summary's
+back-link points you straight at the ones worth opening for rationale). For each, extract:
 
 - the **decision** (what was chosen — the source-of-truth statement),
 - its **status** (`Accepted` / `Superseded` — a superseded record is history; flag it),

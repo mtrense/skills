@@ -32,8 +32,9 @@ were given; do not wander into other tasks or opportunistic refactors.
 1. **Read the task fully.** Honor its `## Outcome` and `### Acceptance criteria`.
    Read its `related_documents` (typically the bounded-context file — implement in
    that context's ubiquitous language) and each ADR in `related_adrs` (in the
-   project's decisions directory — `decisions/NNNN-*.md` by default, or the
-   `decision-path:` directory set in `CLAUDE.md`) — those decisions constrain how you build.
+   project's architecture home — `architecture/decisions/NNNN-*.md` by default, or
+   under the `architecture-path:` directory set in `CLAUDE.md`) — those decisions
+   constrain how you build.
 2. **Implement with strict TDD** where the change has observable behavior:
    - Write a failing test that pins an acceptance criterion. Run it; see it fail for
      the right reason.

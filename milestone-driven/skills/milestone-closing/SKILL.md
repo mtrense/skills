@@ -87,16 +87,16 @@ marker, then append to the milestone file:
 3. <Point out what changed / what's new>
 ```
 
-**Reconcile the decision log.** The decision log lives in `<decisions-dir>/` — `decisions/`
-by default, or the `decision-path:` directory set in `CLAUDE.md`. If `<decisions-dir>/`
-exists, read
-`<decisions-dir>/INDEX.md` (one cheap file — no subagent needed here) and cross-check it
-against what actually shipped:
+**Reconcile the decision log.** The decision log lives in the architecture home
+(`<architecture-home>/`) — `architecture/` by default, or the `architecture-path:`
+directory set in `CLAUDE.md`. If `<architecture-home>/decisions/` exists, read
+`<architecture-home>/decisions.md` (one cheap file — no subagent needed here) and
+cross-check it against what actually shipped:
 
 - **New decisions:** if this milestone made an architectural decision that isn't yet in
   the log, name it in the *Decision changes* closing note and point the human at recording
-  it (a decision surfaced during planning belongs in `<decisions-dir>/` via the recording
-  convention).
+  it (a decision surfaced during planning belongs in `<architecture-home>/decisions/` via
+  the recording convention).
 - **Revised decisions:** if implementation contradicted an `Accepted` record, that record
   is now stale. Flag it explicitly in the *Decision changes* note — the correct fix is a
   new ADR that supersedes the old one (and marks the old one `Superseded by NNNN`), not
