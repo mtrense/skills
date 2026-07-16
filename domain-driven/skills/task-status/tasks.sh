@@ -21,6 +21,8 @@
 #   depends_on     list of task ids this task waits on
 #   split_into     list of child ids (only on a `split` tombstone)
 #   related_adrs   list of ADR numbers (reported, not used for scheduling)
+#   deviated       true when the task landed with a non-trivial "Deviations from
+#                  plan" record (set by /task-cycle, cleared by a model revision)
 #
 # ── Commands ──────────────────────────────────────────────────────────────────
 #   tasks.sh ready              todo tasks whose every depends_on is `done`
@@ -28,6 +30,9 @@
 #   tasks.sh next-id            next free 4-digit id (max existing + 1)
 #   tasks.sh by-status <s>      ids whose status is <s>
 #   tasks.sh by-context <c>     ids whose context is <c>
+#   tasks.sh deviated           done tasks flagged `deviated: true` — the drift
+#                               worklist a /domain-model or /context-mapping
+#                               revision reads and then clears
 #   tasks.sh get <id>           that task's frontmatter as JSON (+ _file, _id)
 #   tasks.sh blockers <id>      <id>'s depends_on that are NOT yet `done`
 #   tasks.sh dependents <id>    tasks that depend_on <id> (reverse edges)
@@ -97,7 +102,8 @@ _load() {
         context: (.context // ""),
         depends_on: ids("depends_on"),
         split_into: ids("split_into"),
-        related_adrs: (.related_adrs // [])
+        related_adrs: (.related_adrs // []),
+        deviated: (.deviated // false)
       }'
   done
   printf ']'
@@ -127,6 +133,10 @@ case "$cmd" in
   by-context)
     want="${1:?usage: tasks.sh by-context <context>}"
     _load | jq -r --arg c "$want" 'map(select(.context==$c))|sort_by(._id)|.[]._id'
+    ;;
+
+  deviated)
+    _load | jq -r 'map(select(.status=="done" and .deviated==true))|sort_by(._id)|.[]._id'
     ;;
 
   get)

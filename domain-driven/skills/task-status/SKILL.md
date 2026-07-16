@@ -45,6 +45,12 @@ that the backlog tooling (`jq`/`yj`) or the `tasks/` directory is missing and st
 !`SH="${CLAUDE_SKILL_DIR}/tasks.sh"; ip=$(bash "$SH" by-status "in progress" 2>/dev/null); if [ -z "$ip" ]; then echo '(none)'; else for id in $ip; do bash "$SH" get "$id" 2>/dev/null | jq -r '"\(._id)  \(.title)"'; done; fi`
 ```
 
+### Drift worklist — done tasks that landed with non-trivial deviations (`deviated: true`), awaiting a `/domain-model` or `/context-mapping` revision
+
+```
+!`SH="${CLAUDE_SKILL_DIR}/tasks.sh"; dv=$(bash "$SH" deviated 2>/dev/null); if [ -z "$dv" ]; then echo '(none)'; else for id in $dv; do bash "$SH" get "$id" 2>/dev/null | jq -r '"\(._id)  [\(.context // "")]  \(.title)"'; done; fi`
+```
+
 ### Split tombstones (id → child ids) — inert; shown for completeness
 
 ```

@@ -42,6 +42,12 @@ The two blocks below are the captured stdout of the `tasks.sh` helper (a sibling
 !`bash "${CLAUDE_SKILL_DIR}/../task-status/tasks.sh" board 2>&1`
 ```
 
+### Drift worklist — done tasks whose shipped code departed from their spec (`deviated: true`, awaiting a model revision)
+
+```
+!`bash "${CLAUDE_SKILL_DIR}/../task-status/tasks.sh" deviated 2>&1`
+```
+
 Non-terminal tasks (`draft`, `todo`, `in progress`) that name an area mean that area is already accounted for; `done` means it is built; a `split` tombstone is inert (look through it to its children). Do not re-propose what the backlog already carries.
 
 ## Step 3 — Assess coverage and find the gaps
@@ -53,7 +59,12 @@ Cross the target against the state. Look for:
 - **Unrepresented vision outcomes.** An outcome the vision names that nothing in the backlog moves toward.
 - **Blocking hotspots.** A hotspot that is still unresolved *and* unrecorded (no ADR, no task) and that gates real work — flag it as a decision to make (offer `/adr`, or a spike task) rather than burying it in an implementation task.
 - **Foundation ordering.** Which gaps are *roots* — prerequisites that unblock the most downstream work — versus leaves. Use the context relationships: an upstream context in a customer/supplier or published-language relationship generally needs its contract to exist before the downstream context can build against it.
-- **Drift (light touch).** A live task whose `context` or evident intent no longer matches the current map — note it for `/task-refine`, don't fix it here.
+- **Model drift.** The signals that the domain artifacts themselves have gone stale against reality — a first-class gap, not a footnote:
+  - an **accumulating drift worklist** (the `deviated` ids above): each is a task whose shipped code departed from its spec, and nobody has yet asked whether the model was the thing that was wrong;
+  - a live task whose `context` slug names no context in the current map (a dangling reference a past boundary change left behind);
+  - repeated friction fitting suggestions to the map — if several gaps you found have no natural home context, the boundaries may be wrong, not the backlog.
+
+  You read the drift signals but never act on them: the `deviated` flags are cleared only by a `/domain-model` or `/context-mapping` revision (their consumer), and a mis-slugged task is `/task-refine`'s to re-home. **When drift dominates the gap list, the honest top recommendation is a revision run — `/domain-model` or `/context-mapping` — not more tasks appended onto a stale model.**
 
 ## Step 4 — Propose the next tasks (prioritized, short)
 
@@ -72,4 +83,4 @@ Ask the human which suggestions to capture. For each one they approve, invoke `S
 
 ## When you are done
 
-Close by pointing at the next move: `/task-refine` to turn any freshly captured drafts into ready `todo`s, or `/task-cycle` if the backlog already has ready work. If the sharpest gap is really an undecided hotspot, point at `/adr` (or a return to `/domain-model`) instead. Hand back control.
+Close by pointing at the next move: `/task-refine` to turn any freshly captured drafts into ready `todo`s, or `/task-cycle` if the backlog already has ready work. If the sharpest gap is really an undecided hotspot, point at `/adr` (or a return to `/domain-model`) instead; if it is model drift, point at a `/domain-model` or `/context-mapping` revision. Hand back control.
