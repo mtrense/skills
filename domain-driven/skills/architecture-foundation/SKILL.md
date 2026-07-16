@@ -1,7 +1,7 @@
 ---
 name: architecture-foundation
 description: >
-  Facilitate a Socratic session that defines a project's architectural foundation — the boundaries and guidelines every later task is built against — once vision.md, domain-model.md, and context-map.md exist. Works general → specific: tech stack (languages/frameworks/runtimes), persistence/data stores, then communication & integration between contexts, testing principles, and cross-cutting concerns (error handling, observability, security, configuration, versioning, deployment). Seeds an agenda with the architecture-proposer subagent, then decides each item Socratically and records it as an ADR — which keeps the crisp per-topic summaries under architecture/ in sync. Where a decision is bound to a specific artifact, environment, or bounded context, makes that explicit. The phase between /context-mapping and /task-append in the domain-driven workflow.
+  Facilitate a Socratic session that defines a project's architectural foundation — the boundaries and guidelines every later task is built against — once vision.md, domain-model.md, and context-map.md exist. Opens the agenda with the domain model's still-open hotspots — the last gate where each must be resolved, explicitly parked, or reclassified before the build phase — then works general → specific: tech stack (languages/frameworks/runtimes), persistence/data stores, then communication & integration between contexts, testing principles, and cross-cutting concerns (error handling, observability, security, configuration, versioning, deployment). Seeds an agenda with the architecture-proposer subagent, then decides each item Socratically and records it as an ADR — which keeps the crisp per-topic summaries under architecture/ in sync. Where a decision is bound to a specific artifact, environment, or bounded context, makes that explicit. The phase between /context-mapping and /task-append in the domain-driven workflow.
 disable-model-invocation: true
 argument-hint: "(no argument — starts or resumes the architecture-foundation session)"
 model: opus
@@ -26,7 +26,9 @@ If any is missing, **stop** and tell the human which phase to run first — you 
 
 ## Step 1 — Seed the agenda (subagent)
 
-Spawn the **architecture-proposer** subagent (`subagent_type: architecture-proposer`) with the paths to `vision.md`, `domain-model.md`, and `context-map.md`. It returns a *first-pass agenda*: per topic area, the open decisions, 2–4 candidate options each, and any artifact/environment/bounded-context binding it can already infer. This is a starting point to react to — **not** the answer. Its full reasoning stays in the subagent; you receive only the structured agenda.
+Spawn the **architecture-proposer** subagent (`subagent_type: architecture-proposer`) with the paths to `vision.md`, `domain-model.md`, and `context-map.md`. It returns a *first-pass agenda*: first the domain model's still-open hotspots (settled ones already dropped against the decision index, with the settling ADR noted), then per topic area, the open decisions, 2–4 candidate options each, and any artifact/environment/bounded-context binding it can already infer. This is a starting point to react to — **not** the answer. Its full reasoning stays in the subagent; you receive only the structured agenda.
+
+If the proposer reports hotspots an existing ADR already settles, tick those off in `domain-model.md` now (annotate the entry with the ADR number) — they need no session time.
 
 If ADRs already exist under `<architecture-home>/decisions/`, read `<architecture-home>/decisions.md` first and treat this run as **extending** the foundation — do not re-litigate settled decisions; pick up the open ones.
 
@@ -34,6 +36,7 @@ If ADRs already exist under `<architecture-home>/decisions/`, read `<architectur
 
 Work the agenda **one question at a time**, reflecting back rather than lecturing, in this order (general decisions constrain the specific ones, so keep the order):
 
+0. **Open hotspots from `domain-model.md`** — this session is the last gate before the build phase, so sweep the list first: nothing unresolved may silently survive into `/task-append`. For each open hotspot, drive it to exactly one of three outcomes: **resolved** (decide it here — usually it folds into one of the topic areas below; record it as an ADR per Step 3 and tick it off in `domain-model.md` with the ADR number), **parked** (the human explicitly defers it — leave it open in `domain-model.md` and note *why* and *until when/what* next to it), or **reclassified** (it turns out non-architectural, e.g. a pure naming question — leave it for the next `/domain-model` revision and say so). A hotspot that maps onto a later topic area can be deferred *within the session* to that item, but must not be dropped: track it until it lands.
 1. **Tech stack** — programming language(s), framework(s), runtime environment(s). If the vision implies more than one artifact (e.g. a web frontend *and* a backend service, or a CLI), decide each artifact's stack explicitly rather than assuming one stack covers all.
 2. **Persistence / data stores** — what kind of store each aggregate cluster / context needs (relational, document, event store, cache, blob), and whether contexts share a store or each own their own. Tie this back to the aggregates in `domain-model.md`.
 3. **Communication & integration between contexts** — for each relationship in the context map, synchronous (REST/gRPC) vs asynchronous (messaging/events), the API style, and where an anticorruption layer or published language the map already calls for lands in the architecture. Integration decisions must respect the context-map relationships, not contradict them.
@@ -60,4 +63,4 @@ Do not auto-record — but unlike a hotspot *offer*, here recording the decision
 
 ## When you are done
 
-Summarize what the foundation now says — the stack, the integration posture, the testing stance, and the cross-cutting rules — and list the ADRs recorded and the `architecture/<topic>.md` summaries now in place. Point the human at `/task-append` and `/task-refine` next: every task from here is checked against these guidelines. Do not run them — hand back control.
+Summarize what the foundation now says — the stack, the integration posture, the testing stance, and the cross-cutting rules — and list the ADRs recorded and the `architecture/<topic>.md` summaries now in place. Account for every hotspot the agenda opened with: which were resolved (and their ADRs), which the human parked (and why), and which were reclassified as non-architectural. Point the human at `/task-append` and `/task-refine` next: every task from here is checked against these guidelines. Do not run them — hand back control.
