@@ -1,11 +1,11 @@
 ---
 name: architecture-foundation
 description: >
-  Facilitate a Socratic session that defines a project's architectural foundation — the boundaries and guidelines every later task is built against — once vision.md, domain-model.md, and context-map.md exist. Opens the agenda with the domain model's still-open hotspots — the last gate where each must be resolved, explicitly parked, or reclassified before the build phase — then works general → specific: tech stack (languages/frameworks/runtimes), persistence/data stores, then communication & integration between contexts, testing principles, and cross-cutting concerns (error handling, observability, security, configuration, versioning, deployment). Seeds an agenda with the architecture-proposer subagent, then decides each item Socratically and records it as an ADR — which keeps the crisp per-topic summaries under architecture/ in sync. Where a decision is bound to a specific artifact, environment, or bounded context, makes that explicit. The phase between /context-mapping and /task-append in the domain-driven workflow.
+  Facilitate a Socratic session that defines a project's architectural foundation — the boundaries and guidelines every later task is built against — once vision.md, domain-model.md, and context-map.md exist. Opens the agenda with the domain model's still-open hotspots — the last gate where each must be resolved, explicitly parked, or reclassified before the build phase — then works general → specific: tech stack (languages/frameworks/runtimes), persistence/data stores, then communication & integration between contexts, testing principles, and cross-cutting concerns (error handling, observability, security, configuration, versioning, deployment). Seeds an agenda with the architecture-proposer subagent, then decides each item Socratically and records it as an ADR — which keeps the crisp per-topic summaries under architecture/ in sync. Where a decision is bound to a specific artifact, environment, or bounded context, makes that explicit. Closes a first run by proposing a walking-skeleton task — one thin vertical slice that exercises the freshly decided stack, persistence, and one cross-context integration end-to-end, so wrong decisions surface while superseding them is cheap. Re-entrant: with ADRs but no landed code it extends the foundation; once implementation has landed it runs in revision mode — reading the architecturally-deviated tasks' closing records and superseding the decisions reality contradicted. The phase between /context-mapping and /task-append in the domain-driven workflow.
 disable-model-invocation: true
-argument-hint: "(no argument — starts or resumes the architecture-foundation session)"
+argument-hint: "(no argument — starts, extends, or revises the architecture foundation)"
 model: opus
-allowed-tools: Read, Write, Edit, Glob, Agent, Skill, Bash(mkdir -p architecture)
+allowed-tools: Read, Write, Edit, Glob, Agent, Skill, Bash(mkdir -p architecture), Bash(bash */skills/task-status/tasks.sh *)
 ---
 
 # Architecture Foundation
@@ -30,7 +30,7 @@ Spawn the **architecture-proposer** subagent (`subagent_type: architecture-propo
 
 If the proposer reports hotspots an existing ADR already settles, tick those off in `domain-model.md` now (annotate the entry with the ADR number) — they need no session time.
 
-If ADRs already exist under `<architecture-home>/decisions/`, read `<architecture-home>/decisions.md` first and treat this run as **extending** the foundation — do not re-litigate settled decisions; pick up the open ones.
+If ADRs already exist under `<architecture-home>/decisions/`, read `<architecture-home>/decisions.md` first. Then check whether implementation has landed: run `bash <skills-root>/task-status/tasks.sh by-status done`. If nothing is `done` yet, treat this run as **extending** the foundation — no code has tested the settled decisions, so do not re-litigate them; pick up the open ones. If tasks have landed, follow **Revision mode** below instead — settled decisions that shipped code has since stressed are exactly the ones worth revisiting, and refusing to re-litigate them would defeat the point of the run.
 
 ## Step 2 — Decide it Socratically, general → specific
 
@@ -61,6 +61,21 @@ The moment a decision is settled (while the reasoning is fresh), record it via `
 
 Do not auto-record — but unlike a hotspot *offer*, here recording the decision **is** the point of the phase: once the human confirms a decision, record it.
 
-## When you are done
+## Revision mode (when ADRs and landed tasks both exist)
 
-Summarize what the foundation now says — the stack, the integration posture, the testing stance, and the cross-cutting rules — and list the ADRs recorded and the `architecture/<topic>.md` summaries now in place. Account for every hotspot the agenda opened with: which were resolved (and their ADRs), which the human parked (and why), and which were reclassified as non-architectural. Point the human at `/task-append` and `/task-refine` next: every task from here is checked against these guidelines. Do not run them — hand back control.
+The foundation's decisions are hypotheses until code exercises them — this mode is where the evidence gets its hearing. Do not re-run the whole agenda; work diff-oriented from what implementation taught:
+
+1. **Ask what prompted the revision.** The human usually has a specific itch — a stack choice that fights every task, an integration style the contexts keep working around. Anchor the session there.
+2. **Load the drift worklist.** Run `bash <skills-root>/task-status/tasks.sh deviated` — the `done` tasks whose shipped code departed from their spec (flagged by `/task-cycle`). For each listed id, `tasks.sh get <id>` gives the file path; read **only** that task's `## Closing` section (its `### Deviations from plan` record). This is the workflow's one sanctioned body read: a bounded, id-listed worklist, never a corpus scan. For each deviation, ask whether it implicates an **architectural decision** — the stack, a persistence choice, an integration style, the testing stance, a cross-cutting rule — or the domain model / context map, or nothing foundational at all.
+3. **Re-decide what reality contradicted.** For each implicated decision, run it through Step 2's Socratic treatment with the evidence on the table. A reversal is recorded as a **superseding ADR** via `Skill(adr)` (naming the ADR it supersedes and the evidence that forced it) — never by editing the old record. The `architecture-summarizer` keeps the topic summaries current as usual. Decisions the evidence *confirms* need no new ADR — say so and move on.
+4. **Drain the worklist.** When a deviated task's lesson is architectural and has been folded in (superseded or confirmed), clear its flag — edit its frontmatter `deviated: true → false`. If the deviation also implicates the domain model or context map, **leave the flag set** and say so: a `/domain-model` or `/context-mapping` revision is its remaining consumer.
+
+Extending and revising compose: after the evidence pass, the human may open genuinely new topics (Step 2) as in any run.
+
+## When you are done — and the walking skeleton
+
+Summarize what the foundation now says — the stack, the integration posture, the testing stance, and the cross-cutting rules — and list the ADRs recorded and the `architecture/<topic>.md` summaries now in place. Account for every hotspot the agenda opened with: which were resolved (and their ADRs), which the human parked (and why), and which were reclassified as non-architectural.
+
+**Then propose the walking skeleton.** Every decision just recorded is untested until code exercises it, and the natural backlog rarely does so early — domain-driven prioritization can keep the first dozen tasks inside one context, leaving the integration and persistence ADRs unvalidated until reversing them is expensive. So on a first run (and on any run where the backlog holds no `done` task that already exercises the foundation end-to-end), propose **one first vertical-slice task**: a deliberately thin end-to-end path — trivial domain behavior is fine — that touches each artifact's stack, at least one persistence decision, one relationship from the context map (the integration style *and* any ACL/published language it calls for), and the deploy/test topology. Frame it explicitly as *validating the ADRs recorded today while superseding them is still cheap*, and name the specific ADRs it exercises. On the human's approval, hand it to `Skill(task-append)` with that framing (one call; `/task-refine` will size and wire it) — do not mint ids or write task files yourself. If the human declines, note that `/whats-next` will re-surface the gap.
+
+Point the human at `/task-append` and `/task-refine` next: every task from here is checked against these guidelines. After a **revision**, also name any deviated tasks whose flags you left set for a `/domain-model` or `/context-mapping` revision. Do not run anything further — hand back control.

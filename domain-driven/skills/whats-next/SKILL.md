@@ -1,7 +1,7 @@
 ---
 name: whats-next
 description: >
-  Assess the project's vision, domain model, and context map against the current backlog state, surface the coverage gaps, and propose a prioritized list of next tasks to work on. Reads the domain artifacts directly and the backlog through the tasks.sh helper (frontmatter only — never scanning task bodies). Advisory: it proposes tasks and, on approval, hands each to /task-append as a draft — it never mints ids, wires dependencies, or refines (that is /task-append and /task-refine). The forward-looking companion to the read-only /task-status board.
+  Assess the project's vision, domain model, and context map against the current backlog state, surface the coverage gaps, and propose a prioritized list of next tasks to work on. Reads the domain artifacts directly and the backlog through the tasks.sh helper (frontmatter only — never scanning task bodies). Gaps include an unvalidated architecture foundation (ADRs recorded but no landed task exercises them end-to-end — proposes a walking-skeleton vertical slice first) and drift (deviated tasks routed to a /domain-model, /context-mapping, or /architecture-foundation revision). Advisory: it proposes tasks and, on approval, hands each to /task-append as a draft — it never mints ids, wires dependencies, or refines (that is /task-append and /task-refine). The forward-looking companion to the read-only /task-status board.
 argument-hint: "[<context>]   (optional — scope the assessment to one bounded context)"
 model: opus
 allowed-tools: Read, Glob, Bash(bash */skills/task-status/tasks.sh *), Skill
@@ -59,12 +59,13 @@ Cross the target against the state. Look for:
 - **Unrepresented vision outcomes.** An outcome the vision names that nothing in the backlog moves toward.
 - **Blocking hotspots.** A hotspot that is still unresolved *and* unrecorded (no ADR, no task) and that gates real work — flag it as a decision to make (offer `/adr`, or a spike task) rather than burying it in an implementation task.
 - **Foundation ordering.** Which gaps are *roots* — prerequisites that unblock the most downstream work — versus leaves. Use the context relationships: an upstream context in a customer/supplier or published-language relationship generally needs its contract to exist before the downstream context can build against it.
+- **Unvalidated foundation — missing walking skeleton.** Architecture ADRs exist but nothing landed has exercised them end-to-end: no task is `done` yet, or the `done` tasks all sit in one bounded context while the map records cross-context relationships. Every stack, persistence, and integration decision is then still a hypothesis, and each further task built on it raises the cost of superseding it. When this holds, the top proposal is a **walking-skeleton task**: one deliberately thin vertical slice (trivial domain behavior is fine) touching the stack, one persistence choice, and one context-map relationship end-to-end — homed in the relationship's upstream context — framed as validating the named ADRs while reversal is cheap. This outranks domain-coverage gaps: it de-risks everything built after it.
 - **Model drift.** The signals that the domain artifacts themselves have gone stale against reality — a first-class gap, not a footnote:
   - an **accumulating drift worklist** (the `deviated` ids above): each is a task whose shipped code departed from its spec, and nobody has yet asked whether the model was the thing that was wrong;
   - a live task whose `context` slug names no context in the current map (a dangling reference a past boundary change left behind);
   - repeated friction fitting suggestions to the map — if several gaps you found have no natural home context, the boundaries may be wrong, not the backlog.
 
-  You read the drift signals but never act on them: the `deviated` flags are cleared only by a `/domain-model` or `/context-mapping` revision (their consumer), and a mis-slugged task is `/task-refine`'s to re-home. **When drift dominates the gap list, the honest top recommendation is a revision run — `/domain-model` or `/context-mapping` — not more tasks appended onto a stale model.**
+  You read the drift signals but never act on them: the `deviated` flags are cleared only by a revision run (`/domain-model`, `/context-mapping`, or `/architecture-foundation` — their consumers), and a mis-slugged task is `/task-refine`'s to re-home. Frontmatter can't tell you *what* a deviation was about, but it carries a routing hint: deviated tasks with a non-empty `related_adrs` likely stressed an **architectural** decision (stack, persistence, integration friction) and point at an `/architecture-foundation` revision; the rest point at the model. **When drift dominates the gap list, the honest top recommendation is a revision run — `/domain-model`, `/context-mapping`, or `/architecture-foundation` per the hint — not more tasks appended onto a stale model.**
 
 ## Step 4 — Propose the next tasks (prioritized, short)
 
@@ -83,4 +84,4 @@ Ask the human which suggestions to capture. For each one they approve, invoke `S
 
 ## When you are done
 
-Close by pointing at the next move: `/task-refine` to turn any freshly captured drafts into ready `todo`s, or `/task-cycle` if the backlog already has ready work. If the sharpest gap is really an undecided hotspot, point at `/adr` (or a return to `/domain-model`) instead; if it is model drift, point at a `/domain-model` or `/context-mapping` revision. Hand back control.
+Close by pointing at the next move: `/task-refine` to turn any freshly captured drafts into ready `todo`s, or `/task-cycle` if the backlog already has ready work. If the sharpest gap is really an undecided hotspot, point at `/adr` (or a return to `/domain-model`) instead; if it is drift, point at the revision the signals indicate — `/domain-model` or `/context-mapping` for model drift, `/architecture-foundation` for architectural drift. Hand back control.
