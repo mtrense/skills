@@ -31,6 +31,12 @@ flowchart LR
 
 Uses **`common`**'s `/adr` (record decisions) and `/commit` (the single commit point). **The `common` workflow must be installed alongside `domain-driven`.**
 
+### No tactical-design phase, by decision
+
+Strategic modeling stops at the context map. There is deliberately **no tactical-design phase** between `/context-mapping` and `/task-refine` — no up-front pass detailing each context's aggregate internals, invariants, entity/value-object breakdown, or event contracts. That detail is decided **just-in-time**, per task: `/task-refine`'s domain-compliance interview (via `task-analyzer`) checks the task against its context's ubiquitous language and relationships and pins down the invariants and interfaces *that task* touches, and `/task-cycle`'s TDD loop settles the rest in code. Anything that outlives the task — a cross-cutting event contract, a boundary-shaping invariant — becomes an ADR or a hotspot, and reaches the model through the revision loop below.
+
+The tax of a full tactical pass up front is paid on detail that the first implementations invalidate; the pipeline's answer to that risk is the walking skeleton plus `deviated`-driven revision, not more modeling before code. If a project genuinely needs a designed-up-front aggregate — a hairy invariant several tasks depend on — the escape hatch is an ADR (via `/adr`) or a hotspot in `domain-model.md`, not a new phase.
+
 ## Model evolution: the loop back
 
 The strategic artifacts — the domain model, the context map, *and the architecture foundation* — are hypotheses until code tests them, so the pipeline is a loop, not a line. The feedback channel is the **`deviated` marker** — a worklist flag with one producer and one family of consumers:
