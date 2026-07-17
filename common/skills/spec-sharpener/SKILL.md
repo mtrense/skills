@@ -16,10 +16,7 @@ argument-hint: "[spec doc(s) to assess — path/glob; omit to assess all reasona
 Turn a fuzzy early-stage specification into one that a competent engineer could
 implement without having to guess. This is an **interview-and-edit** workflow,
 not a report generator. The deliverable is the sharpened documents themselves.
-This skill runs **before** implementation — nothing is expensive to reverse yet
-— so no resolution warrants an Architecture Decision Record: the spec edit *is*
-the durable record, and this skill never writes ADRs. (Recording ADRs during
-the build is the milestone-driven skills' job.)
+This skill runs **before** implementation and never writes ADRs: for everything it resolves, the spec edit *is* the durable record. Recording ADRs is the build workflow's job — and depending on the workflow the log may already exist when this skill runs (domain-driven records ADRs before any code lands); an existing log is strictly read-only input here (see *Relationship to the decision log*).
 
 ## Architecture: keep the main session lean
 
@@ -83,9 +80,7 @@ remains.
 - **Sharpen, don't plan.** This skill clarifies *what the system is* — it never
   plans *how or in what order it gets built*. Don't iterate over milestones,
   propose a sequencing, or ask what a reasonable first increment would be.
-  Prioritization and phasing come later, in `/strategic-planning` and
-  `/milestone-breakdown`. A scope question here is only ever *"is this part of
-  the spec?"*, never *"what do we build first?"*.
+  Prioritization and phasing come later, in the build workflow's planning skills (`/strategic-planning` + `/milestone-breakdown` in milestone-driven; `/task-append` → `/task-refine`, steered by `/whats-next`, in domain-driven). A scope question here is only ever *"is this part of the spec?"*, never *"what do we build first?"*.
 - **Flag everything, but in priority order.** The bar for flagging is low (down
   to wording and style), but the order is strict: things that *block* a build
   come before things that would *fork* a build, which come before clarity, which
@@ -104,6 +99,8 @@ several. It is **optional**:
   it flags findings only within the named docs).
 - **Omitted:** the default — the surveyor discovers and assesses every reasonable
   specification document itself (its normal behaviour).
+
+**Skill-owned build artifacts are out of scope regardless of how the scope was given.** In a project using the domain-driven workflow, `domain-model.md`, `context-map.md`, `bounded-contexts/`, and the `tasks/` backlog are derived, skill-owned artifacts, not input spec: the modeling skills own them through their re-entrant revision modes, whose side effects (a context rename ripples through the backlog; a reshaped aggregate cluster invalidates the map) a raw text edit would silently skip — and that workflow's scaling law forbids scanning the `tasks/` corpus at all. The natural sharpening target there is `vision.md` plus any other human-authored input docs. The surveyor already treats these artifacts as read-only model context and tags findings about them for routing (see Step 4); if the user explicitly names one in `$ARGUMENTS`, say why it's excluded and offer the owning skill instead.
 
 For a **large or unfamiliar repo** where you can't tell up front what counts as
 "the spec", don't guess and don't page the whole tree into your own context:
@@ -162,6 +159,7 @@ Adapt the mode to the kind of finding:
 - **Internal contradiction:** show both conflicting statements and ask which one
   wins (or whether both are partly right).
 - **Pure wording/clarity:** propose a precise rewrite for a yes/no.
+- **Routed finding** (the surveyor tagged it with a `Route:` — it contradicts an `Accepted` ADR, or lives in a skill-owned artifact): the interview still happens here — present it and settle the direction with the user — but the resolution is **handed off, not encoded**. A spec-vs-ADR contradiction where the user upholds the ADR is a normal encode (fix the spec text to match); where the user overturns it, the hand-off is a superseding ADR (`/adr`, or an `/architecture-foundation` revision when it's foundational), and the spec edit lands only after the supersession is recorded. A finding about `domain-model.md` / `context-map.md` / `bounded-contexts/` goes to the owning skill's revision mode (`/domain-model` or `/context-mapping`). Note the hand-off in your wrap-up so the next run knows it's pending, not forgotten.
 
 Then **keep going until there is genuine shared understanding.** If the user is
 unsure, refine the options, ask a narrowing question, or surface a consideration
@@ -199,19 +197,9 @@ nature of what's left.
 
 ## Relationship to the decision log
 
-This skill **never writes** to the project's decision log (the architecture home,
-`architecture/` by default, or the `architecture-path:` directory set in `CLAUDE.md`). It
-runs pre-implementation,
-where every resolution is cheap to change and the sharpened spec text is the
-durable record. ADRs enter a project's life later, when the milestone-driven
-skills (`/project-inception`, `/strategic-planning`, `/milestone-breakdown`)
-make decisions that split the architecture or foreclose expensive-to-reverse
-alternatives.
+This skill **never writes** to the project's decision log (the architecture home, `architecture/` by default, or the `architecture-path:` directory set in `CLAUDE.md`). Its resolutions are cheap-to-change spec text, and the sharpened spec is their durable record. When ADRs enter the project's life depends on the build workflow: milestone-driven records them during planning and build (`/project-inception`, `/strategic-planning`, `/milestone-breakdown`), while domain-driven records them **before any code exists** (`/domain-model` hotspots, `/architecture-foundation`) — so "pre-implementation" does not imply the log is empty when this skill runs.
 
-An **existing** decision log is respected as read-only input: the
-`spec-surveyor` reads it to drop findings already settled by `Accepted`
-decisions, and flags (rather than re-litigates) any new contradiction between
-the spec and a settled decision.
+An **existing** decision log is respected as read-only input: the `spec-surveyor` reads it to drop findings already settled by `Accepted` decisions. A genuine **new contradiction** between the spec and a settled decision is surfaced in the interview but never silently encoded over — it takes the routed path in Step 4: uphold the ADR (fix the spec text to match, a normal encode) or overturn it via a superseding ADR recorded by `/adr` / an `/architecture-foundation` revision, with the spec edit landing only afterwards.
 
 ## Re-running
 
@@ -242,9 +230,10 @@ leave.
   considered". If a resolution's rationale is genuinely worth keeping, give it
   a sentence in the spec itself.
 - **Don't plan or prioritize.** No milestones, no sequencing, no MVP-vs-later,
-  no "what's a reasonable first increment." That's the job of
-  `/strategic-planning` and `/milestone-breakdown`, later. If the interview
+  no "what's a reasonable first increment." That's the job of the build
+  workflow's planning skills, later. If the interview
   starts drifting into build order, pull it back to what the spec *says*.
+- **Don't edit skill-owned build artifacts.** `domain-model.md`, `context-map.md`, `bounded-contexts/`, and the `tasks/` backlog belong to the domain-driven skills' re-entrant revision modes, which carry side effects (backlog ripple, map hand-off) a raw edit skips. Route findings about them (Step 4); never dispatch the encoder at them.
 - **Don't fabricate requirements.** Silence in the spec is a question for the
   user, not a license to decide for them.
 - **Don't re-open settled decisions** without cause.

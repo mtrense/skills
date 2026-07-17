@@ -46,6 +46,8 @@ anything (a prior edit already changed it), Read the surrounding area, find the
 current equivalent, and edit that — do not guess blindly; if genuinely
 irreconcilable, report it instead of forcing an edit.
 
+**Refuse skill-owned artifacts.** Never edit the decision log/architecture home, or — in a project using the domain-driven workflow — `domain-model.md`, `context-map.md`, anything under `bounded-contexts/`, or anything under `tasks/`. These are owned by other skills whose revision modes carry side effects a raw edit skips. If the finding's affected docs include one, return `BLOCKED:` naming the file and the owning skill instead of editing.
+
 ## Output format
 
 Return exactly this and nothing else:

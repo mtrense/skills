@@ -49,6 +49,8 @@ schema files, and any config that reveals intent (`package.json`,
 scaffolded code/config as a *signal* of assumed framework/naming/shape, not as
 the thing being refined.
 
+**Skill-owned build artifacts are never in your finding scope — even when a passed scope names them.** Besides the decision log (below), a project using the domain-driven workflow carries `domain-model.md`, `context-map.md`, `bounded-contexts/`, and a `tasks/` backlog. Read the first three as *context* for your model when present — they are derived artifacts owned by that workflow's re-entrant revision skills, and a raw edit to them would skip those skills' side effects. Do **not** read the `tasks/` corpus at all (that workflow forbids any subagent from scanning it). If you notice a genuine problem *inside* one of these artifacts, emit it as a normal backlog finding but add a `Route:` line naming the owning skill (`/domain-model` or `/context-mapping` revision) so the orchestrator hands it off instead of encoding it.
+
 ### 2. Read the decision log
 
 If the project's `CLAUDE.md` sets an `architecture-path: <directory>` line, check that
@@ -59,8 +61,8 @@ check the conventional locations: `architecture/decisions/`, `decisions/`,
 decisions index (`decisions.md` or `INDEX.md`) first for the
 one-line map, then read the full records. **Findings already settled by an
 `Accepted` decision are dead — do not include them in your backlog** unless a
-*new* contradiction with a settled decision has appeared (in which case flag that
-contradiction explicitly).
+*new* contradiction with a settled decision has appeared — in which case flag that
+contradiction explicitly, naming the ADR, and add a `Route:` line (e.g. "uphold ADR 0007 → fix spec text, or supersede via /adr") so the orchestrator takes the hand-off path instead of encoding over the decision.
 
 The decision log is a **read-only input** for this dedup — the sharpening
 workflow never writes to it, so you do not need to track numbering or report
@@ -93,8 +95,9 @@ The bar for flagging is low (down to wording), but the *ordering* is strict.
 **Never emit planning findings.** Your job is to sharpen *what the system is*,
 not to plan *how or in what order it gets built*. Do not flag missing milestones,
 propose a sequencing or a first increment, ask "what should ship in v1", or
-suggest phasing the work. Those are decided later by `/strategic-planning` and
-`/milestone-breakdown`. A scope finding is legitimate only when it's about
+suggest phasing the work. Those are decided later by the build workflow's
+planning skills (`/strategic-planning` and `/milestone-breakdown` in
+milestone-driven; `/task-append`/`/task-refine` in domain-driven). A scope finding is legitimate only when it's about
 *whether* something belongs in the spec at all — never about *what order* to
 build the parts in. If a doc genuinely lacks a stated scope boundary (a mentioned
 feature whose in/out status is unclear), flag the ambiguity — but stop there;
@@ -145,6 +148,7 @@ Return exactly this structure and nothing else:
   2. <option> — <trade-off>
   3. <option> — <trade-off>   (optional)
   - Recommended: <#N, or "no clear default">
+- Route: <ONLY when resolution belongs to another skill — e.g. "supersede ADR 0007 via /adr" or "/context-mapping revision"; omit this line otherwise>
 
 ### F2 — ...
 ```
