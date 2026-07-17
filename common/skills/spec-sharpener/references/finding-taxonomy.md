@@ -104,7 +104,33 @@ Prioritize findings in this order when deciding what to surface first:
 - Treat the spec as the artifact to fix, but flag the mismatch so the user
   decides which one is right.
 
-## 15. Wording & style
+## 15. Exemplars (concrete sample artifacts)
+
+Applies when the project keeps an `exemplars/` directory (sample configs,
+datasets, payloads, transcripts — each with a `NOTES.md` carrying
+`status: illustrative | normative`). Exemplars are spec stated in bytes, which
+makes them the sharpest contradiction detectors in the corpus:
+
+- **Placeholder rot** — `TODO`, `<your-value-here>`, `changeme`, suspiciously
+  generic values in a field the exemplar exists to pin: the value was never
+  actually decided.
+- A field, key, or value **no spec claim, ADR, or ubiquitous-language term
+  sanctions** — either the exemplar is wrong or the spec has a silent gap.
+- A **`normative` exemplar contradicting** prose spec or an `Accepted` ADR —
+  tasks bind to normative exemplars, so this is blocker-grade; route it, never
+  encode over it.
+- **Exemplar vs. exemplar disagreement** — two samples encoding incompatible
+  answers to the same question (same field, different type/name/unit).
+- Field names using a term **differently than the owning bounded context's
+  ubiquitous language** defines it.
+- A **spec claim with no exemplar** where one is clearly warranted (a config
+  format described only in prose, a wire contract with no sample payload) —
+  flag the gap; creating the exemplar belongs to `/exemplar`, not the encoder.
+- An exemplar's `NOTES.md` **"Deliberately left open" list drifting** — a value
+  listed as non-binding that prose elsewhere treats as a commitment, or vice
+  versa.
+
+## 16. Wording & style
 - Inconsistent heading levels, structure, or document organization.
 - RFC-2119 keyword discipline: are MUST / SHOULD / MAY used deliberately, or are
   requirements buried in soft prose ("we'd like to maybe")?

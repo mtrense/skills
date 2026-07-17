@@ -27,7 +27,8 @@ flowchart LR
 6. **`/task-refine`** — turns a `draft` into a ready `todo`: assesses completeness, **domain-compliance**, and size (delegated to the `task-analyzer` subagent); interviews the human; **splits** oversized tasks; wires **dependencies**; surfaces decisions and attaches ADRs.
 7. **`/task-cycle`** — drives ready `todo` tasks to `done` via `task-worker` subagents (strict TDD → verify → commit). `all@1` works in-place sequentially; `@N` implements in parallel git worktrees and merges back sequentially via the `integrator` subagent (bounce-on-conflict). When a landed task's *Deviations from plan* record is non-trivial, sets `deviated: true` in its frontmatter — producing the drift worklist the revision runs consume.
 8. **`/task-status`** — read-only backlog board (the human front end to `tasks.sh`).
-9. **`/whats-next`** — the forward-looking companion to `/task-status`: assesses `vision.md`, `domain-model.md`, and `context-map.md` against the backlog state (read through `tasks.sh`, frontmatter only), surfaces coverage gaps (uncovered aggregates, thin contexts, unrepresented vision outcomes, blocking hotspots, an **unvalidated foundation** — architecture ADRs recorded but no landed task exercises them end-to-end, in which case a walking-skeleton vertical slice is the top proposal — and **drift** — an accumulating `deviated` worklist, dangling context slugs, suggestions that fit no context), and proposes a prioritized list of next tasks. When drift dominates, its top recommendation is a revision run rather than more tasks onto a stale model — `/domain-model` or `/context-mapping` for model drift, `/architecture-foundation` when the deviated tasks' `related_adrs` hint the friction is architectural. **Advisory** — it hands approved suggestions to `/task-append` and mints/wires/refines nothing itself; it reads the drift flags but never clears them.
+9. **`/exemplar`** — out-of-band, invocable at any point after `/grounding` (the analog of `/adr`): brainstorms one **exemplar** — a concrete sample artifact (config file, dataset, payload, event, CLI transcript) that pins a piece of the spec down in bytes. Seeded by the `exemplar-drafter` subagent with a fully filled-in strawman (every value chosen, each tagged *grounded* — with its source — or *invented* — an open question), refined Socratically one invented value at a time, and written to `exemplars/<slug>/` as `illustrative`. Also invoked by `/architecture-foundation` when the human accepts its "pin this decision with an exemplar?" offer. Promotion to `normative` belongs to `/spec-sharpener` (see *Exemplars* below).
+10. **`/whats-next`** — the forward-looking companion to `/task-status`: assesses `vision.md`, `domain-model.md`, and `context-map.md` against the backlog state (read through `tasks.sh`, frontmatter only), surfaces coverage gaps (uncovered aggregates, thin contexts, unrepresented vision outcomes, blocking hotspots, an **unvalidated foundation** — architecture ADRs recorded but no landed task exercises them end-to-end, in which case a walking-skeleton vertical slice is the top proposal — and **drift** — an accumulating `deviated` worklist, dangling context slugs, suggestions that fit no context), and proposes a prioritized list of next tasks. When drift dominates, its top recommendation is a revision run rather than more tasks onto a stale model — `/domain-model` or `/context-mapping` for model drift, `/architecture-foundation` when the deviated tasks' `related_adrs` hint the friction is architectural. **Advisory** — it hands approved suggestions to `/task-append` and mints/wires/refines nothing itself; it reads the drift flags but never clears them.
 
 Uses **`common`**'s `/adr` (record decisions) and `/commit` (the single commit point). **The `common` workflow must be installed alongside `domain-driven`.**
 
@@ -49,6 +50,17 @@ Revisions stay human-invoked Socratic sessions — `/whats-next` only recommends
 
 The loop also has a feed-forward half: validation needs evidence, and the natural backlog can go a dozen tasks without exercising a single cross-context integration. The **walking skeleton** provides it — `/architecture-foundation` closes a first run by proposing one thin end-to-end slice through the freshly decided stack, persistence, and one context-map relationship, and `/whats-next` re-surfaces the gap (foundation ADRs present, nothing landed spans the map) until such a task lands. Wrong decisions thus meet reality while superseding them is cheap, and a later foundation revision has something real to chew on.
 
+## Exemplars: the data twin of an ADR
+
+An ADR records a decision in prose; an **exemplar** shows it in bytes — a sample config, dataset, payload, or transcript under `exemplars/<slug>/` (the artifact in its native format plus a `NOTES.md` whose frontmatter carries the metadata of record), indexed one line per exemplar in `exemplars/exemplars.md`. The linking is one-way — `NOTES.md`'s `related_adrs` points at the decisions the exemplar makes concrete; ADRs are never edited to point back.
+
+One distinction carries the whole lifecycle: **`illustrative`** (a strawman that exists to be argued with; nothing binds to it) vs **`normative`** (binding — tasks cite it in acceptance criteria, `task-worker` lifts it as a first test fixture, and contradicting it is a spec bug).
+
+- **Brainstorm** — `/exemplar`, either invoked directly or offered by `/architecture-foundation` after a decision with a natural data shape (configuration, integration payload, persistence record) lands as an ADR. Always born `illustrative`.
+- **Sharpen & promote** — `/spec-sharpener` (from `common`) treats `exemplars/` as a first-class sharpening target: its taxonomy has an exemplar category (placeholder rot, unsanctioned fields, exemplar-vs-exemplar disagreement, ubiquitous-language mismatches), and an `illustrative` exemplar that survives a sweep clean is **promoted to `normative`** there — the only promotion path.
+- **Consume** — `task-analyzer` reports the exemplars bearing on a draft; `/task-refine` adds bearing normative exemplars to `related_documents` and phrases acceptance criteria against them.
+- **Drift** — when an `/architecture-foundation` revision supersedes a decision, the exemplars citing that ADR are updated in the same pass; `/whats-next` flags normative exemplars nothing implements and illustrative ones lingering unpromoted.
+
 ## Files in the target project
 
 ```
@@ -62,6 +74,11 @@ architecture/                 # architecture home (shared convention with common
   decisions/
     NNNN-title.md             # full ADRs
   <topic>.md                  # crisp per-topic guideline summaries (tech-stack, testing, …), derived from the ADRs by /architecture-foundation + /adr
+exemplars/                    # /exemplar (+ promotion by common's /spec-sharpener)
+  exemplars.md                # index: one line per exemplar (slug, status, what it pins, links)
+  <slug>/
+    <artifact>                # the sample in its native format (.yaml/.json/.csv/…)
+    NOTES.md                  # frontmatter of record: status (illustrative|normative), contexts, related_adrs
 tasks/
   NNNN-slug.md                # one task per file; frontmatter is the query index
 ```
@@ -131,7 +148,8 @@ Read-only proposal scouts (`Read, Glob, Grep`; write nothing, decide nothing):
 - **`domain-seed-extractor`** — first-pass EventStorm from `vision.md`.
 - **`boundary-proposer`** — first-pass context map + relationships from the model.
 - **`architecture-proposer`** — first-pass architecture agenda (open hotspots first, then tech stack, persistence, integration, testing, cross-cutting) from vision + domain model + context map, for `/architecture-foundation`.
-- **`task-analyzer`** — refine assessment (completeness, domain-compliance, size, deps, decisions/ADRs) for one task.
+- **`task-analyzer`** — refine assessment (completeness, domain-compliance, size, deps, decisions/ADRs, bearing exemplars) for one task.
+- **`exemplar-drafter`** — first-pass concrete exemplar (every value filled in, tagged grounded-with-source or invented-as-open-question) from the intent + strategic artifacts, for `/exemplar`.
 
 Write-side workers:
 - **`task-worker`** — TDD-implements one task and commits it (`Read, Edit, Write, Glob, Grep, Bash, Skill`).

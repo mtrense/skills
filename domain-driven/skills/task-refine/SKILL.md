@@ -28,6 +28,7 @@ Spawn the **task-analyzer** subagent (`subagent_type: task-analyzer`) with the t
 - **Interfaces** — the interface surfaces the task touches or must introduce (HTTP/REST endpoints, gRPC services, message topics/event schemas, and in-process contracts: interfaces, traits, protocols), each tagged as *defined* (new/changed) or *consumed* (existing).
 - **Implementation plan** — a proposed ordered sequence of steps and the concrete files to be touched (existing vs new), scouted from the codebase.
 - **Decisions** — choices the human must make, and which existing ADRs (from the index) already bear on this task.
+- **Exemplars** — the exemplars (from `exemplars/exemplars.md`, when the project keeps them) bearing on this task: `normative` ones the acceptance criteria should cite (and which make natural first test fixtures), `illustrative` ones as non-binding context, and any conflict between the task and a normative exemplar.
 
 The subagent reads the corpus so you don't — you receive only its report.
 
@@ -58,7 +59,7 @@ If the task can't land in one implementation pass, propose a split and get the h
 
 ## Step 5 — Decisions & ADRs
 
-For each genuine decision surfaced: if it is significant and expensive to reverse, **offer** to record it via `Skill(adr)` (never auto-create). For every ADR — newly recorded or pre-existing — that constrains the task, add its number to the task's `related_adrs` frontmatter so the implementer inherits it. Add any strategic docs the implementer needs (e.g. the context file) to `related_documents`.
+For each genuine decision surfaced: if it is significant and expensive to reverse, **offer** to record it via `Skill(adr)` (never auto-create). For every ADR — newly recorded or pre-existing — that constrains the task, add its number to the task's `related_adrs` frontmatter so the implementer inherits it. Add any strategic docs the implementer needs (e.g. the context file) to `related_documents` — including each bearing **`normative` exemplar's** directory (`exemplars/<slug>/`), so the implementer inherits the binding sample; where one applies, phrase an acceptance criterion against it concretely (e.g. *"parses `exemplars/pipeline-config/` without error"*) and note in the plan that it is the first test fixture. An `illustrative` exemplar may be *mentioned* in `## Notes` as shape guidance but never cited in acceptance criteria — if the task really needs it binding, the route is a `/spec-sharpener` promotion first, and a conflict between the task and a normative exemplar is resolved like an ADR conflict (fix the task, or sharpen/revise the exemplar) — never ignored.
 
 ## Step 6 — Finalize to `todo`
 

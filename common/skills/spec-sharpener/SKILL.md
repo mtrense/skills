@@ -102,6 +102,8 @@ several. It is **optional**:
 
 **Skill-owned build artifacts are out of scope regardless of how the scope was given.** In a project using the domain-driven workflow, `domain-model.md`, `context-map.md`, `bounded-contexts/`, and the `tasks/` backlog are derived, skill-owned artifacts, not input spec: the modeling skills own them through their re-entrant revision modes, whose side effects (a context rename ripples through the backlog; a reshaped aggregate cluster invalidates the map) a raw text edit would silently skip — and that workflow's scaling law forbids scanning the `tasks/` corpus at all. The natural sharpening target there is `vision.md` plus any other human-authored input docs. The surveyor already treats these artifacts as read-only model context and tags findings about them for routing (see Step 4); if the user explicitly names one in `$ARGUMENTS`, say why it's excluded and offer the owning skill instead.
 
+**Exemplars are the exception: skill-produced, but a sharpening target.** An `exemplars/` directory (concrete sample artifacts — configs, datasets, payloads — brainstormed via `/exemplar`, each with a `NOTES.md` carrying `status: illustrative | normative`) is spec stated in bytes, and this skill is its designated sharpener *and* its promotion gate: an `illustrative` exemplar that survives a sweep clean is promoted to `normative` here (Step 6), which is what lets tasks bind to it. Findings inside exemplars are normal encodable findings; only a `normative`-exemplar-vs-ADR contradiction takes the routed path like any other ADR conflict.
+
 For a **large or unfamiliar repo** where you can't tell up front what counts as
 "the spec", don't guess and don't page the whole tree into your own context:
 first dispatch a lightweight discovery agent (the read-only `Explore` agent) to
@@ -194,6 +196,18 @@ Move to the next highest-priority finding and repeat Step 4. Continue until the
 user wants to pause or the backlog is exhausted for this run. When you pause,
 give a one-line status: how many resolved this run, how many remain, and the
 nature of what's left.
+
+**Exemplar promotion (at wrap, when the project has `exemplars/`).** Collect the
+`illustrative` exemplars that are now finding-free: the ones the surveyor
+reported *promotion-ready*, plus any whose last open findings were resolved and
+encoded this run. Offer their promotion to the user as one batched question
+(never auto-promote). For each approved slug, dispatch the `decision-encoder` to
+flip `status: illustrative → normative` in that exemplar's `NOTES.md`
+frontmatter and mirror it in the `exemplars/exemplars.md` index line. Promotion
+is this skill's call alone — a freshly brainstormed exemplar is never born
+`normative` — and it is what authorizes tasks to bind to the exemplar as
+acceptance criteria and test fixtures. An exemplar that still carries findings
+the user chose to leave stays `illustrative`; say so.
 
 ## Relationship to the decision log
 

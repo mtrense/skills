@@ -49,6 +49,8 @@ schema files, and any config that reveals intent (`package.json`,
 scaffolded code/config as a *signal* of assumed framework/naming/shape, not as
 the thing being refined.
 
+**Exemplars are in scope.** If the project keeps an `exemplars/` directory (concrete sample artifacts — configs, datasets, payloads — each in a `<slug>/` dir with the sample plus a `NOTES.md` whose frontmatter carries `status: illustrative | normative`), read the `exemplars/exemplars.md` index and every exemplar, and sweep them like any other spec doc — the taxonomy has a dedicated category for them. They are spec stated in bytes, not skill-owned derivatives: findings in them are normal, encodable findings (except a `normative`-exemplar-vs-ADR contradiction, which takes the `Route:` path like any ADR conflict). Additionally, report each `illustrative` exemplar that your sweep finds **clean** (no findings) as *promotion-ready* in the decision-log-state section — the orchestrator offers the promotion to `normative` at wrap-up.
+
 **Skill-owned build artifacts are never in your finding scope — even when a passed scope names them.** Besides the decision log (below), a project using the domain-driven workflow carries `domain-model.md`, `context-map.md`, `bounded-contexts/`, and a `tasks/` backlog. Read the first three as *context* for your model when present — they are derived artifacts owned by that workflow's re-entrant revision skills, and a raw edit to them would skip those skills' side effects. Do **not** read the `tasks/` corpus at all (that workflow forbids any subagent from scanning it). If you notice a genuine problem *inside* one of these artifacts, emit it as a normal backlog finding but add a `Route:` line naming the owning skill (`/domain-model` or `/context-mapping` revision) so the orchestrator hands it off instead of encoding it.
 
 ### 2. Read the decision log
@@ -136,6 +138,7 @@ Return exactly this structure and nothing else:
 
 - Location: <path, or "none found">
 - Settled findings dropped from this backlog: <count + one-line note, or "none">
+- Promotion-ready exemplars: <slugs of clean `illustrative` exemplars, or "none" — omit the line when the project has no exemplars/>
 
 ## Backlog (prioritized, strongest first)
 
