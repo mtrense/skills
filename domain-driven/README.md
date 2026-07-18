@@ -11,6 +11,10 @@ flowchart LR
   ap -.-> rf -.-> wc
   ts["/whats-next"] -.suggests.-> ap
   af -.walking skeleton.-> ap
+  ds["/dossier"] -.facts.-> rf
+  dm -.factual hotspots.-> ds
+  af -.factual hotspots.-> ds
+  ts -.knowledge gaps.-> ds
   cm --> ts
   wc -.-> ts
   wc -.deviations.-> dm
@@ -28,7 +32,8 @@ flowchart LR
 7. **`/task-cycle`** — drives ready `todo` tasks to `done` via `task-worker` subagents (strict TDD → verify → commit). `all@1` works in-place sequentially; `@N` implements in parallel git worktrees and merges back sequentially via the `integrator` subagent (bounce-on-conflict). When a landed task's *Deviations from plan* record is non-trivial, sets `deviated: true` in its frontmatter — producing the drift worklist the revision runs consume.
 8. **`/task-status`** — read-only backlog board (the human front end to `tasks.sh`).
 9. **`/exemplar`** — out-of-band, invocable at any point after `/grounding` (the analog of `/adr`): brainstorms one **exemplar** — a concrete sample artifact (config file, dataset, payload, event, CLI transcript) that pins a piece of the spec down in bytes. Seeded by the `exemplar-drafter` subagent with a fully filled-in strawman (every value chosen, each tagged *grounded* — with its source — or *invented* — an open question), refined Socratically one invented value at a time, and written to `exemplars/<slug>/` as `illustrative`. Also invoked by `/architecture-foundation` when the human accepts its "pin this decision with an exemplar?" offer. Promotion to `normative` belongs to `/spec-sharpener` (see *Exemplars* below).
-10. **`/whats-next`** — the forward-looking companion to `/task-status`: assesses `vision.md`, `domain-model.md`, and `context-map.md` against the backlog state (read through `tasks.sh`, frontmatter only), surfaces coverage gaps (uncovered aggregates, thin contexts, unrepresented vision outcomes, blocking hotspots, an **unvalidated foundation** — architecture ADRs recorded but no landed task exercises them end-to-end, in which case a walking-skeleton vertical slice is the top proposal — and **drift** — an accumulating `deviated` worklist, dangling context slugs, suggestions that fit no context), and proposes a prioritized list of next tasks. When drift dominates, its top recommendation is a revision run rather than more tasks onto a stale model — `/domain-model` or `/context-mapping` for model drift, `/architecture-foundation` when the deviated tasks' `related_adrs` hint the friction is architectural. **Advisory** — it hands approved suggestions to `/task-append` and mints/wires/refines nothing itself; it reads the drift flags but never clears them.
+10. **`/dossier`** — out-of-band, invocable at any point after `/grounding` (the fact-side sibling of `/exemplar`): builds or extends a **dossier** — the project's fact file on one subject (what a regulation requires, what an undocumented API actually does), distilled into confidence-tagged, source-cited claims under `dossiers/<slug>.md`. Subject-keyed and **accreting**: entry vectors (an explicit question, a source to mine, a factual hotspot handed off by `/domain-model` or `/architecture-foundation`, a knowledge gap from `/whats-next`) all converge on the same subject file. Scoped by a human-confirmed **relevance frame** drawn from the vision, context map, and backlog frontmatter — the middle ground between answering inline and the full research workflow (whose KB, when present, it distills via lifted confidence rather than re-verifying). The sweep is delegated to the `dossier-scout` subagent (the only scout allowed on the web, and only when the confirmed source list sanctions it). Writes **no ADRs** — decisional unknowns the facts force are routed out to `/adr`, a hotspot, or the foundation agenda (see *Dossiers* below).
+11. **`/whats-next`** — the forward-looking companion to `/task-status`: assesses `vision.md`, `domain-model.md`, and `context-map.md` against the backlog state (read through `tasks.sh`, frontmatter only), surfaces coverage gaps (uncovered aggregates, thin contexts, unrepresented vision outcomes, blocking hotspots, an **unvalidated foundation** — architecture ADRs recorded but no landed task exercises them end-to-end, in which case a walking-skeleton vertical slice is the top proposal — **knowledge gaps** — fact-dependent territory no dossier covers, or dossiers with open unknowns / aging watermarks, routed to `/dossier` — and **drift** — an accumulating `deviated` worklist, dangling context slugs, suggestions that fit no context), and proposes a prioritized list of next tasks. When drift dominates, its top recommendation is a revision run rather than more tasks onto a stale model — `/domain-model` or `/context-mapping` for model drift, `/architecture-foundation` when the deviated tasks' `related_adrs` hint the friction is architectural. **Advisory** — it hands approved suggestions to `/task-append` and mints/wires/refines nothing itself; it reads the drift flags but never clears them.
 
 Uses **`common`**'s `/adr` (record decisions) and `/commit` (the single commit point). **The `common` workflow must be installed alongside `domain-driven`.**
 
@@ -61,6 +66,16 @@ One distinction carries the whole lifecycle: **`illustrative`** (a strawman that
 - **Consume** — `task-analyzer` reports the exemplars bearing on a draft; `/task-refine` adds bearing normative exemplars to `related_documents` and phrases acceptance criteria against them.
 - **Drift** — when an `/architecture-foundation` revision supersedes a decision, the exemplars citing that ADR are updated in the same pass; `/whats-next` flags normative exemplars nothing implements and illustrative ones lingering unpromoted.
 
+## Dossiers: the fact file
+
+An ADR records a *decision*, an exemplar shows it in *bytes* — a **dossier** records a *fact*: what is true about the world (a regulation's requirements, an undocumented API's observed behavior, a market's rules), independent of what the project chooses to do about it. One file per subject at `dossiers/<slug>.md`, indexed one line per dossier in `dossiers/dossiers.md`; the body is confidence-tagged, source-cited claims (`high`/`medium`/`low` per claim — there is no artifact-level status enum) plus a `## Coverage` statement, kept honest by an `## Open unknowns` edge split *factual* (the next pass's worklist) vs *decisional* (routed out — a dossier never encodes a choice).
+
+Two rules keep a dossier from inflating into a knowledge base: it is **demand-driven** — its frontmatter `frame` (the vision outcomes, contexts, and backlog territory it serves, confirmed by the human before any sweep) is the relevance filter, and a claim enters only if something in the frame would consume it — and it is **downstream of the research workflow**, not a rival: when a research KB exists, the dossier distills it (lifting the KB's CONFIDENCE levels forward, never re-verifying, never exceeding them); field sources (captures, PDFs, and frame-sanctioned web sweeps) fill in what no KB covers.
+
+- **Build / accrete** — `/dossier`, invoked with a subject, a question, or a source — or handed a *factual hotspot* by `/domain-model` or `/architecture-foundation` (the fourth hotspot exit: a hotspot that needs facts, not a decision, cannot be resolved Socratically). Re-invocation on an existing subject is an **accretion pass** with a merge discipline: new claims added, confirmations lift confidence, contradictions keep both positions on record — never a silent overwrite, since a landed task may have built on the old claim.
+- **Consume** — `task-analyzer` reports the claims bearing on a draft (flagging criteria that lean on `low`-confidence facts, and *under-researched* tasks no dossier covers); `/task-refine` attaches bearing dossiers to `related_documents` so `task-worker` inherits the facts.
+- **Re-surface** — `/whats-next` reads only the index (swept date + open-unknown count per line) and flags knowledge gaps, open unknowns, and aging watermarks — recommending a `/dossier` pass instead of tasks built on unchecked facts.
+
 ## Files in the target project
 
 ```
@@ -79,6 +94,9 @@ exemplars/                    # /exemplar (+ promotion by common's /spec-sharpen
   <slug>/
     <artifact>                # the sample in its native format (.yaml/.json/.csv/…)
     NOTES.md                  # frontmatter of record: status (illustrative|normative), contexts, related_adrs
+dossiers/                     # /dossier
+  dossiers.md                 # index: one line per dossier (slug, subject, contexts, swept date, open unknowns)
+  <slug>.md                   # per-subject fact file: frame + watermarked sources in frontmatter; findings / contradictions / coverage / open unknowns
 tasks/
   NNNN-slug.md                # one task per file; frontmatter is the query index
 ```
@@ -150,6 +168,7 @@ Read-only proposal scouts (`Read, Glob, Grep`; write nothing, decide nothing):
 - **`architecture-proposer`** — first-pass architecture agenda (open hotspots first, then tech stack, persistence, integration, testing, cross-cutting) from vision + domain model + context map, for `/architecture-foundation`.
 - **`task-analyzer`** — refine assessment (completeness, domain-compliance, size, deps, decisions/ADRs, bearing exemplars) for one task.
 - **`exemplar-drafter`** — first-pass concrete exemplar (every value filled in, tagged grounded-with-source or invented-as-open-question) from the intent + strategic artifacts, for `/exemplar`.
+- **`dossier-scout`** — source sweep for `/dossier`: distills a research KB (confidence lifted forward), reads field sources (captures, specs, PDFs), and — the one scout with `WebSearch, WebFetch`, used only when the human-confirmed source list sanctions it — vets web sources; returns confidence-tagged claims, contradictions, coverage, and open unknowns under the frame's relevance filter.
 
 Write-side workers:
 - **`task-worker`** — TDD-implements one task and commits it (`Read, Edit, Write, Glob, Grep, Bash, Skill`).

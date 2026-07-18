@@ -29,6 +29,7 @@ Spawn the **task-analyzer** subagent (`subagent_type: task-analyzer`) with the t
 - **Implementation plan** — a proposed ordered sequence of steps and the concrete files to be touched (existing vs new), scouted from the codebase.
 - **Decisions** — choices the human must make, and which existing ADRs (from the index) already bear on this task.
 - **Exemplars** — the exemplars (from `exemplars/exemplars.md`, when the project keeps them) bearing on this task: `normative` ones the acceptance criteria should cite (and which make natural first test fixtures), `illustrative` ones as non-binding context, and any conflict between the task and a normative exemplar.
+- **Dossiers** — the dossiers (from `dossiers/dossiers.md`, when the project keeps them) bearing on this task: the specific claims that constrain it (with confidence), acceptance criteria leaning on a `low`-confidence claim, open unknowns the task would trip over, and an **under-researched** flag when the task hinges on external facts no dossier covers.
 
 The subagent reads the corpus so you don't — you receive only its report.
 
@@ -60,6 +61,8 @@ If the task can't land in one implementation pass, propose a split and get the h
 ## Step 5 — Decisions & ADRs
 
 For each genuine decision surfaced: if it is significant and expensive to reverse, **offer** to record it via `Skill(adr)` (never auto-create). For every ADR — newly recorded or pre-existing — that constrains the task, add its number to the task's `related_adrs` frontmatter so the implementer inherits it. Add any strategic docs the implementer needs (e.g. the context file) to `related_documents` — including each bearing **`normative` exemplar's** directory (`exemplars/<slug>/`), so the implementer inherits the binding sample; where one applies, phrase an acceptance criterion against it concretely (e.g. *"parses `exemplars/pipeline-config/` without error"*) and note in the plan that it is the first test fixture. An `illustrative` exemplar may be *mentioned* in `## Notes` as shape guidance but never cited in acceptance criteria — if the task really needs it binding, the route is a `/spec-sharpener` promotion first, and a conflict between the task and a normative exemplar is resolved like an ADR conflict (fix the task, or sharpen/revise the exemplar) — never ignored.
+
+Likewise add each bearing **dossier** (`dossiers/<slug>.md`) to `related_documents` so the implementer inherits the facts. If the analyzer flagged the task **under-researched** — its outcome hinges on external facts (a regulation, an undocumented API, a market rule) no dossier covers — surface that to the human and offer a `/dossier` run on the subject before finalizing; this is an offer, never a hard gate (the human may accept the risk and proceed). If an acceptance criterion leans on a `low`-confidence claim, say so — the human decides whether to firm the fact up (an accretion pass on the dossier) or proceed on it.
 
 ## Step 6 — Finalize to `todo`
 

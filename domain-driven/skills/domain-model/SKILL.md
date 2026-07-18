@@ -49,7 +49,7 @@ Edits to `domain-model.md` happen in place. Hotspot→ADR offers (Step 3) apply 
 
 ## Step 3 — Hotspots → ADRs (offer)
 
-A hotspot is precisely *a decision not yet made*. For each hotspot that is a real architectural or directional choice (not just a naming quibble), **offer** to record it as an ADR via `Skill(adr)` — so the decision has a durable home and later `/task-refine` can reference it. Never auto-create ADRs; the human chooses which hotspots deserve one. Naming quibbles and small unknowns stay in the hotspots list.
+A hotspot is precisely *a decision not yet made*. For each hotspot that is a real architectural or directional choice (not just a naming quibble), **offer** to record it as an ADR via `Skill(adr)` — so the decision has a durable home and later `/task-refine` can reference it. Never auto-create ADRs; the human chooses which hotspots deserve one. Naming quibbles and small unknowns stay in the hotspots list. A hotspot that turns out to be a **missing fact** rather than a choice — what a regulation actually requires, how an external system actually behaves — gets a different offer: `Skill(dossier)` on the subject (facts are investigated, not decided); the hotspot stays on the list, annotated with the dossier slug, until the facts come back.
 
 ## Producing `domain-model.md`
 
