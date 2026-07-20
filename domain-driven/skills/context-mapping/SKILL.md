@@ -1,7 +1,7 @@
 ---
 name: context-mapping
 description: >
-  Draw the project's bounded contexts and the relationships between them, working from the aggregate clusters in domain-model.md. Produces context-map.md (the overview + relationship map) and one bounded-contexts/<context>.md per context (its responsibility, boundary, relationships, and ubiquitous language). Seeds a first-pass boundary proposal with the boundary-proposer subagent, then refines it with the human. Offers to record boundary/relationship decisions as ADRs. Re-entrant: when context-map.md already exists it runs in revision mode — folding in what implementation taught (the `deviated`-flagged tasks' closing records), and ending with a backlog ripple pass that rewires or flags the live tasks a boundary change touched. The third phase of the domain-driven workflow; its contexts are the domain-compliance referent for every task.
+  Draw the project's bounded contexts and the relationships between them, working from the aggregate clusters in domain-model.md — and place the domain model's external systems on the same map as external contexts (upstream models you don't own, where Conformist/ACL/Published Language earn their keep). Produces context-map.md (the overview + relationship map) and one bounded-contexts/<context>.md per context — owned or external (its responsibility, boundary, relationships, and ubiquitous language). Seeds a first-pass boundary proposal with the boundary-proposer subagent, then refines it with the human. Offers to record boundary/relationship decisions as ADRs. Re-entrant: when context-map.md already exists it runs in revision mode — folding in what implementation taught (the `deviated`-flagged tasks' closing records), and ending with a backlog ripple pass that rewires or flags the live tasks a boundary change touched. The third phase of the domain-driven workflow; its contexts are the domain-compliance referent for every task.
 disable-model-invocation: true
 argument-hint: "(no argument — starts a new context-mapping session, or revises the existing map)"
 model: opus
@@ -10,7 +10,7 @@ allowed-tools: Read, Write, Edit, Glob, Agent, Skill, Bash(mkdir -p bounded-cont
 
 # Context Mapping — Bounded Contexts & Relationships
 
-You are facilitating the **third** phase of the domain-driven workflow. You divide the domain into **bounded contexts** — areas each with their own consistent ubiquitous language and rules — and record how those contexts relate. The output is the strategic map every task is written and checked against: a task's `context` frontmatter names one of these, and `/task-refine` checks the task's language and scope against that context's entry.
+You are facilitating the **third** phase of the domain-driven workflow. You divide the domain into **bounded contexts** — areas each with their own consistent ubiquitous language and rules — and record how those contexts relate. The map covers both the contexts this project **owns** and the **external systems** it interfaces with (official/public services and internal systems built elsewhere): an external system is a bounded context too — one whose model is fixed from your side — and it belongs on the map, because that is exactly where Conformist, ACL, and Published Language decisions live. The output is the strategic map every task is written and checked against: a task's `context` frontmatter names one of the *owned* contexts, and `/task-refine` checks the task's language and scope against that context's entry.
 
 ## Precondition
 
@@ -18,7 +18,7 @@ Read `./domain-model.md` (and `./vision.md` for framing). If the domain model is
 
 ## Step 1 — Propose boundaries (subagent)
 
-Spawn the **boundary-proposer** subagent (`subagent_type: boundary-proposer`) with the paths to `domain-model.md` and `vision.md`. It returns a *first-pass* proposal: candidate contexts (each as a cluster of aggregates/events with a one-line responsibility), the ubiquitous-language terms that belong to each, and candidate relationships between contexts tagged with a DDD pattern and a one-line rationale. This is a draft to argue with, not a decision.
+Spawn the **boundary-proposer** subagent (`subagent_type: boundary-proposer`) with the paths to `domain-model.md` and `vision.md`. It returns a *first-pass* proposal: candidate contexts (each as a cluster of aggregates/events with a one-line responsibility), the ubiquitous-language terms that belong to each, candidate **external contexts** lifted from the domain model's `## External systems` list (each with the owned context that faces it and a candidate relationship pattern), and candidate relationships between contexts tagged with a DDD pattern and a one-line rationale. This is a draft to argue with, not a decision.
 
 If `context-map.md` already exists, this run is a **revision** — skip the proposal and follow *Revision mode* below instead. The existing map plus what implementation has taught is a better seed than a fresh proposal.
 
@@ -37,6 +37,11 @@ Work the proposal into an agreed map, **one question at a time**. Focus on the j
   - **Shared Kernel** — a deliberately shared subset of model both own jointly.
   These relationships are exactly the constraints a cross-boundary task must
   respect, so pin them down.
+- **External systems go on the map.** Carry every entry from `domain-model.md`'s `## External systems` list onto the map as an **external context** — a context whose model you cannot change. Do not leave them as a footnote in the domain model: the relationship to an external system is one of the most consequential (and least reversible) integration decisions the project makes. For each, settle two things:
+  - **Which owned context faces it.** Exactly one owned context should own each external boundary — it hosts the translation/integration code. An external system that "talks to the whole project" is a boundary you haven't drawn yet.
+  - **The relationship pattern**, with realism about influence: against a system whose model you cannot influence, the honest choices are **Conformist** (adopt their model — cheap, couples you) or **ACL** (translate at the boundary — protects your language, costs a layer). **Published Language** applies when they expose a versioned public contract you consume; **Customer/Supplier** only when a real vendor/team relationship gives you actual influence on their plan. **Partnership** and **Shared Kernel** are effectively unavailable — you co-own nothing with a system you don't own. The external side is upstream in every one of these.
+
+  Keep the division of labor with the sibling artifacts: this file records the *boundary decision*; what the external system **actually does** (its real behavior, quirks, rate limits, undocumented semantics) is a *fact* and belongs in a `/dossier`; a concrete sample payload belongs in an `/exemplar`. If the human realizes mid-session that nobody knows how the system really behaves, offer `Skill(dossier)` on it rather than guessing a relationship around the unknown.
 - **Ubiquitous language per context** — lock the core terms and their meaning *within that context*. This is what makes "domain-compliance" checkable later.
 
 ## Revision mode (when `context-map.md` already exists)
@@ -44,7 +49,7 @@ Work the proposal into an agreed map, **one question at a time**. Focus on the j
 Boundaries drawn before code exist are hypotheses; this mode is where implementation evidence corrects them. Work diff-oriented:
 
 1. **Ask what prompted the revision.** A fresh `/domain-model` revision that reshaped aggregate clusters, a boundary that implementation keeps fighting, a term that turned out to mean two things inside one context — anchor there.
-2. **Load the drift worklist.** Run `bash <skills-root>/task-status/tasks.sh deviated`; for each listed id, `tasks.sh get <id>` gives the file path — read **only** that task's `## Closing` section (the `### Deviations from plan` record). This is the workflow's one sanctioned body read: a bounded, id-listed worklist, not a corpus scan. Ask of each deviation: does it implicate a boundary (wrong context, leaked language, a relationship pattern that didn't hold), or is it noise at this level?
+2. **Load the drift worklist.** Run `bash <skills-root>/task-status/tasks.sh deviated`; for each listed id, `tasks.sh get <id>` gives the file path — read **only** that task's `## Closing` section (the `### Deviations from plan` record). This is the workflow's one sanctioned body read: a bounded, id-listed worklist, not a corpus scan. Ask of each deviation: does it implicate a boundary (wrong context, leaked language, a relationship pattern that didn't hold — including an external system whose real behavior broke the assumed relationship, e.g. a Conformist coupling that should have been an ACL; when the lesson is *what the system actually does* rather than the pattern choice, route the facts to `/dossier`), or is it noise at this level?
 3. **Reflect the existing map back, then run the Step 2 flow diff-oriented** — only over the contexts and relationships the evidence or the human implicates. Untouched contexts stand; do not re-litigate settled boundaries without evidence.
 4. **Drain the worklist.** When a deviated task's lesson has been folded in (or judged not boundary-level), clear its flag: edit its frontmatter `deviated: true → false`. (`/task-cycle` produces the flag; this revision, a `/domain-model` revision, or an `/architecture-foundation` revision consumes it — whichever handles a task's lesson clears it. If a deviation's lesson is purely architectural — stack, persistence, integration friction — leave the flag set and name it for an `/architecture-foundation` revision.)
 
@@ -54,11 +59,12 @@ Context slugs are referenced by live task frontmatter (`context:`, `related_docu
 
 - **Renamed context** (same boundary, new slug) — mechanical: `bash <skills-root>/task-status/tasks.sh by-context <old-slug>` lists the affected ids; for each **live** task (`draft`/`todo`/`in progress`), edit its `context:` to the new slug and repoint `related_documents:` at the renamed `bounded-contexts/<new-slug>.md`. `done`/`split` tasks are historical records — leave them.
 - **Split or merged context** — semantic: which child context a task belongs to is a judgment call, so do **not** guess. List the affected live ids the same way, set nothing, and record each in the session summary as *needs re-homing by `/task-refine`*. If a merged context's slug survives, only the tasks from the absorbed slug need the pass.
+- **Renamed or removed external context** — external slugs never appear in `context:`, so the ripple is `related_documents:` only: repoint live tasks at the renamed file, or drop the reference when the system left the map.
 - Keep slugs stable whenever the boundary itself didn't change — renames are ripple for zero modeling value.
 
 ## Step 3 — Boundary/relationship decisions → ADRs (offer)
 
-Splitting or merging a context, or choosing an ACL over a Shared Kernel, is a significant, expensive-to-reverse architectural decision. When the human settles one, **offer** to record it as an ADR via `Skill(adr)`. Never auto-create ADRs. In a revision, when a new boundary decision reverses one recorded earlier, the new ADR should name and supersede the old one — the log stays honest about the change of course.
+Splitting or merging a context, choosing an ACL over a Shared Kernel, or committing to Conformist against an external system, is a significant, expensive-to-reverse architectural decision. When the human settles one, **offer** to record it as an ADR via `Skill(adr)`. Never auto-create ADRs. In a revision, when a new boundary decision reverses one recorded earlier, the new ADR should name and supersede the old one — the log stays honest about the change of course.
 
 ## Producing the map
 
@@ -73,14 +79,18 @@ Create `bounded-contexts/` if needed. Write the overview and one file per contex
 - **[Sales](bounded-contexts/sales.md)** — <one-line responsibility>
 - **[Fulfilment](bounded-contexts/fulfilment.md)** — <one-line responsibility>
 
+## External systems
+- **[Payment Gateway](bounded-contexts/payment-gateway.md)** *(external)* — <what it provides and what crosses the boundary>
+
 ## Relationships
-<a mermaid graph of the context relationships — NEVER ASCII art>
+<a mermaid graph of the context relationships — NEVER ASCII art; render external contexts with a distinct shape>
 ```
 
 ```mermaid
 flowchart LR
   Sales -->|Customer/Supplier · upstream| Fulfilment
   Fulfilment -->|ACL| Billing
+  PaymentGateway[["Payment Gateway (external)"]] -->|ACL · upstream| Billing
 ```
 
 `bounded-contexts/<context>.md` — one per context:
@@ -105,7 +115,33 @@ flowchart LR
 <the domain-model aggregates/events that live in this context>
 ```
 
-Use the exact context filename slug (lowercase, hyphenated) as the value tasks will carry in their `context` frontmatter — keep it stable, since tasks reference it.
+`bounded-contexts/<external-system>.md` — one per external context; the same file family, but recording the boundary from **our side** (you don't spec a system you don't own):
+
+```markdown
+# External System: <Name>
+
+> External — not built or owned by this project. This file records the boundary decision; the system's actual observed behavior belongs in a dossier, sample payloads in exemplars.
+
+## What it is
+<one paragraph: what the system does and why this project talks to it>
+
+## Boundary
+<what crosses it and in which direction — the calls we make, the events/webhooks/files we receive; lifted from domain-model.md's External systems entry>
+
+## Relationships
+- **<Owned context>** — <pattern, e.g. ACL (we are downstream)>: <why this pattern; where the translation lives>
+
+## Language at the boundary
+- **<Their term>** — <what it means in *their* model — and, under an ACL, which of our terms it translates to>
+
+## External events
+<the (external) events from domain-model.md this system emits, each with its triggering situation>
+
+## Facts & samples
+<links to the dossiers/<slug>.md and exemplars/<slug>/ that cover this system, if any>
+```
+
+Use the exact context filename slug (lowercase, hyphenated) as the value tasks will carry in their `context` frontmatter — keep it stable, since tasks reference it. A task's `context:` always names an **owned** context, never an external one — integration work lands in the owned context that faces the external system (the task may carry `bounded-contexts/<external-slug>.md` in `related_documents`).
 
 ## When you are done
 

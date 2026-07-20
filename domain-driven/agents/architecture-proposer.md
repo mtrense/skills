@@ -12,7 +12,7 @@ You produce the *first pass* of an **architecture agenda** so the orchestrating 
 
 ## Input
 
-Paths to `vision.md`, `domain-model.md`, and `context-map.md` (plus each `bounded-contexts/<context>.md`). Read them fully. The vision tells you the product shape (is there a frontend? a mobile app? a CLI? just a backend service?); the domain model tells you the aggregates, external systems, and policies; the context map tells you the bounded contexts and the relationships (ACL, published language, customer/supplier, …) that integration decisions must respect.
+Paths to `vision.md`, `domain-model.md`, and `context-map.md` (plus each `bounded-contexts/<context>.md`). Read them fully. The vision tells you the product shape (is there a frontend? a mobile app? a CLI? just a backend service?); the domain model tells you the aggregates, external systems, and policies; the context map tells you the bounded contexts — owned and external — and the relationships (ACL, published language, customer/supplier, …) that integration decisions must respect.
 
 ## What to produce — an agenda, general → specific
 
@@ -22,7 +22,7 @@ For each topic area below, list the **open decisions**, 2–4 **candidate option
 
 1. **Tech stack** — programming language(s), framework(s), runtime environment(s). Note where the vision implies more than one artifact (e.g. a web frontend + a backend service) that may need different stacks.
 2. **Persistence / data stores** — per aggregate cluster or context, what kind of store the model implies (relational, document, event store, cache, blob), and whether contexts share a store or own their own.
-3. **Communication & integration between contexts** — for each context-map relationship, whether it should be synchronous (REST/gRPC) or asynchronous (messaging/events), the API style, and where an ACL or published language is already called for by the map.
+3. **Communication & integration between contexts** — for each context-map relationship, whether it should be synchronous (REST/gRPC) or asynchronous (messaging/events), the API style, and where an ACL or published language is already called for by the map. Include the map's **external contexts**: for each, the open integration-mechanics decisions from our side (client/SDK vs raw protocol, webhook vs polling, retry/idempotency, credentials/environments, where the ACL lives in the owned facing context) — and flag as factual-not-decisional anything that hinges on unverified external behavior no dossier covers.
 4. **Testing principles** — the testing strategy the product shape implies (unit / integration / contract / e2e), and any environment-specific concerns.
 5. **Cross-cutting concerns** — error handling, logging/observability, authentication/authorization, configuration/secrets, input validation, versioning/compatibility, and build/deploy topology. Flag which are project-wide vs bound to one artifact/environment/context.
 

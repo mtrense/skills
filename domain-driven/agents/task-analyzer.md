@@ -39,6 +39,7 @@ Return a report with these sections:
   - Which context does this task belong to (and does its stated `context`, if any, match)?
   - Does it use that context's ubiquitous language correctly, or does it use a term the way a *different* context does?
   - If it touches more than one context, does it respect the relationship pattern (e.g. reaching directly into an upstream model where an ACL is required)?
+  - If it touches an **external context** (a `bounded-contexts/` entry marked external): its `context:` must still name the *owned* facing context — a task can never be homed in a system the project doesn't build — and the work must respect the recorded relationship (translate in the ACL rather than letting the external system's terms leak into the owned context's language). Add the external context's file to the bearing documents, and treat unverified assumptions about the system's actual behavior as dossier material (see Dossiers below).
   - Is it phrased as a domain **outcome**, or has it slipped into premature implementation detail? Flag over-specified how vs. what.
   - State your verdict plainly: *complies* / *task has the wrong shape* / *the map looks wrong here* — the last means the orchestrator should send the human back to `/domain-model` or `/context-mapping`, not patch the task around it.
 - **Size** — one implementation pass, or several? If several, propose a concrete split into named sub-tasks with a one-line outcome each and any ordering among them.

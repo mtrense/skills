@@ -1,7 +1,7 @@
 ---
 name: boundary-proposer
 description: >
-  Read-only seed worker for the context-mapping skill. Given the paths to a project's domain-model.md and vision.md, proposes a FIRST-PASS bounded-context map: candidate contexts (each a cluster of aggregates/events with a one-line responsibility and its core ubiquitous-language terms), and candidate relationships between contexts each tagged with a DDD pattern (partnership, customer/supplier, conformist, ACL, published language, shared kernel) and a one-line rationale. A draft for the human to argue with — NOT the final map. Writes nothing.
+  Read-only seed worker for the context-mapping skill. Given the paths to a project's domain-model.md and vision.md, proposes a FIRST-PASS bounded-context map: candidate contexts (each a cluster of aggregates/events with a one-line responsibility and its core ubiquitous-language terms), candidate EXTERNAL contexts lifted from the domain model's External systems list (each with the owned context that should face it and a candidate relationship — conformist, ACL, published language), and candidate relationships between contexts each tagged with a DDD pattern (partnership, customer/supplier, conformist, ACL, published language, shared kernel) and a one-line rationale. A draft for the human to argue with — NOT the final map. Writes nothing.
 tools: Read, Glob, Grep
 model: sonnet
 ---
@@ -28,6 +28,7 @@ Paths to `domain-model.md` and `vision.md` (and an existing `context-map.md` if 
   - **Anticorruption Layer (ACL)** — downstream translates to protect its model.
   - **Published Language** — shared versioned contract.
   - **Shared Kernel** — jointly-owned shared model subset.
+- **Candidate external contexts** — every system in `domain-model.md`'s `## External systems` list, proposed as an external context on the map. For each: a name + slug, what crosses the boundary and in which direction (plus the `(external)` events it emits, from the timeline), **which owned context should face it** (own the integration/translation code), and a candidate relationship pattern with a one-line rationale. The external side is always upstream, and the realistic patterns are **Conformist**, **ACL**, or **Published Language** (Customer/Supplier only if the vision implies real influence over the system's owners; never Partnership or Shared Kernel — nothing is co-owned with a system the project doesn't own). If no single owned context is the natural counterpart, flag that as an uncertainty rather than picking one.
 - **Uncertainties** — boundaries you are unsure about, terms that seem to fork but might not, and any aggregate you couldn't confidently place. Flag these for the human rather than guessing.
 
 Keep it terse and return only the report. Do the acyclicity/consistency thinking in your head; the human and the orchestrator make the final calls.

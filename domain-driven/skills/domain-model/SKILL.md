@@ -75,6 +75,7 @@ Write `./domain-model.md`. Keep it a working model, not an essay:
 - Whenever **PaymentAuthorized** (external) arrives, then **SettlePayment**.
 
 ## External systems
+<systems you don't own — public/official services and internal systems built elsewhere. This list feeds /context-mapping, where each becomes an external context on the map with a relationship pattern; keep it complete, not just the obvious ones.>
 - <system you don't own> — <what crosses the boundary, which direction, which external events it emits>
 
 ## Aggregates
@@ -90,4 +91,4 @@ If the model already existed (revision mode), edit in place rather than rewritin
 
 ## When you are done
 
-Summarize the model in a few sentences — especially the aggregate clusters, since those become candidate contexts. Name the hotspots left open; declining an ADR offer here is fine — `/architecture-foundation` opens its agenda with the open hotspots, so each will be resolved, explicitly parked, or reclassified before the build phase. Point the human at `/context-mapping` next. After a **revision** that changed the aggregate clusters (added, merged, moved, or re-scoped an aggregate), say so explicitly and point at `/context-mapping` in revision mode — a reshaped cluster makes the context map stale by construction. Do not run it — hand back control.
+Summarize the model in a few sentences — especially the aggregate clusters, since those become candidate contexts, and the external systems, since each becomes an external context on the map. Name the hotspots left open; declining an ADR offer here is fine — `/architecture-foundation` opens its agenda with the open hotspots, so each will be resolved, explicitly parked, or reclassified before the build phase. Point the human at `/context-mapping` next. After a **revision** that changed the aggregate clusters (added, merged, moved, or re-scoped an aggregate), say so explicitly and point at `/context-mapping` in revision mode — a reshaped cluster makes the context map stale by construction. Do not run it — hand back control.
