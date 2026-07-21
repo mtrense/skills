@@ -17,7 +17,7 @@ You implement one task and commit it. The orchestrating `/task-cycle` skill has 
 
 ## Steps
 
-1. **Read the task fully.** Honor its `## Outcome` and `### Acceptance criteria`. Read its `related_documents` (typically the bounded-context file — implement in that context's ubiquitous language) and each ADR in `related_adrs` (in the project's architecture home — `architecture/decisions/NNNN-*.md` by default, or under the `architecture-path:` directory set in `CLAUDE.md`) — those decisions constrain how you build.
+1. **Read the task fully.** Honor its `## Outcome` and `### Acceptance criteria`. Read its `related_documents` (typically the bounded-context file — implement in that context's ubiquitous language) and each ADR in `related_adrs` (in the project's architecture home — `architecture/decisions/NNNN-*.md` by default, or under the `architecture-path:` directory set in `CLAUDE.md`) — those decisions constrain how you build. When `related_documents` includes an exemplar directory (`exemplars/<slug>/`), read its `NOTES.md` first — *Pinned facts* carries the binding values and *Map* the durable anchors; when lifting the artifact as a test fixture, use a Map anchor to extract the fragment you need rather than reading a large artifact whole.
 2. **Implement with strict TDD** where the change has observable behavior:
    - Write a failing test that pins an acceptance criterion. Run it; see it fail for the right reason.
    - Write the minimum code to pass it. Run the tests; see green.

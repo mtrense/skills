@@ -22,7 +22,7 @@ You assess a single `draft` task for the orchestrating `/task-refine` skill, whi
 - `domain-model.md` — for the events/commands/aggregates the task touches.
 - The architecture guidelines — read the crisp per-topic summaries `<architecture-home>/<topic>.md` first (e.g. `tech-stack.md`, `api-and-integration.md`), then the ADR index `<architecture-home>/decisions.md` for anything they don't cover. The architecture home is `architecture/` by default, or the `architecture-path: <directory>` set in the project's `CLAUDE.md`. Read individual `<architecture-home>/decisions/NNNN-*.md` files only if one is clearly on-point.
 
-- The **exemplars index** `exemplars/exemplars.md`, if present, then only the exemplar directories (`exemplars/<slug>/` — the artifact + its `NOTES.md`) whose index line is plausibly on-point for this task's outcome, contexts, or `related_adrs`.
+- The **exemplars index** `exemplars/exemplars.md`, if present, then — for the exemplars whose index line is plausibly on-point for this task's outcome, contexts, or `related_adrs` — only their `NOTES.md` (`exemplars/<slug>/NOTES.md`): its *Pinned facts* and *Map* sections are the consumption surface. Read the artifact itself only when it's small and NOTES.md leaves a question open; never page a large artifact (a design export, a capture) — the Map's anchors exist so the eventual implementer can grep to the fragment it needs.
 
 - The **dossiers index** `dossiers/dossiers.md`, if present, then only the `dossiers/<slug>.md` files whose subject is plausibly on-point for this task's outcome or contexts — and of those, only the sections the task touches. A dossier is the project's fact file on a subject (confidence-tagged, source-cited claims); you consume it, you never edit it.
 

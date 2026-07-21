@@ -102,7 +102,7 @@ several. It is **optional**:
 
 **Skill-owned build artifacts are out of scope regardless of how the scope was given.** In a project using the domain-driven workflow, `domain-model.md`, `context-map.md`, `bounded-contexts/`, and the `tasks/` backlog are derived, skill-owned artifacts, not input spec: the modeling skills own them through their re-entrant revision modes, whose side effects (a context rename ripples through the backlog; a reshaped aggregate cluster invalidates the map) a raw text edit would silently skip — and that workflow's scaling law forbids scanning the `tasks/` corpus at all. The natural sharpening target there is `vision.md` plus any other human-authored input docs. The surveyor already treats these artifacts as read-only model context and tags findings about them for routing (see Step 4); if the user explicitly names one in `$ARGUMENTS`, say why it's excluded and offer the owning skill instead.
 
-**Exemplars are the exception: skill-produced, but a sharpening target.** An `exemplars/` directory (concrete sample artifacts — configs, datasets, payloads — brainstormed via `/exemplar`, each with a `NOTES.md` carrying `status: illustrative | normative`) is spec stated in bytes, and this skill is its designated sharpener *and* its promotion gate: an `illustrative` exemplar that survives a sweep clean is promoted to `normative` here (Step 6), which is what lets tasks bind to it. Findings inside exemplars are normal encodable findings; only a `normative`-exemplar-vs-ADR contradiction takes the routed path like any other ADR conflict.
+**Exemplars are the exception: skill-produced, but a sharpening target.** An `exemplars/` directory (concrete sample artifacts — configs, datasets, payloads — brainstormed via `/exemplar`, each with a `NOTES.md` carrying `status: illustrative | normative`) is spec stated in bytes, and this skill is its designated sharpener *and* its promotion gate: an `illustrative` exemplar that survives a sweep clean is promoted to `normative` here (Step 6), which is what lets tasks bind to it. Findings inside exemplars are normal encodable findings; only a `normative`-exemplar-vs-ADR contradiction takes the routed path like any other ADR conflict. One byte-level exception: an intaken exemplar whose `NOTES.md` carries `sync: upstream` mirrors a design-tool export verbatim, so its artifact bytes are never edited here — a resolution touching them is encoded as a line in that `NOTES.md`'s *Fix upstream* list (the encoder edits NOTES.md, not the artifact), for the human to carry back into the source tool.
 
 For a **large or unfamiliar repo** where you can't tell up front what counts as
 "the spec", don't guess and don't page the whole tree into your own context:
@@ -207,7 +207,10 @@ frontmatter and mirror it in the `exemplars/exemplars.md` index line. Promotion
 is this skill's call alone — a freshly brainstormed exemplar is never born
 `normative` — and it is what authorizes tasks to bind to the exemplar as
 acceptance criteria and test fixtures. An exemplar that still carries findings
-the user chose to leave stays `illustrative`; say so.
+the user chose to leave stays `illustrative`; say so. An open *Fix upstream*
+item in a `sync: upstream` exemplar's `NOTES.md` counts as an unresolved
+finding — such an exemplar is never promotion-ready until a re-export closes
+the list.
 
 ## Relationship to the decision log
 
