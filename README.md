@@ -160,8 +160,11 @@ Takes a mixture of design references (live sites, local mocks/exports, named sys
 | ✓ | `/design-add-theme` | New references (optional) + a sibling-constrained `theme-drafter` strawman + Socratic refinement, then reskin every component for the new pair — smiths reuse the existing DOM verbatim |
 | ✓ | `/design-revise` | Change an existing theme's tokens (value changes propagate free via CSS vars; renames trigger a targeted rebuild) or an existing component's structure (spec first, then rebuild everywhere); includes a foundation-drift check |
 | ✓ | `/design-audit` | Read-only standing gate: full deterministic check + rendered `visual-critic` pass → one severity-ranked report, every finding routed to the entry point that fixes it |
+| ✓ | `/deck-kit` | Extend the system with its presentation layer: slide masters specced into `deck-kit/DECKKIT.md` (seeded from a bundled standard master catalog), one `deck.css` bridge per theme mapping reveal.js's `--r-*` vars onto `--ds-*` tokens, masters built across every theme into sample decks via `slide-smith`; gated by `deck-check.sh` (contrast re-verified through the var chain) + `deck-critic` |
+| ✓ | `/deck-build` | Build one reveal.js presentation from the kit: scoping interview → human-approved `OUTLINE.md` (slide list instantiating masters + per-slide content), then SLIDE-mode `slide-smith` fan-out → deterministic assembly → gate → `deck-critic`. Overflow never shrinks type — it comes back as a proposed outline split. Resumable via the marker blocks |
+| ✓ | `/deck-revise` | Change the deck layer: a deck's content/order (`OUTLINE.md` first), a master's structure (`DECKKIT.md` first, rebuilt everywhere; built decks offered re-instantiation, never silently changed), or a theme's bridge (value remaps propagate free through the CSS vars) |
 
-The workflow uses four bundled subagents in `design-system/agents/`: `reference-analyst` and `theme-drafter` (read-only seeds), `component-smith` (write-side — fragments only; `assemble.sh` alone writes pages), and `visual-critic` (read-only — screenshots the assembled pages in Chrome and judges hierarchy, rhythm, dark-mode legibility, and fidelity to `FOUNDATION.md`).
+The workflow uses six bundled subagents in `design-system/agents/`: `reference-analyst` and `theme-drafter` (read-only seeds), `component-smith` and `slide-smith` (write-side — fragments only; `assemble.sh`/`deck-assemble.sh` alone write pages), and `visual-critic` and `deck-critic` (read-only — screenshot the assembled pages/decks in Chrome and judge what the deterministic gates can't: hierarchy, rhythm, dark-mode legibility, slide-frame fit, and fidelity to `FOUNDATION.md`).
 
 ### Utility
 
@@ -252,9 +255,14 @@ design-system/
     design-prototype/SKILL.md
     design-revise/SKILL.md
     design-themes/SKILL.md
+    deck-build/SKILL.md            # + deck-assemble.sh + deck-check.sh
+    deck-kit/SKILL.md              # + references/deck-conventions.md + references/standard-masters.md
+    deck-revise/SKILL.md
   agents/
     component-smith.md
+    deck-critic.md
     reference-analyst.md
+    slide-smith.md
     theme-drafter.md
     visual-critic.md
 milestone-driven/

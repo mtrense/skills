@@ -21,6 +21,8 @@ flowchart LR
   at["/design-add-theme"] -.grow.-> db
   rv["/design-revise"] -.change.-> db
   da["/design-audit"] -.drift gate.-> rv
+  dt --> dk["/deck-kit"] --> dbd["/deck-build"]
+  drv["/deck-revise"] -.change.-> dbd
 ```
 
 1. **`/design-foundation`** — reference intake + Socratic dialog → `FOUNDATION.md`, the design brief every later phase grounds in. References (live URLs via Chrome screenshots, local images/exports, named systems like "shadcn-ish") are fanned out to `reference-analyst` subagents, one each in parallel; the digests are persisted as `references.md` with a synthesis section (where the references agree, where they conflict, what none cover). The dialog then works one topic at a time — personality (falsifiable adjectives; they become the visual-critic's rubric), audience & density, color and typography *direction* (not hex — tokens are the next phase's job), shape/depth/motion, a11y and i18n baselines, theme axes (which themes exist and why each earns existence), and the catalog trim against the bundled standard catalog. Whenever a topic stalls on words, it offers a `/design-prototype` loop instead of debating. Re-entrant: with a `FOUNDATION.md` present it revises in dialog rather than re-founding.
@@ -34,6 +36,18 @@ flowchart LR
 9. **`/design-audit`** — the standing drift gate, read-only: full `design-check.sh` over every theme plus a `visual-critic` rendering pass, merged into one severity-ranked report (FAIL → major visual → WARN → MISS → nits) where **every finding carries its route** — the entry point that fixes it (`/design-revise` for tokens or markup, `/design-build` for MISS components, `/design-components` for spec contradictions, the owning phase skill for doc drift). Run after hand edits, after time, or before a consuming project lifts the system. Reports and routes; fixes nothing.
 
 Uses **`common`**'s `/commit` (the single commit point — no design-system skill commits directly). **The `common` workflow must be installed alongside `design-system`.**
+
+## The deck layer
+
+The design system's decisions are medium-agnostic even though its components are web artifacts — so the workflow carries an optional **presentation layer** that reuses the brief and the tokens (never the component DOM) to build [reveal.js](https://revealjs.com) slide decks in the same design language. Same stack ethos: plain DOM, CDN-loaded (reveal.js@5 + the same Tailwind v4 browser CDN), everything opens from `file://`.
+
+Two sub-layers, deliberately split. The **deck kit** (`design-system/deck-kit/`) belongs to the design system and is regenerated when themes change: `DECKKIT.md` (a machine-readable `## Masters` list plus per-master anatomy/slots/content-budget spec — the deck analog of `COMPONENTS.md`), one `deck.css` **bridge** per theme×mode dir (imports the theme's `index.css` and maps reveal's `--r-*` vars onto `--ds-*` tokens — it never states a color, so `/design-revise` token changes propagate into every deck through the var chain with zero regeneration), and per-theme **sample decks** (`deck-kit/sample/<theme-dir>.html`) — kitchen-sinks of masters, each master one marker-delimited block (`<!-- master: <slug> -->`) whose DOM is byte-identical across themes. **Decks** are content, live outside `design-system/` (default `presentations/<slug>/`), and reference the kit rather than vendoring it — they drift *with* the design system, never pin it. A deck is an `OUTLINE.md` spec (frontmatter: `title`, `theme` — exactly ONE theme×mode per deck —, `ds` path; a `## Slides` list `` - `NN-slug` [master] — one-liner `` whose order IS the deck order; a `## NN-slug` content section per slide) plus the assembled `index.html` of `<!-- slide: <slug> -->` blocks, each instantiating a master's DOM with outline content. Content budgets are binding: overflow splits the slide at the outline level, never shrinks type.
+
+10. **`/deck-kit`** — creates/revises the kit: masters specced from a bundled standard catalog (`skills/deck-kit/references/standard-masters.md`) trimmed per `FOUNDATION.md`, bridges written per theme (gated immediately — mapping and contrast FAILs are cheapest before markup exists), then a `slide-smith` fan-out one-per-master across ALL themes into sample decks, `deck-check.sh kit` gate, `deck-critic` close-out. Re-entrant, diff-oriented.
+11. **`/deck-build`** — builds one deck: a brief scoping interview (title, target theme, audience/duration, source material) → `OUTLINE.md`, **human-approved before building**, then the cycle: `missing-slides` worklist → SLIDE-mode `slide-smith`s in parallel batches (each handed its master's block as fixed DOM source + its outline section as verbatim content) → deterministic assembly → `deck-check.sh deck` gate → `deck-critic` pass. Smith overflow flags (content busting a master's budget) come back to the human as proposed outline splits. Resumable and idempotent.
+12. **`/deck-revise`** — three axes: a deck's content/order (`OUTLINE.md` first — pure reorders/removals need no smith, assembly re-derives from the list), a master's structure (`DECKKIT.md` first, rebuilt across every sample; built decks don't auto-follow — re-instantiation is offered per deck, declined decks are named intentionally stale), or a bridge (`deck.css` value remaps propagate free; actual token-value changes are routed to `/design-revise`). Foundation-drift check applies on every axis.
+
+The deck conventions (`skills/deck-kit/references/deck-conventions.md`) extend the component conventions — token discipline and logical classes carry over, so an RTL deck is just `dir: rtl` in the frontmatter. Deck-specific rules: headings ride the reveal type ramp (no `text-*` sizes on `h1`–`h3`), reveal's runtime is the single sanctioned JS exception (plus `class="fragment"` staging and `<aside class="notes">` speaker notes), and slides put the talk track in notes, the visual on the slide.
 
 ## The deterministic backbone
 
@@ -56,6 +70,10 @@ The markers are the resumability and revision contract: builds derive their work
 | `assemble <ds-dir> <theme-dir>` | rebuild the theme's `index.html`: page shell + one block per slug, from the fragment if present, else carried over from the existing page |
 | `index <ds-dir>` | rebuild the root `index.html` linking every theme dir |
 
+**`deck-assemble.sh`** (in `skills/deck-build/`) — the deck layer's assembly twin: `masters`/`missing-masters`/`assemble-sample`/`master-block` for the kit (masters live as `<!-- master: <slug> -->` blocks in the sample decks; `master-block` extracts one as a smith's DOM source) and `slides`/`missing-slides`/`assemble` for a deck (parsed from `OUTLINE.md`'s frontmatter + `## Slides` grammar). Same contract: fragments in (`deck-kit/.fragments/<master>/<theme-dir>.html`, `<deck-dir>/.fragments/<slug>.html`), only the script writes assembled pages, worklists derive from the markers.
+
+**`deck-check.sh`** (in `skills/deck-build/`) — the deck layer's gate, two modes. `kit <ds-dir>`: every bridge's required `--r-*` mappings present and routed through `var(--ds-*)`, **contrast re-verified through the var chain** (the mapped token's hex from the theme's `index.css`: main/link ≥ 4.5, headings ≥ 3.0 — so a bridge can't launder away the theme's guarantees), plus sample-deck shell and marker/physical-class checks. `deck <deck-dir>`: outline parseable, every referenced master exists, kit resolvable, shell + marker integrity + per-block checks, WARN when a deck has no speaker notes. Same `OK|WARN|FAIL|MISS` output; exit 1 iff any FAIL. The `deck-critic` subagent is its complement — fit inside the slide frame, back-row legibility, one-idea density.
+
 **`design-check.sh`** (in `skills/design-audit/`) — the deterministic quality gate: `bash <skills-root>/design-audit/design-check.sh <ds-dir> [<theme-dir> …]`. Per theme it verifies the required `--ds-*` color roles, computes actual WCAG contrast (≥ 4.5:1) for every `on-<x>`/`<x>` hex pair, and checks `lang`/`dir` on `<html>`, the CDN + stylesheet links, marker integrity against the catalog, and per-block samples (RTL, long-string, ARIA, `focus-visible`, no physical direction classes). Output is one `OK|WARN|FAIL|MISS` line per finding; exit 1 iff any FAIL. The `visual-critic` subagent is its complement — it judges what math can't (hierarchy, rhythm, dark-mode legibility, personality fidelity).
 
 ## Files in the target project
@@ -72,6 +90,17 @@ design-system/
     index.css                  # :root { --ds-* } tokens + minimal base styles
     tokens.md                  # human/agent-readable token documentation
   .fragments/<slug>/<theme-dir>.html   # build intermediates — smiths write, assemble.sh consumes, deleted after
+  deck-kit/                    # optional presentation layer (/deck-kit)
+    DECKKIT.md                 # master spec + machine-readable ## Masters list
+    <theme>-<light|dark>/deck.css      # bridge: imports the theme's index.css, maps --r-* onto --ds-*
+    sample/<theme>-<light|dark>.html   # kitchen-sink sample deck of every master
+    .fragments/<master>/<theme-dir>.html
+
+<anywhere>/presentations/<deck-slug>/  # decks are content — outside design-system/ (/deck-build)
+  OUTLINE.md                   # deck spec: frontmatter + ## Slides + per-slide content
+  index.html                   # assembled reveal.js deck (deck-assemble.sh assemble)
+  assets/                      # images, data files
+  .fragments/<slug>.html
 ```
 
 ## Subagents
@@ -82,16 +111,19 @@ Read-only (write nothing; the orchestrating skill does all writing):
 - **`theme-drafter`** — proposes ONE complete theme as a light+dark token strawman: every value concrete, a self-computed contrast table with pass/fail, font stacks with script-coverage notes, and every choice annotated grounded vs invented. Given sibling `tokens.md` files, it keeps the family coherent. For `/design-themes` and `/design-add-theme`.
 - **`visual-critic`** — opens the assembled pages in Chrome via `file://`, screenshots them, and critiques what actually renders — hierarchy, spacing rhythm, dark-mode legibility, cross-component consistency, DOM-consistency across themes, RTL sanity, fidelity to `FOUNDATION.md`'s adjectives. Returns severity-tagged findings keyed to theme + component anchor; falls back to a limited markup read when no browser is connected. For `/design-build`, `/design-add-component`, `/design-add-theme`, `/design-revise`, and `/design-audit`.
 
+- **`deck-critic`** — the deck layer's visual reviewer: steps through the sample decks (kit scope) or one deck's `index.html` (deck scope) slide by slide in Chrome, screenshots, and judges what `deck-check.sh` can't — content fitting inside the slide frame, back-row legibility, one-idea-per-slide density, light/dark sibling coherence, notes hygiene, foundation fidelity. For `/deck-kit`, `/deck-build`, and `/deck-revise`.
+
 Write-side:
 
 - **`component-smith`** — builds ONE component across all target themes: the DOM designed once, kept byte-identical, only classes varying per theme. Writes only `.fragments/<slug>/<theme-dir>.html` — never an `index.html`, never the spec, never a theme's tokens — so parallel smiths can't collide and only `assemble.sh` writes assembled pages. Every block ships the full sample set (all variants and states, focus-visible, RTL, long-string, locale slots), logical classes only, every color through a token. Given an existing-DOM source it reuses that DOM verbatim and only restyles.
+- **`slide-smith`** — the deck layer's build worker, two modes. MASTER mode: ONE master across all target themes (DOM designed once, classes vary per theme — the component-smith contract applied to a reveal `<section>`), fragments under `deck-kit/.fragments/<master>/`. SLIDE mode: ONE slide, instantiating a given master block's fixed DOM with its `OUTLINE.md` content section — content is verbatim source, never invented; budget overflow is flagged back as a proposed outline split, never squeezed in. Fragments only, in both modes.
 
 ## Concurrency & ownership
 
 - **One smith owns one component across ALL themes** — never split a component's themes across workers; the shared DOM depends on it.
 - **Smiths write only fragments; only `assemble.sh` writes pages.** Distinct slugs write to distinct fragment dirs, so a parallel batch never collides.
 - **Worklists are derived, never remembered** — `/design-build` and `/design-add-theme` recompute from `assemble.sh missing` each pass, making the cycles resumable and idempotent.
-- **The spec leads the markup.** Structural change flows `COMPONENTS.md` → rebuild, never the other way; `FOUNDATION.md` outranks both (the drift check).
+- **The spec leads the markup.** Structural change flows `COMPONENTS.md` → rebuild, never the other way; `FOUNDATION.md` outranks both (the drift check). In the deck layer the same rule reads: `OUTLINE.md`/`DECKKIT.md` → rebuild, and one slide-smith owns one master across all themes.
 
 ## Install
 
