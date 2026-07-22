@@ -145,6 +145,24 @@ A build workflow that takes a project from a blank page to shipped code via Doma
 
 The workflow uses nine bundled subagents in `domain-driven/agents/`: six read-only scouts (`domain-seed-extractor`, `boundary-proposer`, `architecture-proposer`, `task-analyzer`, `exemplar-drafter`, and `dossier-scout` — the only scout allowed on the web, and only when the confirmed source list sanctions it) that write nothing, and three write-side workers (`task-worker` — TDD-implements and commits one claimed task, never touching `status`; `integrator` — sequential worktree merge-back, bounce-on-conflict; `exemplar-scribe` — applies the interview's anchored corrections to a `sync: detached` ingested exemplar artifact so `/exemplar`'s main session never reads a large design export). The orchestrating `/task-cycle` owns every status write.
 
+### Design-System Workflow
+
+Takes a mixture of design references (live sites, local mocks/exports, named systems) plus Socratic dialog to a themable design system of pure HTML/CSS Tailwind components under `design-system/` — kitchen-sink pages a project later lifts into a real component library. Every component has one shared DOM across themes; a theme is a `<theme>-light`/`<theme>-dark` directory pair varying only Tailwind classes and `--ds-*` token vars. Accessibility (WCAG AA contrast, semantic markup, focus-visible) and i18n (RTL-safe logical classes, long-string samples, locale-format slots, script-covering font stacks) are enforced by a deterministic gate (`design-check.sh`) plus a rendered review; assembly is deterministic (`assemble.sh`, marker-delimited blocks → resumable builds). Depends on the **`common`** workflow for `/commit`.
+
+| Phase | Command | What it does |
+|-------|---------|-------------|
+| 1 | `/design-foundation` | Distill references via `reference-analyst` subagents (persisted as `references.md`) + Socratic dialog on personality, color/type direction, density, a11y/i18n baselines, theme axes, and catalog trim → `FOUNDATION.md`. Offers `/design-prototype` loops whenever looking beats talking |
+| 2 | `/design-themes` | Theme axes → concrete themes: complete light+dark token strawmen via `theme-drafter` (contrast pre-checked, choices tagged grounded vs invented), refined Socratically with prototypes → `THEMES.md` + per-mode `index.css`/`tokens.md` |
+| 3 | `/design-components` | Spec the catalog → `COMPONENTS.md`: machine-readable `## Catalog` list + per-component anatomy (one DOM for all themes), variants, states, a11y contract, i18n slots, theme variance. Seeded from a bundled standard catalog; no HTML yet |
+| 4 | `/design-build` | Burn down the catalog: one `component-smith` per component (all themes at once — that's what keeps the DOM shared) → fragments → deterministic assembly → `design-check.sh` gate → `visual-critic` close-out. `[<limit>\|all][@<workers>]` (default `all@4`); resumable via the marker blocks |
+| ✓ | `/design-prototype` | Disposable side-by-side prototype (swatches with printed contrast ratios, type specimens, sample components, light + dark) in a temp file, opened for the human; only the verdict survives, recorded by the caller |
+| ✓ | `/design-add-component` | Spec one new component, append to the catalog, build across all themes, gate + scoped critic pass |
+| ✓ | `/design-add-theme` | New references (optional) + a sibling-constrained `theme-drafter` strawman + Socratic refinement, then reskin every component for the new pair — smiths reuse the existing DOM verbatim |
+| ✓ | `/design-revise` | Change an existing theme's tokens (value changes propagate free via CSS vars; renames trigger a targeted rebuild) or an existing component's structure (spec first, then rebuild everywhere); includes a foundation-drift check |
+| ✓ | `/design-audit` | Read-only standing gate: full deterministic check + rendered `visual-critic` pass → one severity-ranked report, every finding routed to the entry point that fixes it |
+
+The workflow uses four bundled subagents in `design-system/agents/`: `reference-analyst` and `theme-drafter` (read-only seeds), `component-smith` (write-side — fragments only; `assemble.sh` alone writes pages), and `visual-critic` (read-only — screenshots the assembled pages in Chrome and judges hierarchy, rhythm, dark-mode legibility, and fidelity to `FOUNDATION.md`).
+
 ### Utility
 
 | Command | What it does |
@@ -222,6 +240,22 @@ common/
     changelog-gatherer.md
     decision-encoder.md
     spec-surveyor.md
+design-system/
+  skills/
+    design-add-component/SKILL.md
+    design-add-theme/SKILL.md
+    design-audit/SKILL.md          # + design-check.sh + references/conventions.md
+    design-build/SKILL.md          # + assemble.sh
+    design-components/SKILL.md     # + references/standard-catalog.md
+    design-foundation/SKILL.md
+    design-prototype/SKILL.md
+    design-revise/SKILL.md
+    design-themes/SKILL.md
+  agents/
+    component-smith.md
+    reference-analyst.md
+    theme-drafter.md
+    visual-critic.md
 milestone-driven/
   skills/
     implementation-cycle/SKILL.md

@@ -37,6 +37,12 @@
       "category": "workflow"
     },
     {
+      "name": "design-system",
+      "source": "./design-system",
+      "description": "Design-system authoring workflow: reference-grounded Socratic foundation, themable token sets (light+dark), and pure HTML/CSS Tailwind component kitchen-sinks with accessibility and i18n baked in.",
+      "category": "workflow"
+    },
+    {
       "name": "common",
       "source": "./common",
       "description": "Cross-workflow utilities: /commit, /pr, /audit-context, /deckset.",

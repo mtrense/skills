@@ -1,0 +1,11 @@
+{
+  "name": "design-system",
+  "description": "Design-system authoring workflow: reference-grounded Socratic foundation, themable token sets (light+dark), and pure HTML/CSS Tailwind component kitchen-sinks with accessibility and i18n baked in.",
+  "author": {
+    "name": "Max Trense",
+    "email": "dev@trense.info"
+  },
+  "homepage": "https://github.com/mtrense/skills",
+  "repository": "https://github.com/mtrense/skills",
+  "keywords": ["design-system", "tailwind", "design-tokens", "theming", "accessibility", "i18n"]
+}

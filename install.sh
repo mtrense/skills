@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Workflows are top-level directories that contain `skills/`, `agents/`, and/or
 # `workflows/` (the last holding single-file Workflow scripts, `*.js`).
-WORKFLOWS=(codebase-survey common domain-driven milestone-driven research synaptic-authoring)
+WORKFLOWS=(codebase-survey common design-system domain-driven milestone-driven research synaptic-authoring)
 
 usage() {
   cat <<EOF
