@@ -22,6 +22,8 @@ design-system/
 
 `COMPONENTS.md` opens with a `## Catalog` section listing every component as `- \`slug\` — one-liner`, in kitchen-sink order. That line grammar (`^- \`[a-z0-9-]+\``) is machine-read by `assemble.sh` and `design-check.sh` — never reformat it. Each component then gets its own `## <Name>` section: anatomy (the shared DOM sketch), variants, states, accessibility contract, i18n slots, and theme-variance notes.
 
+Two lines inside a component section are machine-read too. The `- **Slug**: \`<slug>\`` line binds the section to its catalog slug, and the `- **Variants**:` entry is a nested list `` - `variant-slug` — when-to-use one-liner `` (two-space indent, same backtick grammar as the catalog) — `design-check.sh` parses both to verify every spec'd variant ships its story sample (see Stories below) in every theme. Never fold the variant list back into prose.
+
 ## Markers and fragments
 
 Every component in a kitchen-sink is delimited exactly once:
@@ -65,12 +67,23 @@ plus any genuinely global CSS the theme needs (focus ring defaults, scrollbar st
 - **No JavaScript.** State that needs interactivity is shown as parallel static samples (open + closed accordion, checked + unchecked switch) — the consuming project adds behavior.
 - Pages load Tailwind via the browser CDN (`<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>`) and `<link rel="stylesheet" href="index.css">`, so everything opens from disk with no build step; a consuming project lifts the markup plus the token vars into its own Tailwind build.
 
+## Stories — the machine-readable sample split
+
+Every discrete sample inside a component block is wrapped in exactly one element carrying `data-ds-story="<story-slug>"` (kebab-case, unique within the block). The story marker is what lets a downstream consumer — the gate, a revision pass, a storybook-style viewer — address one sample without parsing prose headings. Reserved slugs:
+
+- `variant-<variant-slug>` — one per variant the COMPONENTS.md spec lists (same slug as the spec's variant list).
+- `state-<state>` — one per statically-showable state sample (`state-disabled`, `state-focus-visible`, `state-invalid`, …).
+- `rtl` — the RTL sample; `long-string` — the long-string sample.
+- Additional samples take free-form slugs (`sizes`, `with-icon`, …).
+
+Because the DOM is shared, a component's story set is identical in every theme dir — `design-check.sh` fails a cross-theme mismatch, fails duplicate slugs within a block, and warns when a spec'd variant has no `variant-<slug>` story.
+
 ## Samples every component block must ship
 
-1. **Variants** — every variant the COMPONENTS.md spec lists, labeled.
-2. **States** — default, hover/active where showable statically, `focus-visible` styling, disabled, error/invalid where applicable.
-3. **RTL sample** — at least one rendering wrapped in `dir="rtl"` with RTL-script sample text (e.g. Arabic).
-4. **Long-string sample** — one rendering with German/Finnish-length labels, the stressed element marked `data-ds-sample="long"`, demonstrating the specified wrap/truncate behavior.
+1. **Variants** — every variant the COMPONENTS.md spec lists, labeled, each wrapped `data-ds-story="variant-<variant-slug>"`.
+2. **States** — default, hover/active where showable statically, `focus-visible` styling, disabled, error/invalid where applicable — each wrapped `data-ds-story="state-<state>"`.
+3. **RTL sample** — at least one rendering wrapped in `dir="rtl"` with RTL-script sample text (e.g. Arabic); story slug `rtl`.
+4. **Long-string sample** — one rendering with German/Finnish-length labels, the stressed element marked `data-ds-sample="long"`, demonstrating the specified wrap/truncate behavior; story slug `long-string`.
 5. **Locale slots** — any date, number, or currency shown is sample content, marked `data-ds-locale="date|number|currency"`; COMPONENTS.md documents the slot as locale-formatted, never a committed format.
 
 ## Accessibility contract

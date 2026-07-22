@@ -1,7 +1,7 @@
 ---
 name: design-audit
 description: >
-  The design system's standing drift gate: run the deterministic design-check over every theme (WCAG contrast on token pairs, required roles, marker integrity against the catalog, RTL/long-string/ARIA/focus samples, logical-class discipline) plus a visual-critic rendering pass, and present one severity-ranked report with each finding routed to the entry point that fixes it. Trigger whenever the user wants the design system checked, audited, validated, or suspects drift — "audit the design system", "is the design system still consistent", "check contrast", "someone hand-edited the kitchen-sink, verify it", or /design-audit. Read-only: reports and routes, never fixes. Do NOT trigger mid-build (the /design-build cycle runs its own gate) or for auditing a single fresh change the invoking skill already gated.
+  The design system's standing drift gate: run the deterministic design-check over every theme (WCAG contrast on token pairs, required roles, marker integrity against the catalog, RTL/long-string/ARIA/focus samples, data-ds-story marker coverage against the spec's variant lists, logical-class discipline) plus a visual-critic rendering pass, and present one severity-ranked report with each finding routed to the entry point that fixes it. Trigger whenever the user wants the design system checked, audited, validated, or suspects drift — "audit the design system", "is the design system still consistent", "check contrast", "someone hand-edited the kitchen-sink, verify it", or /design-audit. Read-only: reports and routes, never fixes. Do NOT trigger mid-build (the /design-build cycle runs its own gate) or for auditing a single fresh change the invoking skill already gated.
 argument-hint: "[optional scope: theme dir(s) or component slug(s); default: everything]"
 model: sonnet
 allowed-tools: Read, Glob, Grep, Agent, Bash(bash *design-audit/design-check.sh *)
@@ -27,9 +27,9 @@ Run Steps 1 and 2 concurrently when convenient — they're independent.
 
 Merge into one severity-ranked report, deduplicating where the script and the critic caught the same thing:
 
-1. **FAIL** — contract violations: contrast below 4.5, missing required tokens, unbalanced markers, physical direction classes, missing anchors.
+1. **FAIL** — contract violations: contrast below 4.5, missing required tokens, unbalanced markers, physical direction classes, missing anchors, duplicate `data-ds-story` slugs, story sets differing across themes.
 2. **Major visual** — the critic's `major` findings.
-3. **WARN** — missing samples (RTL, long-string), missing aria/focus-visible, stray blocks, unlinked themes.
+3. **WARN** — missing samples (RTL, long-string), spec'd variants without a `variant-<slug>` story, blocks with no story markers at all (pre-story builds), missing aria/focus-visible, stray blocks, unlinked themes.
 4. **MISS** — catalog components not yet in a kitchen-sink.
 5. **Minor visual / nits.**
 

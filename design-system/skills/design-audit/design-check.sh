@@ -12,6 +12,9 @@
 #   - per component block: RTL sample (dir="rtl"), long-string sample (data-ds-sample="long"),
 #     aria/role presence, focus-visible, no physical direction classes
 #     (lines carrying data-ds-physical are exempt from the direction check)
+#   - story markers (data-ds-story): slugs unique within a block (FAIL on duplicates), one
+#     variant-<slug> story per variant spec'd in the component's COMPONENTS.md variants list
+#     (WARN when absent), and the story set identical across theme dirs (FAIL on mismatch)
 # Root:
 #   - FOUNDATION.md / THEMES.md / COMPONENTS.md / references.md present
 #   - root index.html links every theme dir
@@ -65,6 +68,16 @@ catalog=""
 [ -f "$DS/COMPONENTS.md" ] && catalog="$(sed -n 's/^- `\([a-z0-9][a-z0-9-]*\)`.*$/\1/p' "$DS/COMPONENTS.md")"
 [ -n "$catalog" ] || warn "catalog: no slugs found in COMPONENTS.md (## Catalog '- \`slug\` — …' lines)"
 
+# ---------- spec'd variants ("component-slug variant-slug" pairs from each section's
+# "- **Slug**: `x`" line + the nested list under "- **Variants**:") ----------
+variants=""
+[ -f "$DS/COMPONENTS.md" ] && variants="$(awk '
+  /^- \*\*Slug\*\*:/    { if (match($0, /`[a-z0-9][a-z0-9-]*`/)) cur = substr($0, RSTART + 1, RLENGTH - 2) }
+  /^- \*\*Variants\*\*/ { inv = 1; next }
+  inv && /^  - `/       { if (cur != "" && match($0, /`[a-z0-9][a-z0-9-]*`/)) print cur, substr($0, RSTART + 1, RLENGTH - 2); next }
+  /^- / || /^#/         { inv = 0 }
+' "$DS/COMPONENTS.md")"
+
 # ---------- theme dirs ----------
 if [ "$#" -gt 0 ]; then
   themes="$(printf '%s\n' "$@")"
@@ -85,6 +98,7 @@ else
 fi
 
 # ---------- per theme ----------
+ref_story_theme=""; ref_story_lines=""
 while IFS= read -r theme; do
   [ -z "$theme" ] && continue
   dir="$DS/$theme"
@@ -138,6 +152,7 @@ while IFS= read -r theme; do
   grep -q '@tailwindcss/browser' "$page" && ok "$p Tailwind CDN present" || warn "$p Tailwind browser CDN script not found"
 
   # ----- markers & per-component blocks -----
+  theme_story_lines=""
   while IFS= read -r slug; do
     [ -z "$slug" ] && continue
     opens="$(grep -c "<!-- component: $slug -->" "$page" || true)"
@@ -160,6 +175,27 @@ while IFS= read -r theme; do
     grep -qE 'aria-|role=' <<< "$block" && ok "$p $slug: aria/role present" || warn "$p $slug: no aria-* or role= attributes"
     grep -q 'focus-visible' <<< "$block" && ok "$p $slug: focus-visible styling" || warn "$p $slug: no focus-visible styling"
 
+    # story markers
+    stories="$(grep -o 'data-ds-story="[a-z0-9-]*"' <<< "$block" | sed 's/^data-ds-story="\(.*\)"$/\1/' | sort || true)"
+    if [ -z "$stories" ]; then
+      warn "$p $slug: no data-ds-story samples (pre-story block — rebuild via /design-build or /design-revise)"
+    else
+      dups="$(uniq -d <<< "$stories" | tr '\n' ' ')"
+      if [ -n "${dups// /}" ]; then
+        fail "$p $slug: duplicate data-ds-story slugs: $dups"
+      else
+        ok "$p $slug: story slugs unique"
+      fi
+      while IFS= read -r v; do
+        [ -z "$v" ] && continue
+        grep -qx "variant-$v" <<< "$stories" \
+          && ok "$p $slug: story variant-$v" \
+          || warn "$p $slug: spec'd variant '$v' has no data-ds-story=\"variant-$v\" sample"
+      done < <(echo "$variants" | awk -v s="$slug" '$1 == s { print $2 }')
+    fi
+    csv="$(tr '\n' ',' <<< "$stories")"; csv="${csv%,}"
+    theme_story_lines+="$slug"$'\t'"$csv"$'\n'
+
     phys="$(grep -nE '[" ](ml|mr|pl|pr)-[0-9]|text-left[" ]|text-right[" ]|rounded-[lr]-|rounded-t[lr]-|rounded-b[lr]-|[" ]border-[lr][" -]' <<< "$block" | grep -v 'data-ds-physical' || true)"
     if [ -n "$phys" ]; then
       fail "$p $slug: physical direction classes (use ms-/me-/ps-/pe-/text-start/rounded-s-…, or mark the line data-ds-physical): $(echo "$phys" | head -3 | tr '\n' ' ')"
@@ -173,6 +209,23 @@ while IFS= read -r theme; do
     [ -z "$s" ] && continue
     echo "$catalog" | grep -qx "$s" || warn "$p stray component block '$s' not in COMPONENTS.md catalog"
   done < <(grep -o '<!-- component: [a-z0-9-]* -->' "$page" | sed 's/<!-- component: \(.*\) -->/\1/')
+
+  # ----- cross-theme story-set identity (shared DOM implies identical story sets) -----
+  if [ -z "$ref_story_theme" ]; then
+    ref_story_theme="$theme"; ref_story_lines="$theme_story_lines"
+  elif [ -n "$theme_story_lines" ]; then
+    story_mismatch=0
+    while IFS=$'\t' read -r s csv; do
+      [ -z "$s" ] && continue
+      refcsv="$(awk -F'\t' -v s="$s" '$1 == s { print $2 }' <<< "$ref_story_lines")"
+      [ -n "$refcsv" ] || continue
+      if [ "$csv" != "$refcsv" ]; then
+        fail "$p $s: story set differs from $ref_story_theme ([$csv] vs [$refcsv])"
+        story_mismatch=1
+      fi
+    done <<< "$theme_story_lines"
+    [ "$story_mismatch" -eq 0 ] && ok "$p story sets match $ref_story_theme"
+  fi
 done <<< "$themes"
 
 echo "----"

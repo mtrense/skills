@@ -30,7 +30,8 @@ Per component section:
 
 - **Slug**: `<slug>`
 - **Anatomy**: the shared DOM in one short indented sketch — elements, nesting, where label/help/error/icon live. One structure for all themes.
-- **Variants**: each with when-to-use one-liner.
+- **Variants**:
+  - `<variant-slug>` — when-to-use one-liner. (Exact grammar, two-space indent — `design-check.sh` parses this list and verifies each variant ships a `data-ds-story="variant-<slug>"` sample in every theme.)
 - **States**: which of default/hover/focus-visible/disabled/invalid/loading apply.
 - **Accessibility**: roles/ARIA wiring, keyboard expectations, labeling rules.
 - **i18n**: which parts are locale-formatted slots (data-ds-locale), expected text-expansion behavior (wrap vs truncate), RTL notes beyond the default mirroring.
