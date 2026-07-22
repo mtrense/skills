@@ -147,7 +147,7 @@ The workflow uses nine bundled subagents in `domain-driven/agents/`: six read-on
 
 ### Design-System Workflow
 
-Takes a mixture of design references (live sites, local mocks/exports, named systems) plus Socratic dialog to a themable design system of pure HTML/CSS Tailwind components under `design-system/` — kitchen-sink pages a project later lifts into a real component library. Every component has one shared DOM across themes; a theme is a `<theme>-light`/`<theme>-dark` directory pair varying only Tailwind classes and `--ds-*` token vars. Accessibility (WCAG AA contrast, semantic markup, focus-visible) and i18n (RTL-safe logical classes, long-string samples, locale-format slots, script-covering font stacks) are enforced by a deterministic gate (`design-check.sh`) plus a rendered review; assembly is deterministic (`assemble.sh`, marker-delimited blocks → resumable builds). Depends on the **`common`** workflow for `/commit`.
+Takes a mixture of design references (live sites, local mocks/exports, named systems) plus Socratic dialog to a themable design system of pure HTML/CSS Tailwind components under `design-system/` — kitchen-sink pages a project later lifts into a real component library. Every component has one shared DOM across themes; a theme is a `<theme>-light`/`<theme>-dark` directory pair varying only Tailwind classes and `--ds-*` token vars. Accessibility (WCAG AA contrast, semantic markup, focus-visible) and i18n (RTL-safe logical classes, long-string samples, locale-format slots, script-covering font stacks) are enforced by a deterministic gate (`design-check.sh`) plus a rendered review; assembly is deterministic (`assemble.sh`, marker-delimited blocks → resumable builds). Depends on the **`common`** workflow for `/commit`. See [`design-system/README.md`](design-system/README.md) for the full specification.
 
 | Phase | Command | What it does |
 |-------|---------|-------------|
@@ -241,6 +241,7 @@ common/
     decision-encoder.md
     spec-surveyor.md
 design-system/
+  README.md                  # full design-system workflow specification
   skills/
     design-add-component/SKILL.md
     design-add-theme/SKILL.md
