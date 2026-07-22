@@ -23,7 +23,7 @@ Spawn the **task-analyzer** subagent (`subagent_type: task-analyzer`) with the t
 
 - **Completeness** — what the spec is missing (unclear outcome, no success criteria, hidden ambiguity).
 - **Domain-compliance** — does the task fit a bounded context? Does it use that context's ubiquitous language correctly? Does it leak across a boundary in a way the relationship pattern forbids? Is it phrased as an outcome, or has it slipped into premature implementation detail?
-- **Size** — does this look like one implementation pass, or several? If several, a suggested split.
+- **Size** — does this look like one implementation pass, or several? If several, a suggested split, with each piece named by its outcome/slug (never an id suffix like `0001a` — ids for children don't exist until Step 4 mints them).
 - **Dependencies** — other tasks (by id) or unbuilt prerequisites this needs.
 - **Interfaces** — the interface surfaces the task touches or must introduce (HTTP/REST endpoints, gRPC services, message topics/event schemas, and in-process contracts: interfaces, traits, protocols), each tagged as *defined* (new/changed) or *consumed* (existing).
 - **Implementation plan** — a proposed ordered sequence of steps and the concrete files to be touched (existing vs new), scouted from the codebase.
