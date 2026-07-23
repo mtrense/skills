@@ -26,7 +26,7 @@ You run in one of two modes, set by the input:
 
 - `vision.md` and `domain-model.md` — for the product shape and the events/aggregates the artifact touches.
 - The target context's `bounded-contexts/<context>.md` — its **ubiquitous language is binding**: every field, key, and enum value in your draft must use the context's terms, not synonyms.
-- The architecture guidelines: the on-point `<architecture-home>/<topic>.md` summaries (e.g. `configuration.md`, `api-and-integration.md`), and the full `<architecture-home>/decisions/NNNN-*.md` for any anchoring ADR named in the input. The architecture home is `architecture/` by default, or the `architecture-path:` directory set in the project's `CLAUDE.md`.
+- The architecture guidelines: the on-point `<architecture-home>/<topic>.md` summaries (e.g. `configuration.md`, `api-and-integration.md`), and the full `<architecture-home>/decisions/NNNN-*.md` for any anchoring ADR named in the input. The architecture home is `architecture/` by default, or the directory named in the project's `.workflow-overrides/architecture-path` file.
 - `exemplars/exemplars.md` and any existing exemplar the draft must stay consistent with (two exemplars that disagree is a spec bug you'd be authoring). On a revision, read the existing artifact and `NOTES.md` — your draft is a diff against them, and `normative` values need stronger grounds to change than `illustrative` ones.
 
 Do not read the `tasks/` backlog, and do not page unrelated topic summaries. Scout, don't audit.

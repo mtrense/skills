@@ -9,8 +9,8 @@ it consistently.
 ## The architecture home
 
 Everything architectural lives under one directory, `<architecture-home>/`
-(default `architecture/`, overridable via an `architecture-path: <directory>` line
-in `CLAUDE.md`):
+(default `architecture/`, overridable via the project's
+`.workflow-overrides/architecture-path` file):
 
 - **Full ADR:** `<architecture-home>/decisions/NNNN-kebab-title.md` — one file per
   decision. This is the **single source of truth** for a decision's reasoning.

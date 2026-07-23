@@ -8,7 +8,7 @@ description: >
   and the user wants to finalize. Also trigger when the user asks to document what was
   built, write demo steps, or prepare for the next planning cycle.
 model: opus
-allowed-tools: Read, Write, Glob, Grep, Edit, Bash(grep *), Bash(git log:*), Bash(head:*), Bash(cargo build:*), Bash(cargo test:*), Bash(cargo clippy:*), Bash(pnpm install:*), Bash(pnpm run:*)
+allowed-tools: Read, Write, Glob, Grep, Edit, Bash(grep *), Bash(git log:*), Bash(head:*), Bash(cargo build:*), Bash(cargo test:*), Bash(cargo clippy:*), Bash(pnpm install:*), Bash(pnpm run:*), Bash(cat .workflow-overrides/*)
 ---
 
 # Milestone Closing — Documentation, Verification, and Reset
@@ -88,8 +88,12 @@ marker, then append to the milestone file:
 ```
 
 **Reconcile the decision log.** The decision log lives in the architecture home
-(`<architecture-home>/`) — `architecture/` by default, or the `architecture-path:`
-directory set in `CLAUDE.md`. If `<architecture-home>/decisions/` exists, read
+(`<architecture-home>/`), resolved at invocation — the captured stdout below is the
+directory name, `architecture` by default when the project has no override file:
+
+!`cat .workflow-overrides/architecture-path 2>/dev/null || echo architecture`
+
+If `<architecture-home>/decisions/` exists, read
 `<architecture-home>/decisions.md` (one cheap file — no subagent needed here) and
 cross-check it against what actually shipped:
 

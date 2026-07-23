@@ -6,7 +6,7 @@ description: >
   four-phase milestone-driven workflow — not for breaking down tasks or implementing code.
 model: opus
 disable-model-invocation: true
-allowed-tools: Read, Glob, Grep, Edit, Write, Agent
+allowed-tools: Read, Glob, Grep, Edit, Write, Agent, Bash(cat .workflow-overrides/*)
 argument-hint: "<feature or capability to plan>"
 ---
 
@@ -46,7 +46,7 @@ has already been decided so the milestone doesn't contradict or unknowingly re-o
 settled direction. Spawn the `decision-lookup` subagent (Agent tool, `subagent_type:
 decision-lookup`) with the area the user wants to work on — it locates and reads the
 project's decision index (`architecture/decisions.md` by default, or under the
-`architecture-path:` directory set in `CLAUDE.md`),
+directory named in the project's `.workflow-overrides/architecture-path` file),
 pulls only the relevant records, and returns a compact briefing, keeping the full decision
 log out of this session. If it reports no log exists, proceed normally. Treat any `Accepted`
 decision it returns as a standing constraint; if the milestone the user is describing would
@@ -147,8 +147,13 @@ is, the ADR preserves *why the direction was chosen* and what was rejected.
 Record one only when the decision **splits the architecture or commits the project to a
 direction that would be expensive to reverse** — not for ordinary scoping. For each that
 clears the bar, read `references/decision-record.md` and follow it. Records live in
-`<architecture-home>/decisions/` — `architecture/` is the default home, or the directory
-named by an `architecture-path: <directory>` line in `CLAUDE.md`. Number the record,
+`<architecture-home>/decisions/`, where `<architecture-home>` is resolved at invocation —
+the captured stdout below is the directory name, `architecture` by default when the
+project has no override file:
+
+!`cat .workflow-overrides/architecture-path 2>/dev/null || echo architecture`
+
+Number the record,
 write `<architecture-home>/decisions/NNNN-kebab-title.md`, and append the one-sentence
 entry to `<architecture-home>/decisions.md`. If a decision would contradict one the
 `decision-lookup` briefing surfaced in Step 1, do not overwrite that record silently —

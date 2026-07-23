@@ -31,7 +31,7 @@ source of truth and are already written.
 
 - **The architecture home** — the directory holding `decisions/`, `decisions.md`,
   and the `<topic>.md` summaries. Default `architecture/`; the orchestrator passes
-  the resolved path (it honors `architecture-path:` in `CLAUDE.md`).
+  the resolved path (it honors the project's `.workflow-overrides/architecture-path` file).
 - **The new ADR number(s)** — e.g. `0007`, or a small list. These are the records
   you must fold in. If the orchestrator gives you no numbers, read `decisions.md`
   and reconcile every topic summary against the whole log (a full rebuild).

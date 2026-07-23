@@ -13,7 +13,7 @@ description: >
   changes unrelated to PLAN.md, for planning/breakdown work, or when PLAN.md does not
   exist — those belong to other skills.
 model: sonnet
-allowed-tools: Read, Write, Glob, Grep, Edit, Bash(grep *), Bash(git status:*), Bash(cargo build:*), Bash(cargo test:*), Bash(cargo clippy:*), Bash(pnpm install:*), Bash(pnpm run:*), Bash(mkdir:*)
+allowed-tools: Read, Write, Glob, Grep, Edit, Bash(grep *), Bash(git status:*), Bash(cargo build:*), Bash(cargo test:*), Bash(cargo clippy:*), Bash(pnpm install:*), Bash(pnpm run:*), Bash(mkdir:*), Bash(cat .workflow-overrides/*)
 ---
 
 # Task Implementation — Strict TDD, One Task at a Time
@@ -58,10 +58,15 @@ Build a mental model of:
 - What utilities, fixtures, or test helpers exist
 - The naming conventions for files, functions, variables, and tests
 
-**Read any decision records the task points to.** If the task's **Architecture &
-Decisions** notes reference an ADR (e.g. "per ADR 0007"), open that record in the
-project's architecture home (`architecture/` by default, or the `architecture-path:`
-directory set in `CLAUDE.md`) — `<architecture-home>/decisions/NNNN-*.md` — and read it —
+**Read any decision records the task points to.** The project's architecture home is
+resolved at invocation — the captured stdout below is the directory name, `architecture`
+by default when the project has no override file; `<architecture-home>` means that value:
+
+!`cat .workflow-overrides/architecture-path 2>/dev/null || echo architecture`
+
+If the task's **Architecture &
+Decisions** notes reference an ADR (e.g. "per ADR 0007"), open that record —
+`<architecture-home>/decisions/NNNN-*.md` — and read it —
 it is the binding source of truth for
 how this area must be built, and it carries the reasoning the one-line plan note
 omits. (Read the file directly; do not spawn a subagent — this skill may itself be

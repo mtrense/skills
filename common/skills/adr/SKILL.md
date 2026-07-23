@@ -8,8 +8,8 @@ description: >-
   "write an ADR for…", "log this architectural decision", or /adr. Also the
   human override for when a decision worth preserving was settled in-session but
   no build skill recorded it on its own. Writes each as a full ADR under the
-  architecture home (./architecture/decisions/ by default, overridable via an
-  architecture-path: line in CLAUDE.md) using the shared NNNN-title.md +
+  architecture home (./architecture/decisions/ by default, overridable via the
+  .workflow-overrides/architecture-path file) using the shared NNNN-title.md +
   decisions.md convention, then refreshes the derived per-topic summaries.
   Grounds every section in what was actually discussed and confirms the list
   before writing; treats the invocation itself as the worth-recording call, so
@@ -39,12 +39,15 @@ record" bar is waived: if they asked for an ADR, they get one.
 
 ## Step 0 — Resolve the architecture home
 
-The architecture home is `./architecture/` by default. If the project's
-`CLAUDE.md` (root, or the nearest one governing the working directory) contains a
-line of the form `architecture-path: <directory>`, use that directory instead —
-resolved relative to the project root. Everywhere below and in
+The architecture home is resolved at invocation — the captured stdout below is
+the directory name (relative to the project root), `architecture` by default
+when the project has no override file:
+
+!`cat .workflow-overrides/architecture-path 2>/dev/null || echo architecture`
+
+Everywhere below and in
 `references/decision-record.md`, `<architecture-home>` means this resolved
-directory (`architecture/` unless overridden); records live in
+directory; records live in
 `<architecture-home>/decisions/`, the index in `<architecture-home>/decisions.md`,
 and the derived topic summaries in `<architecture-home>/<topic>.md`.
 

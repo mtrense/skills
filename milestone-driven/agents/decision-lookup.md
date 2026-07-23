@@ -2,8 +2,8 @@
 name: decision-lookup
 description: >
   Read-only query worker for a project's Architecture Decision Records (in the
-  project's architecture home — `architecture/` by default, overridable via
-  `architecture-path:` in CLAUDE.md). Given a topic or an action the caller is about
+  project's architecture home — `architecture/` by default, overridable via the
+  `.workflow-overrides/architecture-path` file). Given a topic or an action the caller is about
   to take, reads the crisp per-topic summaries and the decisions index, selects the
   relevant records, reads only those, and returns a compact briefing of the decisions
   that constrain the caller — so the orchestrator never loads the whole decision log
@@ -35,8 +35,8 @@ If the input is empty, say so and stop.
 ## Step 1 — locate the log
 
 First resolve the **architecture home** (`<architecture-home>`): it is `architecture/`
-unless the project's `CLAUDE.md` contains an `architecture-path: <directory>` line, in
-which case use that directory. The decisions index is `<architecture-home>/decisions.md`,
+unless the project has a `.workflow-overrides/architecture-path` file, in which case
+use the directory it names. The decisions index is `<architecture-home>/decisions.md`,
 the full records are under `<architecture-home>/decisions/`, and the crisp derived
 guideline summaries are `<architecture-home>/<topic>.md`. If `decisions.md` (and
 `<architecture-home>/decisions/`) does not exist, return exactly this and stop — do not

@@ -4,7 +4,7 @@ description: >
   Assess the project's vision, domain model, and context map against the current backlog state, surface the coverage gaps, and propose a prioritized list of next tasks to work on. Reads the domain artifacts directly and the backlog through the tasks.sh helper (frontmatter only — never scanning task bodies). Gaps include an unvalidated architecture foundation (ADRs recorded but no landed task exercises them end-to-end — proposes a walking-skeleton vertical slice first), drift (deviated tasks routed to a /domain-model, /context-mapping, or /architecture-foundation revision), and knowledge gaps (fact-dependent territory no dossier covers, or dossiers with open unknowns / aging watermarks — routed to /dossier). Advisory: it proposes tasks and, on approval, hands each to /task-append as a draft — it never mints ids, wires dependencies, or refines (that is /task-append and /task-refine). The forward-looking companion to the read-only /task-status board.
 argument-hint: "[<context>]   (optional — scope the assessment to one bounded context)"
 model: opus
-allowed-tools: Read, Glob, Bash(bash */skills/task-status/tasks.sh *), Skill
+allowed-tools: Read, Glob, Bash(bash */skills/task-status/tasks.sh *), Skill, Bash(cat .workflow-overrides/*)
 ---
 
 # What's Next — Assess the Domain and Propose Next Tasks
@@ -21,10 +21,14 @@ Read `./vision.md` and `./domain-model.md`. If **either** is missing, stop and p
 
 These files are small and central; read them in-session so the assessment is grounded in their actual language.
 
+The architecture home referenced below is resolved at invocation — the captured stdout is the directory name (relative to the project root), `architecture` by default when the project has no override file; `<architecture-home>` means that value:
+
+!`cat .workflow-overrides/architecture-path 2>/dev/null || echo architecture`
+
 - **`./vision.md`** — the outcomes the project is trying to make true.
 - **`./domain-model.md`** — the event timeline, aggregates (the consistency boundaries that must be built), policies, external systems, and the **hotspots** list (unresolved decisions).
 - **`context-map.md`** and each **`bounded-contexts/<context>.md`** — the bounded contexts (owned and external), their responsibilities and relationships, and each one's ubiquitous language. If a `<context>` argument was given, load that context's file and scope the whole assessment to it.
-- **The decision index** if present — `architecture/decisions.md` by default, or under the `architecture-path:` directory set in `CLAUDE.md` — so you can tell which hotspots have already been settled as ADRs (and needn't be re-flagged). The crisp `<architecture-home>/<topic>.md` guideline summaries are a quick read for what the foundation already commits to.
+- **The decision index** if present — `<architecture-home>/decisions.md` — so you can tell which hotspots have already been settled as ADRs (and needn't be re-flagged). The crisp `<architecture-home>/<topic>.md` guideline summaries are a quick read for what the foundation already commits to.
 - **The exemplars index** `exemplars/exemplars.md`, if present — one line per exemplar with its status (`illustrative`/`normative`) and links. The index alone is enough; do not read the exemplar bodies for a gap scan.
 - **The dossiers index** `dossiers/dossiers.md`, if present — one line per dossier with its subject, contexts, swept date, and open-unknown count. The index alone is enough; do not read the dossier bodies for a gap scan.
 

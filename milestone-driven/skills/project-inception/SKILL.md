@@ -8,7 +8,7 @@ description: >
   the very beginning to establish the project's identity before strategic planning begins.
 disable-model-invocation: true
 model: opus
-allowed-tools: Read, Glob, Write, Edit, AskUserQuestion
+allowed-tools: Read, Glob, Write, Edit, AskUserQuestion, Bash(cat .workflow-overrides/*)
 argument-hint: <optional one-line project description>
 ---
 
@@ -394,9 +394,15 @@ easily-reversible or purely-stylistic choice, nor for anything already fully cap
 as a plain convention in CLAUDE.md — over-recording buries the signal.
 
 For each decision that clears that bar, read `references/decision-record.md` and follow
-it. Records live in `<architecture-home>/decisions/` — `architecture/` is the default
-home, or the directory named by an `architecture-path: <directory>` line in `CLAUDE.md`
-if you wrote (or the user asked for) one this session. Number the record, write
+it. Records live in `<architecture-home>/decisions/`, where `<architecture-home>` is
+resolved at invocation — the captured stdout below is the directory name, `architecture`
+by default when the project has no override file:
+
+!`cat .workflow-overrides/architecture-path 2>/dev/null || echo architecture`
+
+(One exception: if this session itself wrote — or the user asked for — an
+`.workflow-overrides/architecture-path` file, the capture predates it; use the directory
+that file names instead.) Number the record, write
 `<architecture-home>/decisions/NNNN-kebab-title.md` from the template, and append the
 one-sentence entry to `<architecture-home>/decisions.md`. There is no prior decision log
 to consult at inception — you are creating the first records.

@@ -5,7 +5,7 @@ description: >
 disable-model-invocation: true
 argument-hint: "(no argument — starts, extends, or revises the architecture foundation)"
 model: opus
-allowed-tools: Read, Write, Edit, Glob, Agent, Skill, Bash(mkdir -p architecture), Bash(bash */skills/task-status/tasks.sh *)
+allowed-tools: Read, Write, Edit, Glob, Agent, Skill, Bash(mkdir -p *), Bash(bash */skills/task-status/tasks.sh *), Bash(cat .workflow-overrides/*)
 ---
 
 # Architecture Foundation
@@ -22,7 +22,11 @@ Read that the three inputs exist:
 - `./domain-model.md` (from `/domain-model`)
 - `./context-map.md` and `./bounded-contexts/` (from `/context-mapping`)
 
-If any is missing, **stop** and tell the human which phase to run first — you define the architecture *for* the domain the earlier phases described; you do not invent the domain. (Also resolve the architecture home now: `architecture/` by default, or the `architecture-path:` directory set in `CLAUDE.md`. Everywhere below, `<architecture-home>` means that resolved directory.)
+If any is missing, **stop** and tell the human which phase to run first — you define the architecture *for* the domain the earlier phases described; you do not invent the domain.
+
+The architecture home is resolved at invocation — the captured stdout below is the directory name (relative to the project root), `architecture` by default when the project has no override file. Everywhere below, `<architecture-home>` means that value:
+
+!`cat .workflow-overrides/architecture-path 2>/dev/null || echo architecture`
 
 ## Step 1 — Seed the agenda (subagent)
 

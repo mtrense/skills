@@ -55,8 +55,8 @@ the thing being refined.
 
 ### 2. Read the decision log
 
-If the project's `CLAUDE.md` sets an `architecture-path: <directory>` line, check that
-architecture home first (its ADRs are under `<home>/decisions/`, indexed by
+If the project has a `.workflow-overrides/architecture-path` file, check the
+architecture home it names first (its ADRs are under `<home>/decisions/`, indexed by
 `<home>/decisions.md`, with crisp per-topic guidelines in `<home>/<topic>.md`). Otherwise
 check the conventional locations: `architecture/decisions/`, `decisions/`,
 `docs/decisions/`, `docs/adr/`, `adr/`, `DECISIONS.md`, `docs/decisions.md`. Read the

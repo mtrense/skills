@@ -9,7 +9,7 @@ description: >
   next phase. This skill reads the codebase and docs to produce implementation-aware tasks
   with architectural hints, test cases, and file associations.
 model: opus
-allowed-tools: Read, Glob, Grep, Edit, Write, Agent
+allowed-tools: Read, Glob, Grep, Edit, Write, Agent, Bash(cat .workflow-overrides/*)
 ---
 
 # Milestone Breakdown — Decomposing into Actionable Tasks
@@ -84,8 +84,8 @@ Note the same categories the scout would have produced.
 **Consult prior architectural decisions too.** In parallel with the scout,
 spawn the `decision-lookup` subagent (`subagent_type: decision-lookup`) with the
 milestone's title and the subsystems it touches. It locates and reads the project's
-decision index (`architecture/decisions.md` by default, or under the `architecture-path:`
-directory set in `CLAUDE.md`),
+decision index (`architecture/decisions.md` by default, or under the directory named in
+the project's `.workflow-overrides/architecture-path` file),
 pulls only the relevant records, and returns a compact briefing of the decisions
 that constrain how this milestone should be built — so you inherit them without
 paging the whole decision log into your opus session. If it reports no log exists,
@@ -144,8 +144,13 @@ split, record it as an ADR so the reasoning survives past this planning session.
 Record one only when the decision **splits the architecture across tasks or commits to a
 direction that is costly to undo** — not for ordinary per-task choices. For each that
 clears the bar, read `references/decision-record.md` and follow it. Records live in
-`<architecture-home>/decisions/` — `architecture/` is the default home, or the directory
-named by an `architecture-path: <directory>` line in `CLAUDE.md`. Number the record,
+`<architecture-home>/decisions/`, where `<architecture-home>` is resolved at invocation —
+the captured stdout below is the directory name, `architecture` by default when the
+project has no override file:
+
+!`cat .workflow-overrides/architecture-path 2>/dev/null || echo architecture`
+
+Number the record,
 write `<architecture-home>/decisions/NNNN-kebab-title.md`, and append the one-sentence
 entry to `<architecture-home>/decisions.md`. Reference the record from the affected tasks'
 **Architecture & Decisions** notes (e.g. "per ADR 0007") so the implementer follows it. If

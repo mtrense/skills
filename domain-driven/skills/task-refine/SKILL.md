@@ -19,7 +19,7 @@ You turn a `draft` task into a ready-to-implement `todo`. A `todo` is a task who
 
 ## Step 2 — Assess (subagent)
 
-Spawn the **task-analyzer** subagent (`subagent_type: task-analyzer`) with the task file path and the project root. It reads the task, the relevant `bounded-contexts/<context>.md` (and `context-map.md` for relationships), `domain-model.md`, and the architecture guidelines (the crisp `<architecture-home>/<topic>.md` summaries plus the `architecture/decisions.md` index by default, or under the `architecture-path:` directory set in `CLAUDE.md`), then returns a structured assessment:
+Spawn the **task-analyzer** subagent (`subagent_type: task-analyzer`) with the task file path and the project root. It reads the task, the relevant `bounded-contexts/<context>.md` (and `context-map.md` for relationships), `domain-model.md`, and the architecture guidelines (the crisp `<architecture-home>/<topic>.md` summaries plus the `architecture/decisions.md` index by default, or under the directory named in the project's `.workflow-overrides/architecture-path` file), then returns a structured assessment:
 
 - **Completeness** — what the spec is missing (unclear outcome, no success criteria, hidden ambiguity).
 - **Domain-compliance** — does the task fit a bounded context? Does it use that context's ubiquitous language correctly? Does it leak across a boundary in a way the relationship pattern forbids? Is it phrased as an outcome, or has it slipped into premature implementation detail?
