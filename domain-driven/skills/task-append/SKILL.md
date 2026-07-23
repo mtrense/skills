@@ -33,6 +33,7 @@ id: "NNNN"
 title: <title>
 status: draft
 context: ""
+complexity: ""
 created: <ISO8601 UTC>
 completed: ""
 depends_on: []
