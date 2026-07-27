@@ -223,18 +223,21 @@ case "$cmd" in
       # Left-justify to a given width (pad the raw text before colouring, so the
       # ANSI codes never count toward the width).
       def padn($w): . + ($w - length | if . > 0 then " " * . else "" end);
-      # status -> bright colour: draft=yellow todo=blue done=green else(split,…)=grey
+      # status -> colour: draft=yellow todo=blue in progress=light yellow done=green else(split,…)=grey
       def statuscolor:
         if   .=="draft" then "93"
         elif .=="todo"  then "94"
+        elif .=="in progress" then "38;5;229"
         elif .=="done"  then "92"
         else "90" end;
+      # Display label: shorten "in progress" so the status column stays narrow.
+      def statuslabel: if .=="in progress" then "progress" else . end;
       def ctx: if .context=="" then "-" else .context end;
       sort_by(._id)
       # Context column is as wide as the widest context name in the backlog.
       | (map(ctx|length) | max // 0) as $cw
       | .[]
-      | "\(._id)   \(.status as $s | ($s|padn(5)) | wrap($s|statuscolor))   \(ctx|padn($cw))   \(.title|wrap("1"))   \("[\(.depends_on|join(", "))]"|wrap("91"))"'
+      | "\(._id)   \(.status as $s | ($s|statuslabel|padn(8)) | wrap($s|statuscolor))   \(ctx|padn($cw))   \(.title|wrap("1"))\(if .depends_on|length > 0 then "   " + ("[\(.depends_on|join(", "))]"|wrap("91")) else "" end)"'
     ;;
 
   ""|help|-h|--help)
