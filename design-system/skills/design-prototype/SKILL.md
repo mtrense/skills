@@ -28,6 +28,19 @@ Layout: one **column per candidate**, clearly labeled (A / B / C + a one-line de
 3. **Sample components** — 3–5 inline: a button row (primary/secondary/ghost), an input with label + error, a card, an alert, a small nav strip. Approximate, static, honest — enough to feel the direction, not kitchen-sink quality.
 4. **Dark block** — the same swatches + components on the candidate's dark values, immediately below the light ones.
 
+### Give it room — the presentation contract
+
+A cramped page loses the comparison it exists to make: everything crushed together reads as one texture and the human can't tell the candidates' spacing personality from the page's own. So:
+
+- **Never compress to fit one screen.** Vertical scrolling is free and expected; shrinking type, swatches, or padding to avoid it is not. Nothing on this page is ever below its natural size.
+- **Every moving part is its own separated band.** Swatch row, type specimen, each sample component, and the aggregated view are separate sections — each with a small uppercase caption label, generous padding (≈ `p-6`+), and a **visible horizontal rule** (or a distinct surface panel) between it and the next. Large gaps between bands (≈ `gap-12`), smaller gaps inside one (≈ `gap-4`).
+- **A real gutter between candidate columns** — wide (≈ `gap-12`) and carrying a full-height vertical rule, so A never bleeds into B. Two candidates side by side; **three or more stack as full-width bands** instead of squeezing into narrow columns.
+- **Swatches are big enough to judge** — at least ~7rem wide and ~4.5rem tall, gapped (not butted into a solid strip), with the label and its contrast ratio both legible at a glance.
+- **Sample components get their real size** — laid out at a realistic content width, not shrunk into a thumbnail; one per row unless two genuinely sit side by side.
+- **Light and dark are separated bands too**, each with its own mode caption and rule — not two adjacent boxes.
+
+The page shell's own spacing is deliberately neutral (plain rules, plain captions) so it reads as scaffolding and the candidates' spacing is what stands out.
+
 Keep it to one file, built in one Write. Resist polishing — this page has a life expectancy of minutes.
 
 ## Step 2 — Show it and collect the verdict

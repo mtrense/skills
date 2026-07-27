@@ -86,6 +86,17 @@ Because the DOM is shared, a component's story set is identical in every theme d
 4. **Long-string sample** — one rendering with German/Finnish-length labels, the stressed element marked `data-ds-sample="long"`, demonstrating the specified wrap/truncate behavior; story slug `long-string`.
 5. **Locale slots** — any date, number, or currency shown is sample content, marked `data-ds-locale="date|number|currency"`; COMPONENTS.md documents the slot as locale-formatted, never a committed format.
 
+### Sample presentation — give each sample room
+
+Samples exist to be judged by eye, so a block that packs them edge to edge defeats itself: the reader can't tell where one sample ends, and the component's own spacing disappears into the crowding. Every block therefore lays its stories out as **separated bands**, not a dense grid:
+
+- One `data-ds-story` element per row (or a two-up row only where two samples genuinely belong side by side), with a wide gap between stories (≈ `gap-8`) and a small gap inside one (≈ `gap-3`).
+- Each story carries a short caption (the variant/state name) and is separated from the next by a **visible rule** (`border-t border-(--ds-color-border)`) or by sitting on its own padded surface panel — the separator is part of the block, not something assembly adds.
+- The block's `<h2>` is followed by breathing room (≈ `mt-6`), and the block itself is padded (≈ `p-6`) rather than starting at the page edge.
+- Samples render at realistic content width; never shrink a sample so the block fits a screenful — the kitchen-sink is meant to be scrolled.
+
+The caption and separator elements are DOM, so they exist in every theme; the exact spacing classes may still vary with a theme's density — but never below this breathing-room floor. A theme's *own* density shows inside each sample, not by crushing the samples together.
+
 ## Accessibility contract
 
 - WCAG 2.2 AA is the floor unless FOUNDATION.md sets a higher bar.

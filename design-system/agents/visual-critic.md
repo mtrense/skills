@@ -22,6 +22,7 @@ You look at what the design system actually renders and report what a designer w
 3. Judge, per theme:
    - **Hierarchy** — does the eye land where the component's purpose says it should; are heading/label/body levels distinct without being shouty?
    - **Rhythm** — spacing consistency across components; alignment; anything cramped or floating.
+   - **Sample separation** — is every sample legibly its own thing: captioned, given room, and split from its neighbour by a rule or panel, with the component blocks themselves clearly divided? Samples butted edge to edge or shrunk to fit a screenful is a finding, not a style choice.
    - **Dark mode as designed, not inverted** — surface layering legible, borders visible, shadows not muddy, saturation appropriate.
    - **In-theme consistency** — radius, border weight, and emphasis language coherent from component to component.
    - **Cross-theme identity** — same components side by side: do themes read as siblings (shared bones, distinct skin) or accidental strangers?

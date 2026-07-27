@@ -6,8 +6,9 @@
 #   missing  <ds-dir> <theme-dir>   print catalog slugs that have neither a fragment file nor an
 #                                   existing marker block in <theme-dir>/index.html
 #   assemble <ds-dir> <theme-dir>   rebuild <theme-dir>/index.html: page shell + one block per catalog
-#                                   slug, taken from the fragment file if present, else carried over
-#                                   from the existing index.html; slugs with neither are skipped (stderr note)
+#                                   slug (generously spaced, separated by a rule), taken from the fragment
+#                                   file if present, else carried over from the existing index.html;
+#                                   slugs with neither are skipped (stderr note)
 #   index    <ds-dir>               rebuild the root <ds-dir>/index.html linking every <theme>-<mode> dir
 #
 # Fragments live at <ds-dir>/.fragments/<slug>/<theme-dir>.html and contain the full marker-delimited
@@ -80,12 +81,17 @@ case "$cmd" in
       catalog | while IFS= read -r slug; do
         printf '    <a class="underline" href="#component-%s">%s</a>\n' "$slug" "$(title_case "$slug")"
       done
-      printf '  </nav>\n</header>\n<main class="p-8 flex flex-col gap-16">\n'
+      printf '  </nav>\n</header>\n<main class="px-8 py-12 flex flex-col gap-20">\n'
+      first=1
       catalog | while IFS= read -r slug; do
         frag="$ds/.fragments/$slug/$theme.html"
         if [ -f "$frag" ]; then
+          [ "$first" = 1 ] || printf '<hr class="border-(--ds-color-border)" aria-hidden="true">\n'
+          first=0
           cat "$frag"
         elif has_block "$prev" "$slug"; then
+          [ "$first" = 1 ] || printf '<hr class="border-(--ds-color-border)" aria-hidden="true">\n'
+          first=0
           extract_block "$prev" "$slug"
         else
           echo "note: no fragment and no existing block for '$slug' in $theme — skipped" >&2
