@@ -23,7 +23,7 @@ Each returns a complete strawman: full light+dark token set, self-computed contr
 
 ## Step 2 — Refine Socratically, prototype-first
 
-Per theme, show the human the strawman's gestalt first — but for tokens the gestalt is visual, so lead with the eye: invoke `Skill(design-prototype)` with the drafted token set (both modes) so the human reacts to rendered swatches, type, and sample components rather than a hex table.
+Per theme, show the human the strawman's gestalt first — but for tokens the gestalt is visual, so lead with the eye: invoke `Skill(design-prototype)` with the drafted token set (both modes) so the human reacts to rendered swatches, type, and sample components rather than a hex table. The prototype **must include at least one large primary fill against the background in each mode** (a full-width button row or a selected band) — accent-vs-background harmony at fill scale is decided by eye here; contrast math can't see it, and the drafter's large-fill note is a flag, not a verdict.
 
 Then work the **invented** annotations one at a time: what the drafter chose, why, the alternatives; the human picks or corrects. Grounded values need no interview — but if the human contradicts one, name the source (FOUNDATION.md line or reference) and resolve it consciously: either the token yields or the foundation is revised (`/design-foundation` revision), never a silent divergence. When two candidate values compete, prototype them side by side instead of debating.
 

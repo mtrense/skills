@@ -33,8 +33,9 @@ Per component section:
 - **Variants**:
   - `<variant-slug>` — when-to-use one-liner. (Exact grammar, two-space indent — `design-check.sh` parses this list and verifies each variant ships a `data-ds-story="variant-<slug>"` sample in every theme.)
 - **States**: which of default/hover/focus-visible/disabled/invalid/loading apply.
-- **Accessibility**: roles/ARIA wiring, keyboard expectations, labeling rules.
-- **i18n**: which parts are locale-formatted slots (data-ds-locale), expected text-expansion behavior (wrap vs truncate), RTL notes beyond the default mirroring.
+- **Overflow**: what happens when content outgrows the shape — `truncate` / `wrap` (and how the shape adapts, e.g. radius downgrades on multi-line) / `disallow` (a content rule keeps it short). Mandatory for bounded-shape components (button, badge, chip/pill, tab — anything whose silhouette is part of its identity); a pill wrapping to two lines is a spec decision, never a rendering accident. Also state here whether the component is naturally full-bleed (inputs, tables, banners) — everything else renders at intrinsic width in the kitchen-sink.
+- **Accessibility**: roles/ARIA wiring, keyboard expectations, labeling rules. Composite controls (affixed input, input-with-button) name the single focus-ring owner per the conventions' one-indicator rule.
+- **i18n**: which parts are locale-formatted slots (data-ds-locale), RTL notes beyond the default mirroring; the long-string sample's behavior follows the **Overflow** line.
 - **Theme variance**: what themes may legitimately vary (density, columns, emphasis) vs what is fixed.
 ```
 

@@ -24,6 +24,8 @@ design-system/
 
 Two lines inside a component section are machine-read too. The `- **Slug**: \`<slug>\`` line binds the section to its catalog slug, and the `- **Variants**:` entry is a nested list `` - `variant-slug` — when-to-use one-liner `` (two-space indent, same backtick grammar as the catalog) — `design-check.sh` parses both to verify every spec'd variant ships its story sample (see Stories below) in every theme. Never fold the variant list back into prose.
 
+Every **bounded-shape** component (button, badge, chip/pill, tab — anything whose silhouette is part of its identity) additionally carries an `- **Overflow**:` line stating what happens when content outgrows the shape: `truncate`, `wrap` (with how the shape adapts — e.g. radius downgrades on multi-line), or `disallow` (a content rule keeps it short). A pill wrapping to two lines is a spec decision, never a rendering accident — a component-smith that needs this line and doesn't find it flags the gap instead of improvising.
+
 ## Markers and fragments
 
 Every component in a kitchen-sink is delimited exactly once:
@@ -46,6 +48,8 @@ Tokens are CSS custom properties on `:root` in each theme dir's `index.css`, pre
 **Required color roles** (checked): `--ds-color-bg`, `--ds-color-on-bg`, `--ds-color-surface`, `--ds-color-on-surface`, `--ds-color-primary`, `--ds-color-on-primary`, `--ds-color-border`. Recommended additions: `muted`/`on-muted`, and the status roles `success`/`warning`/`danger`/`info`, each with its `on-*` partner.
 
 **The contrast contract:** every `--ds-color-on-<x>` is the foreground used on `--ds-color-<x>`, and each pair must meet WCAG AA (≥ 4.5:1). `design-check.sh` computes this from hex values — keep color tokens in 6-digit hex so the gate can do the math.
+
+**Per-mode accent tuning:** a dark mode's `primary` (and other accent roles) is re-tuned for its background — lightness and saturation adjusted so a large fill sits in the dark palette rather than reading as a light-mode element pasted in. Reusing an accent hex unchanged across modes is allowed only as a stated decision in `tokens.md`, never as the default. Contrast math cannot catch this; it is settled by eye at theme time (the `/design-themes` prototype renders a large primary fill in both modes).
 
 **Typography:** `--ds-font-sans` (required) and optionally `--ds-font-mono` / `--ds-font-display`. Every stack ends in a generic family, and `tokens.md` records the intended script coverage (Latin, Cyrillic, CJK, Arabic, …) and the fallback rationale.
 
@@ -91,6 +95,7 @@ Because the DOM is shared, a component's story set is identical in every theme d
 Samples exist to be judged by eye, so a block that packs them edge to edge defeats itself: the reader can't tell where one sample ends, and the component's own spacing disappears into the crowding. Every block therefore lays its stories out as **separated bands**, not a dense grid:
 
 - One `data-ds-story` element per row (or a two-up row only where two samples genuinely belong side by side), with a wide gap between stories (≈ `gap-8`) and a small gap inside one (≈ `gap-3`).
+- **Intrinsic width.** A story wrapper is block-level, so an unconstrained sample silently stretches to the container. Inside a story, a component renders at its intrinsic width (`w-fit` on the sample, or an inline-flex row wrapper) unless COMPONENTS.md specs it as naturally full-bleed (text inputs, tables, banners). A screen-wide button is an unmade decision leaking through a CSS default, not a design.
 - Each story carries a short caption (the variant/state name) and is separated from the next by a **visible rule** (`border-t border-(--ds-color-border)`) or by sitting on its own padded surface panel — the separator is part of the block, not something assembly adds.
 - The block's `<h2>` is followed by breathing room (≈ `mt-6`), and the block itself is padded (≈ `p-6`) rather than starting at the page edge.
 - Samples render at realistic content width; never shrink a sample so the block fits a screenful — the kitchen-sink is meant to be scrolled.
@@ -102,5 +107,6 @@ The caption and separator elements are DOM, so they exist in every theme; the ex
 - WCAG 2.2 AA is the floor unless FOUNDATION.md sets a higher bar.
 - Semantic elements first (`<button>`, `<nav>`, `<table>`, `<dialog>`); ARIA roles/attributes exactly where the pattern requires them (per the APG), not decoratively.
 - Keyboard reachability is visible: every interactive sample has `focus-visible` styling driven by tokens.
+- **One focus indicator per interactive unit.** A composite control (affixed input, input-with-button, segmented group) shows exactly one focus ring — on the group container via focus-within styling — never stacked rings on both the wrapper and an inner element.
 - `<html>` carries `lang` and `dir`; icons are inline SVG with `aria-hidden="true"` plus a text label (or `aria-label` where text is absent).
 - Color is never the only signal — status components pair color with an icon or text.

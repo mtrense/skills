@@ -48,6 +48,8 @@ Work the agenda below **one topic at a time**: state what the references and int
 
 **Prototype instead of debating.** Whenever a topic stalls on words — two color temperatures both sound right, the type scale is abstract — offer to settle it by eye: invoke `Skill(design-prototype)` with the competing directions; it renders disposable side-by-side samples, the human points, you record the verdict and move on.
 
+**Compile the adjectives into dials.** Adjectives don't survive contact with a build worker — "spacious" means nothing to CSS. Once personality and density have settled, translate them into a few concrete, checkable floors and confirm them with the human in one round: minimum control padding (e.g. buttons never tighter than `px-4 py-2`), minimum gap between stacked peers, and the radius-vs-content policy (what a rounded shape does when content grows — downgrade the radius, truncate, or forbid multi-line). These dials bind the `component-smith` and give the `visual-critic` numbers to check against instead of re-deriving taste from prose.
+
 ## Step 3 — Write FOUNDATION.md
 
 Write `design-system/FOUNDATION.md`:
@@ -62,6 +64,7 @@ Write `design-system/FOUNDATION.md`:
 ## Typography direction
 ## Shape, depth & motion
 ## Density
+## Dials                    # the adjectives compiled into checkable floors: min control padding, min stack gap, radius-vs-content policy
 ## Accessibility baseline   # the floor + anything above it
 ## i18n baseline            # scripts, RTL, expansion, locale slots
 ## Themes                   # each anticipated theme: name + one-line intent

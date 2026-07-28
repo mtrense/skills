@@ -19,7 +19,9 @@ Run `bash <skills-root>/design-audit/design-check.sh design-system [scoped theme
 
 ## Step 2 — Visual pass
 
-Spawn one **visual-critic** subagent (`subagent_type: visual-critic`) with the design-system dir and the scope (all themes by default; the `$ARGUMENTS` theme dirs or component slugs when scoped). It renders the pages in Chrome and returns severity-tagged findings; if no browser is connected it says so and the report marks the visual half as limited.
+Spawn one **visual-critic** subagent (`subagent_type: visual-critic`) with the design-system dir, the scope (all themes by default; the `$ARGUMENTS` theme dirs or component slugs when scoped), and the defect-catalog path (`<skills-root>/design-audit/references/defect-catalog.md`) so its story pass checks the named defect classes. It renders the pages in Chrome — page-level plus per-story close-ups — and returns severity-tagged findings; if no browser is connected it says so and the report marks the visual half as limited.
+
+When the audit itself missed a defect the human later found, the fix is one appended entry in the defect catalog — it is a living checklist, and every miss should become a class.
 
 Run Steps 1 and 2 concurrently when convenient — they're independent.
 
