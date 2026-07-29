@@ -7,5 +7,11 @@
   },
   "homepage": "https://github.com/mtrense/skills",
   "repository": "https://github.com/mtrense/skills",
-  "keywords": ["codebase", "documentation", "survey", "onboarding"]
+  "keywords": [
+    "codebase",
+    "documentation",
+    "survey",
+    "onboarding"
+  ],
+  "license": "MIT"
 }

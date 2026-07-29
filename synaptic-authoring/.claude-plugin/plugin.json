@@ -7,5 +7,12 @@
   },
   "homepage": "https://github.com/mtrense/skills",
   "repository": "https://github.com/mtrense/skills",
-  "keywords": ["synaptic", "authoring", "learning", "content", "dag"]
+  "keywords": [
+    "synaptic",
+    "authoring",
+    "learning",
+    "content",
+    "dag"
+  ],
+  "license": "MIT"
 }

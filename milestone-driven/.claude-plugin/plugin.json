@@ -7,5 +7,11 @@
   },
   "homepage": "https://github.com/mtrense/skills",
   "repository": "https://github.com/mtrense/skills",
-  "keywords": ["workflow", "planning", "tdd", "milestones"]
+  "keywords": [
+    "workflow",
+    "planning",
+    "tdd",
+    "milestones"
+  ],
+  "license": "MIT"
 }

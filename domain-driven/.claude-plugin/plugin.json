@@ -7,5 +7,12 @@
   },
   "homepage": "https://github.com/mtrense/skills",
   "repository": "https://github.com/mtrense/skills",
-  "keywords": ["domain-driven-design", "eventstorming", "context-map", "backlog", "tdd"]
+  "keywords": [
+    "domain-driven-design",
+    "eventstorming",
+    "context-map",
+    "backlog",
+    "tdd"
+  ],
+  "license": "MIT"
 }
