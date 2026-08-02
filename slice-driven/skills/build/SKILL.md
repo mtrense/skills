@@ -6,6 +6,7 @@ description: >
   Results section. Trigger when the user says "/build", "build the next item", "work on item
   N", "implement <work item>", "continue building", or after /work when the user says to go
   ahead and build. Do NOT trigger for probe-type items — those run through /slice.
+argument-hint: <optional work item id or name>
 allowed-tools: Read, Glob, Grep, Edit, Write, Agent, Bash
 ---
 
@@ -17,7 +18,7 @@ You drive one work item from `shaped` to `done` with production discipline: test
 
 ## Step 1: Pick the item
 
-No argument → run `work-next.sh` (from the `work` skill's scripts) and confirm the pick with the user. Named item → use it. If it's a probe, redirect to `/slice`. Flip status to `in-progress` (`work-status.sh`).
+The user's argument, if any: `$ARGUMENTS` — a work item id or name; use that item. No argument → run `work-next.sh` (from the `work` skill's scripts) and take its pick, announcing which item you're building — don't ask. If the picked item is a probe, redirect to `/slice`. Flip status to `in-progress` (`work-status.sh`).
 
 ## Step 2: Staleness check
 
