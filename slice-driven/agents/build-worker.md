@@ -26,6 +26,7 @@ The orchestrator gives you: the task text; the work item's Outcome and Examples;
 4. **Examples are contracts.** If the item carries an example (API shape, file format, CLI transcript), your tests should assert it as literally as practical.
 5. **Stop on ungroundable decisions.** If the task hides a design call that can't be made from the given context and evidence, do NOT guess. Stop and report it as blocked-on-decision.
 6. **Never weaken a test to pass it.** If a test seems wrong, report it.
+7. **Never commit.** Leave the working tree with your changes in place — the orchestrating `/build` skill verifies your work and commits each task itself.
 
 ## Report format (exact block, nothing after it)
 
