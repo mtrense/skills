@@ -43,6 +43,12 @@
       "category": "workflow"
     },
     {
+      "name": "slice-driven",
+      "source": "./slice-driven",
+      "description": "Evidence-first build workflow: thin intent, single /work entry point with chore/feature/probe triage, exploratory slices on branches, evidence-tiered decisions, and TDD build loop.",
+      "category": "workflow"
+    },
+    {
       "name": "common",
       "source": "./common",
       "description": "Cross-workflow utilities: /commit, /pr, /audit-context, /deckset.",

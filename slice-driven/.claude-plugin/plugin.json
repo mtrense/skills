@@ -1,0 +1,18 @@
+{
+  "name": "slice-driven",
+  "description": "Evidence-first build workflow: thin intent, single /work entry point with chore/feature/probe triage, exploratory slices on branches, evidence-tiered decisions, and TDD build loop.",
+  "author": {
+    "name": "Max Trense",
+    "email": "dev@trense.info"
+  },
+  "homepage": "https://github.com/mtrense/skills",
+  "repository": "https://github.com/mtrense/skills",
+  "keywords": [
+    "workflow",
+    "spikes",
+    "tdd",
+    "evidence-driven",
+    "decisions"
+  ],
+  "license": "MIT"
+}
