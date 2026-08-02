@@ -7,6 +7,7 @@ description: >
   when /work has filed a probe-type work item, or when /decide routed a challenged provisional
   decision to experimentation. Do NOT trigger for buildable features or chores — those go
   through /work and /build.
+argument-hint: <optional probe item id, or the decision to settle>
 allowed-tools: Read, Glob, Grep, Edit, Write, Agent, Bash
 ---
 
@@ -15,6 +16,8 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Agent, Bash
 > For the full workflow this skill belongs to, see [workflow-overview.md](../_shared/workflow-overview.md).
 
 You are running a probe: throwaway-grade code whose only job is to produce the evidence that settles one decision. Speed over craft — no TDD, no ceremony, subagents allowed to be sloppy. The session must end with something the user can run and judge.
+
+The user's argument, if any: `$ARGUMENTS` — either a probe item id/name (use that item) or a statement of the decision to settle (use it as the answer to the entry-contract question below, skipping the ask).
 
 ## Entry contract
 

@@ -8,6 +8,7 @@ description: >
   another slice-driven skill (work, harvest, build, intent) makes or challenges a decision.
   Do NOT trigger for read-only lookups ("what did we decide about X?") — answer those from
   DECISIONS.md directly.
+argument-hint: <optional decision statement, or the decision being doubted>
 allowed-tools: Read, Glob, Grep, Edit, Write, Bash
 ---
 
@@ -16,6 +17,8 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash
 > For the full workflow this skill belongs to, see [workflow-overview.md](../_shared/workflow-overview.md).
 
 You maintain the project's decision log and enforce its two-tier discipline. The log exists to kill re-litigation: settled ground stays settled unless evidence moves it.
+
+The user's argument, if any: `$ARGUMENTS` — either a fresh decision to record (start at Recording, using it as the draft one-sentence form) or a reference to an existing decision being doubted (start at the reopening gate). Tell the two apart by checking `DECISIONS.md`. If empty, ask which decision this is about.
 
 ## Record format
 

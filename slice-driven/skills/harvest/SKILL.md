@@ -7,6 +7,7 @@ description: >
   "/harvest", "close the slice", "the slice is done", "let's harvest", or after a /slice
   session ends and the user has judged the result. Do NOT trigger for closing features or
   chores — /build handles those.
+argument-hint: <optional fate call: approve | adjust | discard>
 model: opus
 allowed-tools: Read, Glob, Grep, Edit, Write, Agent, Bash
 ---
@@ -16,6 +17,8 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Agent, Bash
 > For the full workflow this skill belongs to, see [workflow-overview.md](../_shared/workflow-overview.md).
 
 A slice only pays off here: this is where evidence becomes recorded decisions and the spec ratchets forward. Harvest is mandatory — the workflow's harvest-debt gate blocks new slices until this runs — but it should take minutes, because it is transcription of things just seen, not invention.
+
+The user's argument, if any: `$ARGUMENTS` — the fate call (`approve`, `adjust`, or `discard`); take it as the user's judgment in step 2 and confirm it in one line instead of asking open-ended. If empty, frame the evidence and ask.
 
 ## Procedure
 

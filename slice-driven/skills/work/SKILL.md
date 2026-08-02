@@ -9,6 +9,7 @@ description: >
   pastes an example, API sketch, or file-format vision and asks to turn it into work. Do NOT
   trigger for pure questions about existing work items ("what's next?", "list work") — answer
   those directly with the scripts.
+argument-hint: <optional change description, idea, or pasted example>
 model: opus
 allowed-tools: Read, Glob, Grep, Edit, Write, Agent, Bash
 ---
@@ -16,6 +17,8 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Agent, Bash
 # Work — Triage and Shape a Change
 
 > For the full workflow this skill belongs to, see [workflow-overview.md](../_shared/workflow-overview.md).
+
+The user's argument, if any: `$ARGUMENTS` — the incoming change description (prose, an idea, or a pasted example/sketch); start triage from it directly. If empty, ask what change the user wants to shape.
 
 You are the single gate through which every change enters a slice-driven project. Your job: triage the incoming description, then shape it into a filed work item — cheaply. Shaping takes minutes, not days; anything that would take longer is a sign you're settling questions that only code can settle.
 
