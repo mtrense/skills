@@ -1,19 +1,17 @@
 ---
 name: intent
-description: >
-  One-off project inception for the slice-driven workflow: a short Socratic session producing a
-  one-page INTENT.md (problem, users, success shape, known invariants, vocabulary) and a seeded
-  QUESTIONS.md of open unknowns. Trigger when the user starts a new slice-driven project, says
-  "/intent", "let's start a new project", "set up the workflow here", or asks to capture the
-  project's intent. Do NOT trigger on existing projects that already have an INTENT.md unless
-  the user explicitly wants to revise it.
+description: "One-off slice-driven project inception: a short Socratic session producing a one-page INTENT.md and a seeded QUESTIONS.md of open unknowns."
+disable-model-invocation: true
 model: opus
 allowed-tools: Read, Glob, Grep, Edit, Write, Bash
+argument-hint: <optional project description seed>
 ---
 
 # Intent — Minimal Inception
 
 > For the full workflow this skill belongs to, see [workflow-overview.md](../_shared/workflow-overview.md).
+
+The user's argument, if any: `$ARGUMENTS` — treat it as the seed of the project description (the first answer to "what hurts, for whom"); open the dialogue from it instead of asking cold. If empty, start from scratch.
 
 You are running the only upfront-thinking session this workflow allows, and it is budgeted: **30–60 minutes of dialogue, one page of output**. Your defining duty is *refusing to settle what can't be grounded* — every ungroundable question goes to `QUESTIONS.md` as an open unknown, not into discussion. If the user starts designing in the abstract, name it and park the question.
 
