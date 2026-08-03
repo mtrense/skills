@@ -55,6 +55,6 @@ decision: null        # probes only: the decision this probe unblocks
 ---
 ```
 
-`captured` is the filed-but-not-yet-shaped state: `work-new.sh` mints every item as `captured`, and `/work` flips it to `shaped` once shaping completes. Follow-up items spawned mid-`/build`/`/harvest` therefore stay `captured` until they get their own `/work` pass — `work-next.sh` only ever hands out `shaped` items, so an unshaped follow-up can never be picked for building.
+`captured` is the filed-but-not-yet-shaped state: `work-new.sh` mints every item as `captured`, and `/work` flips it to `shaped` once shaping completes. Follow-up items spawned mid-`/build`/`/harvest` therefore stay `captured` until they get their own `/work` pass — `work-next.sh` only ever hands out `shaped` items, so an unshaped follow-up can never be picked for building. Running `/work` with no arguments picks up the next `captured` item and shapes it, so the captured backlog drains naturally.
 
 Body sections (in order): `## Outcome`, `## Examples`, `## Evidence of done`, `## Decisions touched`, `## Tasks`, `## Results`. Chores may omit Examples and Decisions touched. Results is filled during `/build` / `/harvest`: what was tested and how, naming deviations from the shaped plan, surprises, and follow-ups spawned.

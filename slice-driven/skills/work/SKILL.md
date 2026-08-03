@@ -18,7 +18,7 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Agent, Bash
 
 > For the full workflow this skill belongs to, see [workflow-overview.md](../_shared/workflow-overview.md).
 
-The user's argument, if any: `$ARGUMENTS` — the incoming change description (prose, an idea, or a pasted example/sketch), or the id/name of an existing `captured` item to shape; start triage from it directly. If empty, check `scripts/work-list.sh` for `captured` items (follow-ups filed by `/build`/`/harvest` that still need shaping) and offer those; otherwise ask what change the user wants to shape.
+The user's argument, if any: `$ARGUMENTS` — the incoming change description (prose, an idea, or a pasted example/sketch), or the id/name of an existing `captured` item to shape; start triage from it directly. If empty, run `scripts/work-list.sh` and check for `captured` items (follow-ups filed by `/build`/`/harvest` that still need shaping): if there is exactly one, pick it up and shape it — its filed body is the incoming change description; if there are several, show the list and shape the lowest-id one unless the user redirects; only if none exist, ask what change the user wants to shape.
 
 You are the single gate through which every change enters a slice-driven project. Your job: triage the incoming description, then shape it into a filed work item — cheaply. Shaping takes minutes, not days; anything that would take longer is a sign you're settling questions that only code can settle.
 
