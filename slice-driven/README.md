@@ -30,12 +30,12 @@ Probes are subordinate, never a phase: a slice must name the decision it unblock
 | `/work` | Single entry point for any change. Triages, then shapes: outcome, examples, evidence-of-done, decisions touched, task breakdown. | `work/NNNN-slug.md` |
 | `/slice` | Probe branch scoped to one named decision; may start from a concrete example. One session, sloppy on purpose. | `slice/NNNN-slug` branch + probe work item |
 | `/harvest` | Closes a slice: fate call (approve/adjust/discard), grounded decisions, spec/vocabulary/exemplar deltas, question updates. | Decision records, updated INTENT/QUESTIONS |
-| `/build` | Picks the next shaped item (or a named one) and burns down its tasks under strict TDD — ticking each task's checkbox and committing it (via `/commit`) as it lands, one commit per task, stamping the item with a baseline SHA at start and each ticked task with its commit's short SHA. Fills the item's Results section. | Passing code + tests, per-task commits, updated work item |
+| `/build` | Picks the next shaped item (or a named one) and burns down its tasks under strict TDD — one `build-worker` implements each task, then an independent `task-lander` re-runs the tests and commits it (via `/commit`), one commit per task, stamping the item with a baseline SHA at start and each ticked task with its commit's short SHA. Fills the item's Results section. | Passing code + tests, per-task commits, updated work item |
 | `/decide` | Records decisions with a grounding tier; gatekeeper for reopening settled ones. | `decisions/NNNN-slug.md` + `DECISIONS.md` |
 
 **Typical flow:** `/intent` (once) → `/work` (as ideas arrive — queuing several before building is fine) → `/build` (next item) → interleaved `/slice` + `/harvest` whenever a breakdown hits an ungroundable call → repeat.
 
-Depends on `common` being installed alongside it for `/commit` — `/build` commits through it after every task (workers never commit), keeping the single-commit-point convention.
+Depends on `common` being installed alongside it for `/commit` — every task lands through it, invoked by `/build`'s `task-lander` subagent (implementation workers never commit; the lander is a separate agent, so verification stays independent of the worker, and the test output, diff, and commit machinery stay out of the main session), keeping the single-commit-point convention.
 
 ## Project artifacts
 

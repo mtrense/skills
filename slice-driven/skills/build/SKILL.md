@@ -30,18 +30,18 @@ Items may have been shaped long before being built. Spawn `decision-briefer` wit
 
 ## Step 3: Burn down tasks
 
-Work the `## Tasks` checklist strictly in order — walking skeleton first; the unticked `- [ ]` entries are the worklist, so a re-entered `/build` resumes exactly where the last one stopped. For each task, spawn a `build-worker` subagent with a self-contained prompt: the task text, the item's Outcome and Examples, relevant Evidence-of-done checks, binding decisions from step 2, and conventions/files from any prior scout report. The worker follows strict TDD (failing test → minimal code → refactor) and reports what it did, test evidence, and any deviations. Workers never commit — the commit point stays here.
+Work the `## Tasks` checklist strictly in order — walking skeleton first; the unticked `- [ ]` entries are the worklist, so a re-entered `/build` resumes exactly where the last one stopped. For each task, spawn a `build-worker` subagent with a self-contained prompt: the task text, the item's Outcome and Examples, relevant Evidence-of-done checks, binding decisions from step 2, and conventions/files from any prior scout report. The worker follows strict TDD (failing test → minimal code → refactor) and reports what it did, test evidence, and any deviations. Workers never commit — landing is the `task-lander`'s job (below).
 
-After each task, land it as one commit:
+After each task, land it as one commit — verification and the commit are delegated so the test output, commit playbook, and full diff never enter this session:
 
-1. **Verify** the worker's claims — run the tests yourself.
-2. **Tick** the task's checkbox (`- [ ]` → `- [x]`) in the work item and append a one-line note under `## Results`.
-3. **Commit** via `Skill(commit)` — code, tests, and the updated work item together, so every task is one self-contained commit and the history reads as the burn-down.
-4. **Stamp the SHA**: capture the commit just made (`git rev-parse --short HEAD`) and append it to the ticked task line — `- [x] <task text> — <sha>` — so each task points at the commit that reverts it. This stamp lands with the *next* commit (the following task's, or the closing bookkeeping commit) — never amend for it.
+1. **Tick** the task's checkbox (`- [ ]` → `- [x]`) in the work item and append a one-line note under `## Results`, so the item update is in the tree when the lander commits.
+2. **Spawn `task-lander`** with the task text, the worker's report, the work item path, and the project's test command(s). The lander independently re-runs the tests, checks the diff for weakened/gamed tests and the tree for unrelated changes, commits via `Skill(commit)` (code, tests, and the updated work item together — one self-contained commit per task, so the history reads as the burn-down), and returns the short SHA. Never fold this into the worker — the lander must be a separate agent from the one that implemented the task, or the verification is the worker grading itself.
+3. **On `landed`**: append the returned SHA to the ticked task line — `- [x] <task text> — <sha>` — so each task points at the commit that reverts it. This stamp lands with the *next* commit (the following task's, or the closing bookkeeping commit) — never amend for it. Surface any lander `flags` to the user.
+4. **On `failed`**: revert the tick and Results note, show the lander's evidence, and either re-spawn the worker with the failure or stop and ask — never commit around a red suite.
 
 If a task turns out to hide an ungroundable decision, stop — offer the provisional-`/decide` vs probe fork exactly as `/work` does; don't let the worker guess silently.
 
-Chores without a task list are executed directly as a single TDD pass, sized permitting, and committed the same way when green — stamp that commit's short SHA on the `## Results` note.
+Chores without a task list are executed directly as a single TDD pass, sized permitting, and landed the same way (one `task-lander` pass) when green — stamp that commit's short SHA on the `## Results` note.
 
 ## Step 4: Close the item
 
@@ -49,6 +49,6 @@ When all tasks and Evidence-of-done checks pass:
 
 1. **Fill `## Results`** properly: how it was tested (test suites, manual checks, transcripts), naming deviations from the shaped plan (renamed concepts, moved boundaries), surprises, and follow-up items spawned (file them via `work-new.sh` as chores/features so they aren't lost).
 2. **Light harvest** — folded in here, not a ceremony: new vocabulary → INTENT.md Vocabulary; provisional decisions this build exercised with real code → note them in the decision records as grounding candidates (actual re-tiering goes through `/decide`); validated examples → keep as exemplars.
-3. Flip status to `done`, then commit the closing edits (Results, harvest notes, status flip, the last task's SHA stamp) via `Skill(commit)` — the task code is already committed per task, so this final commit is bookkeeping only. Show `work-next.sh` for what's next.
+3. Flip status to `done`, then spawn `task-lander` in **closing mode** to commit the closing edits (Results, harvest notes, status flip, the last task's SHA stamp) — it runs the full suite once as the final gate before this bookkeeping-only commit. Show `work-next.sh` for what's next.
 
 Report outcomes faithfully: failing tests are reported as failing, skipped checks as skipped. An item never flips to `done` with unmet Evidence-of-done checks — park it `blocked` with a Results note instead.
