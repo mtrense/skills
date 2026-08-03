@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Flip the status of a work item.
-# Usage: work-status.sh <id> <shaped|in-progress|blocked|done|dropped> [work-dir]
+# Usage: work-status.sh <id> <captured|shaped|in-progress|blocked|done|dropped> [work-dir]
 set -euo pipefail
 
 id="$1"
@@ -8,8 +8,8 @@ new="$2"
 dir="${3:-work}"
 
 case "$new" in
-  shaped | in-progress | blocked | done | dropped) ;;
-  *) echo "invalid status: $new (want shaped|in-progress|blocked|done|dropped)" >&2; exit 1 ;;
+  captured | shaped | in-progress | blocked | done | dropped) ;;
+  *) echo "invalid status: $new (want captured|shaped|in-progress|blocked|done|dropped)" >&2; exit 1 ;;
 esac
 
 shopt -s nullglob

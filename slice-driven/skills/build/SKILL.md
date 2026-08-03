@@ -47,7 +47,7 @@ Chores without a task list are executed directly as a single TDD pass, sized per
 
 When all tasks and Evidence-of-done checks pass:
 
-1. **Fill `## Results`** properly: how it was tested (test suites, manual checks, transcripts), naming deviations from the shaped plan (renamed concepts, moved boundaries), surprises, and follow-up items spawned (file them via `work-new.sh` as chores/features so they aren't lost).
+1. **Fill `## Results`** properly: how it was tested (test suites, manual checks, transcripts), naming deviations from the shaped plan (renamed concepts, moved boundaries), surprises, and follow-up items spawned (file them via `work-new.sh` as chores/features so they aren't lost — they're born `captured`, i.e. filed but unshaped, and stay that way until a `/work` pass shapes them; state the spawning context in their `## Outcome` so that pass has something to work from).
 2. **Light harvest** — folded in here, not a ceremony: new vocabulary → INTENT.md Vocabulary; provisional decisions this build exercised with real code → note them in the decision records as grounding candidates (actual re-tiering goes through `/decide`); validated examples → keep as exemplars.
 3. Flip status to `done`, then spawn `task-lander` in **closing mode** to commit the closing edits (Results, harvest notes, status flip, the last task's SHA stamp) — it runs the full suite once as the final gate before this bookkeeping-only commit. Show `work-next.sh` for what's next.
 

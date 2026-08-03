@@ -2,6 +2,8 @@
 # Create a new work item file with frontmatter and empty body sections.
 # Usage: work-new.sh <feature|chore|probe> <slug> <title...> [--dir work-dir]
 # Prints the created file path. The caller (skill) fills in the body.
+# Items are born `captured` (filed, not yet shaped); /work flips them to
+# `shaped` via work-status.sh once shaping completes.
 set -euo pipefail
 
 type="$1"
@@ -42,7 +44,7 @@ id: $next
 slug: $slug
 title: $title
 type: $type
-status: shaped
+status: captured
 entered: $(date +%F)
 blocked_by: []
 branch: null

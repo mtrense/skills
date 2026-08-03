@@ -37,6 +37,6 @@ The user's argument, if any: `$ARGUMENTS` — the fate call (`approve`, `adjust`
    - `INTENT.md` Invariants: only if the slice *proved* a property must hold.
    - Validated examples (the API shape that felt right, the file format that worked) get kept verbatim as exemplars — in the work item and, where broadly relevant, in INTENT.md's Examples.
 
-5. **Fill `## Results`** in the probe item: what was tested and how, the observation that settled the decision, naming deviations from the plan, surprises, follow-up items spawned.
+5. **Fill `## Results`** in the probe item: what was tested and how, the observation that settled the decision, naming deviations from the plan, surprises, follow-up items spawned (file them via `work-new.sh`; they're born `captured` and need a `/work` pass before they can be built).
 
 6. **Unblock and route.** If a feature was `blocked_by` this probe, clear the blocker and flip it back to actionable; refresh its Decisions touched against the new decisions. Close by showing `work-next.sh` — usually the resumed feature.

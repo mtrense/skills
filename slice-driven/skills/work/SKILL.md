@@ -18,7 +18,7 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Agent, Bash
 
 > For the full workflow this skill belongs to, see [workflow-overview.md](../_shared/workflow-overview.md).
 
-The user's argument, if any: `$ARGUMENTS` — the incoming change description (prose, an idea, or a pasted example/sketch); start triage from it directly. If empty, ask what change the user wants to shape.
+The user's argument, if any: `$ARGUMENTS` — the incoming change description (prose, an idea, or a pasted example/sketch), or the id/name of an existing `captured` item to shape; start triage from it directly. If empty, check `scripts/work-list.sh` for `captured` items (follow-ups filed by `/build`/`/harvest` that still need shaping) and offer those; otherwise ask what change the user wants to shape.
 
 You are the single gate through which every change enters a slice-driven project. Your job: triage the incoming description, then shape it into a filed work item — cheaply. Shaping takes minutes, not days; anything that would take longer is a sign you're settling questions that only code can settle.
 
@@ -44,7 +44,7 @@ For anything beyond a trivial chore, also spawn the `work-scout` subagent for co
 
 ## Step 3: Shape (dialogue, kept short)
 
-Create the item first so there's always a file: run `scripts/work-new.sh <type> <slug> <title>` (from this skill's directory) and then fill the body via Edit. Sharpen **only what's needed to build**:
+Create the item first so there's always a file: run `scripts/work-new.sh <type> <slug> <title>` (from this skill's directory) and then fill the body via Edit. (When shaping an existing `captured` item, skip creation and work on its file.) Items are born `captured`; step 4 flips them to `shaped`. Sharpen **only what's needed to build**:
 
 - **Outcome** — one or two sentences, the user's words tightened.
 - **Examples** — if the user supplied sketches (API shapes, file formats, CLI transcripts, pseudo-code), paste them **verbatim** as the leading artifact; they outrank prose. Examples are first-class: a concrete example is often the best possible shaping input.
@@ -56,6 +56,8 @@ Create the item first so there's always a file: run `scripts/work-new.sh <type> 
 **When an ungroundable question surfaces mid-shaping**, offer exactly two exits: (a) decide provisionally via `/decide` and move on, or (b) if expensive-to-be-wrong, create a probe item scoped to exactly that decision (`work-new.sh probe …`, set the feature's `blocked_by` to the probe's id) and point the user at `/slice`. Never let the dialogue debate an ungroundable question — that is the failure mode this workflow exists to kill.
 
 ## Step 4: File and stop
+
+Once shaping is complete, flip the item to actionable: `scripts/work-status.sh <id> shaped`. This flip is the shaping gate — `work-next.sh` only hands out `shaped` items, so a `captured` item can never reach `/build` unshaped.
 
 For probes triaged at step 1: fill `decision:` in the frontmatter with the decision the probe unblocks, keep the Tasks section to the probe plan (what to build, what observation settles the decision), and point the user at `/slice`.
 

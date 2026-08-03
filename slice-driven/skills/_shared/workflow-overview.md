@@ -45,7 +45,7 @@ id: 7                 # integer, unique, ascending
 slug: local-admin-api
 title: Local admin API
 type: feature         # feature | chore | probe
-status: shaped        # shaped | in-progress | blocked | done | dropped
+status: shaped        # captured | shaped | in-progress | blocked | done | dropped
 entered: 2026-08-02
 blocked_by: []        # ids of work items this waits on (usually a probe); internal ids only —
                       # an external blocker (upstream release, third-party fix) is instead
@@ -54,5 +54,7 @@ branch: null          # probes only: slice/NNNN-slug
 decision: null        # probes only: the decision this probe unblocks
 ---
 ```
+
+`captured` is the filed-but-not-yet-shaped state: `work-new.sh` mints every item as `captured`, and `/work` flips it to `shaped` once shaping completes. Follow-up items spawned mid-`/build`/`/harvest` therefore stay `captured` until they get their own `/work` pass — `work-next.sh` only ever hands out `shaped` items, so an unshaped follow-up can never be picked for building.
 
 Body sections (in order): `## Outcome`, `## Examples`, `## Evidence of done`, `## Decisions touched`, `## Tasks`, `## Results`. Chores may omit Examples and Decisions touched. Results is filled during `/build` / `/harvest`: what was tested and how, naming deviations from the shaped plan, surprises, and follow-ups spawned.
