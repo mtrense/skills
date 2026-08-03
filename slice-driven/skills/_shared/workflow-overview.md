@@ -21,7 +21,7 @@ Read this to understand where the current skill sits in the family. The workflow
    ↑______________________________________|
 ```
 
-`/decide` is called from within the other skills (and directly by the human) whenever a decision is made or challenged. `/steer` sits outside the loop entirely: the human invokes it with a statement or question about the project's state or direction; it gathers evidence via subagents, answers with citations, and on contradiction routes corrections back into the loop (a `/decide` reopening, a doc ratchet, a captured work item, or a probe) — it never builds, shapes, or adjudicates anything itself.
+`/decide` is called from within the other skills (and directly by the human) whenever a decision is made or challenged; invoked with no argument it picks up the next `provisional` record from `board.sh`'s OPEN DECISIONS and works it through a Socratic dialogue, so the standing-assumption backlog drains the same way the `captured` work backlog does. `/steer` sits outside the loop entirely: the human invokes it with a statement or question about the project's state or direction; it gathers evidence via subagents, answers with citations, and on contradiction routes corrections back into the loop (a `/decide` reopening, a doc ratchet, a captured work item, or a probe) — it never builds, shapes, or adjudicates anything itself.
 
 ## Project artifacts
 
