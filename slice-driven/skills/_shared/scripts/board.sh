@@ -2,8 +2,18 @@
 # Project board: all work items with their frontmatter essentials, then open decisions —
 # provisional (not-yet-grounded) records in the decision log, and decisions that
 # in-flight probes have promised but not yet recorded.
-# Usage: board.sh [work-dir] [decisions-dir]   (defaults: ./work ./decisions)
+# Usage: board.sh [-c] [work-dir] [decisions-dir]   (defaults: ./work ./decisions)
+#   -c  colorize the STATUS column
 set -euo pipefail
+
+color=0
+while getopts ":c" opt; do
+  case "$opt" in
+    c) color=1 ;;
+    *) echo "usage: board.sh [-c] [work-dir] [decisions-dir]" >&2; exit 2 ;;
+  esac
+done
+shift $((OPTIND - 1))
 
 dir="${1:-work}"
 decisions_dir="${2:-decisions}"
@@ -11,6 +21,20 @@ shopt -s nullglob
 
 frontmatter() {
   awk '/^---$/{n++; next} n==1{print} n>=2{exit}' "$1" | yj -yj
+}
+
+# Recolor the STATUS column (3rd field) after `column` has aligned the plain
+# text — inserting the escapes post-alignment keeps the padding intact.
+colorize_status() {
+  if [ "$color" -ne 1 ]; then cat; return; fi
+  local esc=$'\x1b' pre='^([^ ]+ +[^ ]+ +)' post='( )'
+  sed -E \
+    -e "s/${pre}(done)${post}/\1${esc}[32m\2${esc}[0m\3/" \
+    -e "s/${pre}(captured)${post}/\1${esc}[33m\2${esc}[0m\3/" \
+    -e "s/${pre}(shaped)${post}/\1${esc}[94m\2${esc}[0m\3/" \
+    -e "s/${pre}(in-progress)${post}/\1${esc}[34m\2${esc}[0m\3/" \
+    -e "s/${pre}(blocked)${post}/\1${esc}[38;5;208m\2${esc}[0m\3/" \
+    -e "s/${pre}(dropped)${post}/\1${esc}[90m\2${esc}[0m\3/"
 }
 
 files=("$dir"/*.md)
@@ -23,7 +47,7 @@ else
       frontmatter "$f" \
         | jq -r --arg file "$(basename "$f")" '[.id, .type, .status, $file, .title] | map(tostring) | @tsv'
     done | sort -n
-  } | column -t -s "$(printf '\t')"
+  } | column -t -s "$(printf '\t')" | colorize_status
 fi
 
 open_decisions=""
