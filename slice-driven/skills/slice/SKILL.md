@@ -23,10 +23,10 @@ The user's argument, if any: `$ARGUMENTS` — either a probe item id/name (use t
 
 A slice requires a probe-type work item in `work/` whose `decision:` field names the decision it unblocks. If invoked without one:
 
-1. Ask the user: **"What decision does this slice unblock?"** If they can answer, create the probe item (`work-new.sh probe <slug> <title>` from the `work` skill's scripts) and fill `decision:`.
+1. Ask the user: **"What decision does this slice unblock?"** If they can answer, create the probe item (`work-new.sh probe <slug> <title>` from `_shared/scripts/` next to the skills) and fill `decision:`.
 2. If they can't name a decision, this is not a slice — route to `/work` (it's a feature or chore; build it for real).
 
-**Harvest-debt gate:** before starting, check for existing probe items with status `in-progress` (`work-list.sh`). If one exists unharvested, stop — it must be closed via `/harvest` first. One open slice at a time.
+**Harvest-debt gate:** before starting, check for existing probe items with status `in-progress` (`board.sh`). If one exists unharvested, stop — it must be closed via `/harvest` first. One open slice at a time.
 
 ## Procedure
 

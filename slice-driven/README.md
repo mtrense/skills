@@ -48,7 +48,7 @@ decisions/NNNN-slug.md
 DECISIONS.md         # lean decision index
 ```
 
-Work items carry machine-readable frontmatter; deterministic shell scripts (in `skills/work/scripts/`, using `yj` + `jq`) handle listing, next-up selection, and status flips — no LLM in the loop for bookkeeping.
+Work items carry machine-readable frontmatter; deterministic shell scripts (in `skills/_shared/scripts/`, using `yj` + `jq`) handle the project board (work items + open decisions), next-up selection, and status flips — no LLM in the loop for bookkeeping.
 
 ## Decision tiers
 

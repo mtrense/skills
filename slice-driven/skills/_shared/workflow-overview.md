@@ -35,7 +35,7 @@ Read this to understand where the current skill sits in the family. The workflow
 
 ## Deterministic bookkeeping
 
-Status flips, listing, and next-item selection are done by shell scripts, not by the LLM: `scripts/` inside the `work` skill (`work-list.sh`, `work-next.sh`, `work-status.sh`, `work-new.sh`). Skills call these instead of hand-editing frontmatter. Requires `yj` and `jq`.
+Status flips, listing, and next-item selection are done by shell scripts, not by the LLM: `_shared/scripts/` next to the skills (`board.sh`, `work-next.sh`, `work-status.sh`, `work-new.sh`). Skills call these instead of hand-editing frontmatter. Requires `yj` and `jq`. `board.sh` is the project board: the work-item table plus an **OPEN DECISIONS** section — `provisional` records still awaiting grounding, plus decisions promised by in-flight probes — so every listing doubles as a standing-assumptions reminder.
 
 ## Work item frontmatter
 

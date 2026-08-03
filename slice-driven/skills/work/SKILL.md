@@ -18,7 +18,7 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Agent, Bash
 
 > For the full workflow this skill belongs to, see [workflow-overview.md](../_shared/workflow-overview.md).
 
-The user's argument, if any: `$ARGUMENTS` — the incoming change description (prose, an idea, or a pasted example/sketch), or the id/name of an existing `captured` item to shape; start triage from it directly. If empty, run `scripts/work-list.sh` and check for `captured` items (follow-ups filed by `/build`/`/harvest` that still need shaping): if there is exactly one, pick it up and shape it — its filed body is the incoming change description; if there are several, show the list and shape the lowest-id one unless the user redirects; only if none exist, ask what change the user wants to shape.
+The user's argument, if any: `$ARGUMENTS` — the incoming change description (prose, an idea, or a pasted example/sketch), or the id/name of an existing `captured` item to shape; start triage from it directly. If empty, run `../_shared/scripts/board.sh` (relative to this skill's directory) and check for `captured` items (follow-ups filed by `/build`/`/harvest` that still need shaping): if there is exactly one, pick it up and shape it — its filed body is the incoming change description; if there are several, show the list and shape the lowest-id one unless the user redirects; only if none exist, ask what change the user wants to shape.
 
 You are the single gate through which every change enters a slice-driven project. Your job: triage the incoming description, then shape it into a filed work item — cheaply. Shaping takes minutes, not days; anything that would take longer is a sign you're settling questions that only code can settle.
 
@@ -44,7 +44,7 @@ For anything beyond a trivial chore, also spawn the `work-scout` subagent for co
 
 ## Step 3: Shape (dialogue, kept short)
 
-Create the item first so there's always a file: run `scripts/work-new.sh <type> <slug> <title>` (from this skill's directory) and then fill the body via Edit. (When shaping an existing `captured` item, skip creation and work on its file.) Items are born `captured`; step 4 flips them to `shaped`. Sharpen **only what's needed to build**:
+Create the item first so there's always a file: run `../_shared/scripts/work-new.sh <type> <slug> <title>` (relative to this skill's directory) and then fill the body via Edit. (When shaping an existing `captured` item, skip creation and work on its file.) Items are born `captured`; step 4 flips them to `shaped`. Sharpen **only what's needed to build**:
 
 - **Outcome** — one or two sentences, the user's words tightened.
 - **Examples** — if the user supplied sketches (API shapes, file formats, CLI transcripts, pseudo-code), paste them **verbatim** as the leading artifact; they outrank prose. Examples are first-class: a concrete example is often the best possible shaping input.
@@ -57,13 +57,13 @@ Create the item first so there's always a file: run `scripts/work-new.sh <type> 
 
 ## Step 4: File and stop
 
-Once shaping is complete, flip the item to actionable: `scripts/work-status.sh <id> shaped`. This flip is the shaping gate — `work-next.sh` only hands out `shaped` items, so a `captured` item can never reach `/build` unshaped.
+Once shaping is complete, flip the item to actionable: `../_shared/scripts/work-status.sh <id> shaped`. This flip is the shaping gate — `work-next.sh` only hands out `shaped` items, so a `captured` item can never reach `/build` unshaped.
 
 For probes triaged at step 1: fill `decision:` in the frontmatter with the decision the probe unblocks, keep the Tasks section to the probe plan (what to build, what observation settles the decision), and point the user at `/slice`.
 
-**Externally blocked items:** if the work can't start until something outside the project happens (an upstream release, a third-party fix, an external decision), file it and immediately flip it with `scripts/work-status.sh <id> blocked` — never leave it `shaped`, or `work-next.sh` will hand it to `/build`. State the unblock condition, and how to check it, in the first line of `## Outcome` (link the upstream issue/release page). `blocked_by` stays internal-ids-only; the external condition lives in that Outcome line.
+**Externally blocked items:** if the work can't start until something outside the project happens (an upstream release, a third-party fix, an external decision), file it and immediately flip it with `../_shared/scripts/work-status.sh <id> blocked` — never leave it `shaped`, or `work-next.sh` will hand it to `/build`. State the unblock condition, and how to check it, in the first line of `## Outcome` (link the upstream issue/release page). `blocked_by` stays internal-ids-only; the external condition lives in that Outcome line.
 
-Shaping and building are decoupled — do **not** start building. Queuing several `/work` items before any `/build` is normal. Close by showing `scripts/work-list.sh` output and, if relevant, noting which item `scripts/work-next.sh` would pick. If any items are `blocked` on an external condition, list each with its unblock condition so the user gets a natural re-check prompt.
+Shaping and building are decoupled — do **not** start building. Queuing several `/work` items before any `/build` is normal. Close by showing `../_shared/scripts/board.sh` output (which also lists the open decisions) and, if relevant, noting which item `../_shared/scripts/work-next.sh` would pick. If any items are `blocked` on an external condition, list each with its unblock condition so the user gets a natural re-check prompt.
 
 ## Staleness rule
 

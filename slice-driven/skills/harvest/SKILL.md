@@ -22,7 +22,7 @@ The user's argument, if any: `$ARGUMENTS` — the fate call (`approve`, `adjust`
 
 ## Procedure
 
-1. **Locate the open probe.** Find the `in-progress` probe item (`work-list.sh`); read its `decision:`, `branch:`, and accumulated Results notes.
+1. **Locate the open probe.** Find the `in-progress` probe item (`board.sh`); read its `decision:`, `branch:`, and accumulated Results notes.
 
 2. **Fate call** (the user decides, you frame the evidence):
    - **approve** — the approach validated. Merge the slice branch into main. The code now evolves under TDD: if hardening work remains (backfill tests, refactor, wire in properly), append those as tasks to the blocked feature item, or create a chore item for standalone hardening. Flip the probe to `done`.

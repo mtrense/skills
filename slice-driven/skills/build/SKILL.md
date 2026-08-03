@@ -18,7 +18,7 @@ You drive one work item from `shaped` to `done` with production discipline: test
 
 ## Step 1: Pick the item
 
-The user's argument, if any: `$ARGUMENTS` — a work item id or name; use that item. No argument → run `work-next.sh` (from the `work` skill's scripts) and take its pick, announcing which item you're building — don't ask. If the picked item is a probe, redirect to `/slice`. Flip status to `in-progress` (`work-status.sh`).
+The user's argument, if any: `$ARGUMENTS` — a work item id or name; use that item. No argument → run `work-next.sh` (from `_shared/scripts/` next to the skills) and take its pick, announcing which item you're building — don't ask. If the picked item is a probe, redirect to `/slice`. Flip status to `in-progress` (`work-status.sh`).
 
 **Dirty-tree check:** this skill commits after every task, and those commits sweep the working tree. If `git status` shows uncommitted changes unrelated to this item at start, surface them and let the user commit or stash first — don't silently fold their work into a task commit.
 
