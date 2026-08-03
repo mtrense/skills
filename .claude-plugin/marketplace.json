@@ -49,6 +49,12 @@
       "category": "workflow"
     },
     {
+      "name": "trajectory",
+      "source": "./trajectory",
+      "description": "Milestone-labelled, proof-driven build workflow: vision kickoff, milestones as labels with explicit proof obligations, decision log with derived topic digests, parallel TDD burn-down with grading, and verified landings.",
+      "category": "workflow"
+    },
+    {
       "name": "common",
       "source": "./common",
       "description": "Cross-workflow utilities: /commit, /pr, /audit-context, /deckset.",

@@ -168,6 +168,22 @@ Takes a mixture of design references (live sites, local mocks/exports, named sys
 
 The workflow uses six bundled subagents in `design-system/agents/`: `reference-analyst` and `theme-drafter` (read-only seeds), `component-smith` and `slide-smith` (write-side — fragments only; `assemble.sh`/`deck-assemble.sh` alone write pages), and `visual-critic` and `deck-critic` (read-only — screenshot the assembled pages/decks in Chrome and judge what the deterministic gates can't: hierarchy, rhythm, dark-mode legibility, slide-frame fit, and fidelity to `FOUNDATION.md`).
 
+### Trajectory Workflow
+
+A milestone-labelled, proof-driven build workflow. Milestones group and label tasks — never barriers or synchronization points — and every risky assumption a milestone stands on becomes a decision with an explicit **proof obligation** (`proof: pending`) that only a `done` task can discharge: `/aim` names what needs proving → `/decide` records it → `/enrich` wires a task's `proves` link → `/land` clears it with the user. Depends on the **`common`** workflow for `/commit`. See [`trajectory/README.md`](trajectory/README.md) for the full specification.
+
+| Phase | Command | What it does |
+|-------|---------|-------------|
+| 1 | `/kickoff` | Socratic vision interview (users/needs, success, invariants, domain language) → `VISION.md` with a one-line-per-term `## Vocabulary` section — the referent `/enrich` checks every task against. Re-entrant (diff-oriented revision); closes a first run by offering the foundational decisions (stack, persistence, testing) as a `/decide` batch |
+| 2 | `/aim` | Idea (or own proposal when invoked empty) → next milestone: outcome/benefit, decisions to make before breakdown, what needs proving. Recon via the `aim-scout` subagent |
+| 3 | `/decide` | One decision, Socratically understood then persisted to `documentation/decisions/NNNN-slug.md` + a `DECISIONS.md` index line; argless takes the next open item from the lowest-id open milestone; given an id, revises or supersedes. Milestone proof items land `proof: pending` + back-reference. Spawns `decision-summarizer` to rewrite the derived `documentation/<topic>.md` digests |
+| 4 | `/enrich` | Milestone → well-shaped tasks, all shaping before persistence (tasks are never split after — ids stay live for life): plan with files, decision/doc refs, complexity, `depends_on`, acceptance criteria, `proves` links. Hard gate: unresolved decision or needs-proving items refuse breakdown. `task-linker` proposes links instead of duplicates; every task vocabulary-checked. Also re-shapes `/burn`'s UNDERESTIMATED hand-backs |
+| ✓ | `/supplement` | Small milestone-less task (bug/chore/improvement) with the same rigor, incl. proposing a multi-task breakdown when the input outgrows one well-shaped task |
+| 5 | `/burn` | `<count>@<workers>` burn-down of the available set: `burn-worker` (TDD in a worktree, commits via `/commit`, model tier from `complexity`, overridable via `.workflow-overrides/model-map`) → `grader` (strict vs. acceptance criteria + linked decisions; reject = back to `todo` with feedback + one retry a tier up) → sequential `merger` (conflict = bounce, red post-merge suite = escalate once then break out) → serialized `doc-syncer` → orchestrator-written closing record. Resumable/idempotent |
+| 6 | `/land` | Next all-done milestone: compliance vs. the original goal, deviations persisted (contradictions with decisions routed to `/decide`, never recorded over), test/demo walk-through from the closing records, docs updated, pending proofs cleared with the user. Cross-milestone proof reported as `blocked on proof: task NNNN (milestone MMMM)` |
+
+All mechanical bookkeeping runs through the bundled `backlog.sh` helper (`ready`, `milestone-ready`, `pending-proofs`, `check`, `board`, …) — no skill ever scans the backlog; `check` gates every write (dangling refs, cycles, live deps on rejected tasks) and `board` doubles as the user's task board. Ids derive from the `NNNN-` filename prefix. Requires `yj` and `jq`. Seven bundled subagents in `trajectory/agents/`: `aim-scout`, `task-linker`, `grader` (read-only) and `burn-worker`, `merger`, `doc-syncer`, `decision-summarizer` (write-side).
+
 ### Utility
 
 | Command | What it does |
