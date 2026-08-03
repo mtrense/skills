@@ -47,7 +47,9 @@ title: Local admin API
 type: feature         # feature | chore | probe
 status: shaped        # shaped | in-progress | blocked | done | dropped
 entered: 2026-08-02
-blocked_by: []        # ids of work items this waits on (usually a probe)
+blocked_by: []        # ids of work items this waits on (usually a probe); internal ids only —
+                      # an external blocker (upstream release, third-party fix) is instead
+                      # status: blocked + the unblock condition stated first in ## Outcome
 branch: null          # probes only: slice/NNNN-slug
 decision: null        # probes only: the decision this probe unblocks
 ---

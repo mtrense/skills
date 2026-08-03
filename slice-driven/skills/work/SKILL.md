@@ -59,7 +59,9 @@ Create the item first so there's always a file: run `scripts/work-new.sh <type> 
 
 For probes triaged at step 1: fill `decision:` in the frontmatter with the decision the probe unblocks, keep the Tasks section to the probe plan (what to build, what observation settles the decision), and point the user at `/slice`.
 
-Shaping and building are decoupled — do **not** start building. Queuing several `/work` items before any `/build` is normal. Close by showing `scripts/work-list.sh` output and, if relevant, noting which item `scripts/work-next.sh` would pick.
+**Externally blocked items:** if the work can't start until something outside the project happens (an upstream release, a third-party fix, an external decision), file it and immediately flip it with `scripts/work-status.sh <id> blocked` — never leave it `shaped`, or `work-next.sh` will hand it to `/build`. State the unblock condition, and how to check it, in the first line of `## Outcome` (link the upstream issue/release page). `blocked_by` stays internal-ids-only; the external condition lives in that Outcome line.
+
+Shaping and building are decoupled — do **not** start building. Queuing several `/work` items before any `/build` is normal. Close by showing `scripts/work-list.sh` output and, if relevant, noting which item `scripts/work-next.sh` would pick. If any items are `blocked` on an external condition, list each with its unblock condition so the user gets a natural re-check prompt.
 
 ## Staleness rule
 
