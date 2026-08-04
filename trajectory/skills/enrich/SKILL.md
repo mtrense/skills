@@ -57,11 +57,11 @@ Batch related closed calls into one `AskUserQuestion` call rather than one turn 
 
 Per agreed task: `bash ../_shared/scripts/backlog.sh new task <slug> <title>`, then Edit the frontmatter lists (`milestones: ["<this milestone>"]`, `complexity`, `depends_on`, `decisions`, `proves`, `documents`) and fill `## Plan`, `## Acceptance criteria`, `## Notes`.
 
-Then: `bash ../_shared/scripts/backlog.sh check` (hard gate — fix anything it flags before committing), and commit with an explicit pathspec: `git add <task files> && git commit -m "enrich: break down milestone NNNN into tasks …" -- <task files>`.
+Then: `bash ../_shared/scripts/backlog.sh check` (hard gate — fix anything it flags). Do **not** commit — this skill runs in the foreground; name the task files written and leave them for the user to review and commit (`/commit`).
 
 ## Re-shaping an underestimated task
 
-When `/burn` hands back an UNDERESTIMATED task (or the user names one), reshape without splitting: **narrow the original in place** — its id, dependents, and `proves` links stay live — and mint fresh tasks for the carved-off remainder, wiring their `depends_on` and moving any `proves` link the narrowed original no longer delivers. Use the worker's `learned:` report as the primary input; the same linker/vocabulary/check/commit rigor applies.
+When `/burn` hands back an UNDERESTIMATED task (or the user names one), reshape without splitting: **narrow the original in place** — its id, dependents, and `proves` links stay live — and mint fresh tasks for the carved-off remainder, wiring their `depends_on` and moving any `proves` link the narrowed original no longer delivers. Use the worker's `learned:` report as the primary input; the same linker/vocabulary/check rigor applies (and the same no-commit rule).
 
 ## Rejection ripple
 

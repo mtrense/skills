@@ -59,6 +59,6 @@ If tasks link the old decision (`backlog.sh` — check `decisions`/`proves` via 
 
 ## Derived digests + wrap-up
 
-Spawn the `decision-summarizer` subagent with the documentation directory and the id(s) just recorded/revised/superseded — the per-topic digests are never authored by hand. Then run `bash ../_shared/scripts/backlog.sh check`, and commit all backlog files touched with an explicit pathspec: `git add <files> && git commit -m "decide: <title>" -- <decision file(s)> <DECISIONS.md> <topic files> <milestone file if back-referenced>`.
+Spawn the `decision-summarizer` subagent with the documentation directory and the id(s) just recorded/revised/superseded — the per-topic digests are never authored by hand. Then run `bash ../_shared/scripts/backlog.sh check`. Do **not** commit — this skill runs in the foreground; name the files touched (decision file(s), `DECISIONS.md`, topic digests, the milestone file if back-referenced) and leave them for the user to review and commit (`/commit`).
 
 Close by naming what unblocked: if the milestone's `## Decisions to make` list is now fully ticked, `/enrich` is open; if more items remain, offer the next one (`/decide` argless continues).

@@ -42,7 +42,7 @@ Per task, assemble the same material as `/enrich`:
 
 ## Persist
 
-Per task: `bash ../_shared/scripts/backlog.sh new task <slug> <title>` (relative to this skill's directory), Edit frontmatter (`milestones: []`) and body, then `bash ../_shared/scripts/backlog.sh check`, then commit with an explicit pathspec: `git add <files> && git commit -m "supplement: <title>" -- <files>`.
+Per task: `bash ../_shared/scripts/backlog.sh new task <slug> <title>` (relative to this skill's directory), Edit frontmatter (`milestones: []`) and body, then `bash ../_shared/scripts/backlog.sh check`. Do **not** commit — this skill runs in the foreground; name the files written and leave them for the user to review and commit (`/commit`).
 
 ## Wrap-up
 

@@ -53,4 +53,4 @@ With `VISION.md` present, run diff-oriented: read the current file, ask what cha
 
 ## Wrap-up
 
-Commit the backlog change with an explicit pathspec: `git add VISION.md && git commit -m "kickoff: <create|revise> vision" -- VISION.md`. Close by pointing at the next move: `/aim` for the first milestone (or `/decide` if a foundational batch is pending).
+Leave `VISION.md` uncommitted — this skill runs in the foreground, so the user reviews the change and commits it themselves (`/commit`). Close by naming the file written and pointing at the next move: `/aim` for the first milestone (or `/decide` if a foundational batch is pending).

@@ -70,7 +70,9 @@ Status is derived where possible: a milestone is **ready to land** when at least
 
 ## Commits
 
-Workers commit their own code changes via the common `/commit` skill (one commit per task, inside their worktree). The orchestrating skill commits every backlog-file change (task/milestone/decision files) it writes, separately from code commits — always with an explicit pathspec (`git add <files> && git commit -m "…" -- <files>`, only the backlog files it just wrote), so a bookkeeping commit can never sweep unrelated working-tree changes along.
+**The foreground skills never commit.** `/kickoff`, `/aim`, `/decide`, `/enrich`, `/supplement`, and `/land` run interactively with the user present: they write their backlog files, run `backlog.sh check`, name what they wrote, and stop — the user reviews the diff and commits it themselves (`/commit`). Committing on the user's behalf in a session they are watching takes the review step away from them.
+
+Committing only happens inside `/burn`, where the work runs unattended and a landed task must be a durable unit: `burn-worker` commits its code via the common `/commit` skill (one commit per task, inside its worktree), and `burn-scribe` / `merger` / `doc-syncer` commit the closing record, the merge, and the doc sync respectively. Each of those always uses an explicit pathspec (`git add <files> && git commit -m "…" -- <files>`, only the files it just wrote), so a bookkeeping commit can never sweep unrelated working-tree changes along.
 
 ## Subagents
 

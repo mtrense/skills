@@ -56,7 +56,7 @@ Task `rejected` is a human tombstone, never a grader verdict — and rejection *
 
 ## Commits
 
-Workers commit their own code via the common `/commit` skill (one commit per task, inside their worktree). Orchestrating skills commit every backlog-file change separately, always with an explicit pathspec (`git commit … -- <files>`), so bookkeeping can never sweep unrelated working-tree changes along.
+The foreground skills (`/kickoff`, `/aim`, `/decide`, `/enrich`, `/supplement`, `/land`) **never commit** — they write their backlog files, run `backlog.sh check`, name what they wrote, and leave the diff for the user to review and commit (`/commit`). Committing happens only inside `/burn`, which runs unattended: `burn-worker` commits its code via `/commit` (one commit per task, inside its worktree), and `burn-scribe`/`merger`/`doc-syncer` commit the closing record, merge, and doc sync — each with an explicit pathspec (`git commit … -- <files>`), so bookkeeping can never sweep unrelated working-tree changes along.
 
 ## Subagents
 

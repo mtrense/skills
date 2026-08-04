@@ -53,7 +53,7 @@ Create the file: `bash ../_shared/scripts/backlog.sh new milestone <slug> <title
 <left empty — /land fills it>
 ```
 
-Run `bash ../_shared/scripts/backlog.sh check`, then commit with an explicit pathspec: `git add <file> && git commit -m "aim: milestone NNNN <title>" -- <file>`.
+Run `bash ../_shared/scripts/backlog.sh check`. Do **not** commit — this skill runs in the foreground; leave the written file for the user to review and commit (`/commit`).
 
 ## Wrap-up
 

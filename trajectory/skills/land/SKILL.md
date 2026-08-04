@@ -58,4 +58,4 @@ Flip the milestone: `backlog.sh set-status milestone <id> landed`.
 
 ## Wrap-up
 
-Run `bash ../_shared/scripts/backlog.sh check`, then commit every backlog file touched with an explicit pathspec: `git add <files> && git commit -m "land: milestone NNNN <title>" -- <milestone file> <decision files> <task files if touched> <docs>`. Show the board and point forward: the next READY milestone, or `/aim` when the runway is clear.
+Run `bash ../_shared/scripts/backlog.sh check`. Do **not** commit — this skill runs in the foreground; name every backlog file touched (milestone file, decision files, task files, docs) and leave them for the user to review and commit (`/commit`). Show the board and point forward: the next READY milestone, or `/aim` when the runway is clear.
