@@ -49,9 +49,14 @@ Create the file: `bash ../_shared/scripts/backlog.sh new milestone <slug> <title
 ## Needs proving
 - [ ] <one-line proof item>
 
+## Breakdown
+<left empty — /enrich fills it with the coverage map>
+
 ## Landing
 <left empty — /land fills it>
 ```
+
+Leave `## Breakdown` empty but present: it is the coverage map `/enrich` writes (one line per element of the outcome → the tasks covering it), and `milestone-ready` treats a milestone that has tasks but no coverage map as OPEN. Do not pre-fill it with guesses — breakdown is `/enrich`'s job.
 
 Run `bash ../_shared/scripts/backlog.sh check`. Do **not** commit — this skill runs in the foreground; leave the written file for the user to review and commit (`/commit`).
 

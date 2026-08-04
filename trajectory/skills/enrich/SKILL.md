@@ -27,6 +27,8 @@ The user's argument, if any: `$ARGUMENTS` — a milestone id, or a task id to re
 
 Read the milestone file. If any `## Decisions to make` **or** `## Needs proving` item is unchecked (no `decision: NNNN` back-reference), **refuse to break the milestone down** and route the items to `/decide` — a task written against an unmade decision just encodes a guess, and a needs-proving item that never became a `proof: pending` decision can't be wired into any task's `proves` list, so the obligation silently evaporates (`pending-proofs` comes back empty and `/land` finds nothing to clear). This is a hard gate; the user overriding it should be rare and explicit.
 
+**A partial breakdown is the dangerous shape, not a compromise.** The tempting move when one item blocks one task is to mint everything else and come back later — and that is exactly how a milestone ends up with every task it has `done` while the outcome is undelivered, because a task that was never written is invisible to every status query. So if the user does override the gate, the ground the blocked item covers is **still written down** as an unresolved line in the coverage map below, and the milestone stays OPEN by construction until it is broken down. Say that plainly when overriding: *"minting N tasks now; `<element>` stays uncovered and blocks landing until the logging decision is made"*.
+
 ## The breakdown dialog
 
 Work through the milestone's outcome with the user, proposing a breakdown into tasks. For each proposed task, assemble:
@@ -37,6 +39,8 @@ Work through the milestone's outcome with the user, proposing a breakdown into t
 - **Dependencies** — `depends_on` edges to other tasks (existing or in this batch).
 - **Acceptance criteria** — externally observable checks, one list; this is exactly what the `grader` will hold the worker to, so write them testable.
 - **Proves** — for any `proof: pending` decision this task will demonstrate, its id in `proves:`. Check `backlog.sh pending-proofs` for obligations this milestone (or an earlier one) is still carrying — a task here may prove an earlier milestone's decision.
+
+**Wire proves against the claims, not the decision.** `backlog.sh proof-claims <id>` lists a pending decision's `## Proof` claims. Walk them one at a time and name which task demonstrates each — several claims of one decision routinely land in different tasks, and the surface matters (a claim demonstrated through the library API is not demonstrated through the CLI entry point). Then state the leftovers explicitly: **any claim no proposed task covers is uncovered ground** — either a task is missing from this breakdown, or the claim belongs to a later milestone and the user should say so. Never let `proves: [NNNN]` on one task stand in for a claim list it only partly delivers; the decision stays `pending` until every claim is ticked, and `/land` will block on it.
 
 **Duplicate/link scan:** for each proposed task, spawn the `task-linker` subagent (proposal + `backlog.sh` path). It proposes links to existing open tasks instead of duplicating them — fold its verdicts into the breakdown (drop covered tasks, add proposed edges) and surface judgment calls to the user.
 
@@ -57,6 +61,20 @@ Batch related closed calls into one `AskUserQuestion` call rather than one turn 
 
 Per agreed task: `bash ../_shared/scripts/backlog.sh new task <slug> <title>`, then Edit the frontmatter lists (`milestones: ["<this milestone>"]`, `complexity`, `depends_on`, `decisions`, `proves`, `documents`) and fill `## Plan`, `## Acceptance criteria`, `## Notes`.
 
+### The coverage map
+
+Then write the milestone's `## Breakdown` section — **one line per element of the outcome**, each resolved one of exactly two ways:
+
+```markdown
+## Breakdown
+- <outcome element, in the milestone's own words> — tasks: 0009, 0012
+- <outcome element> — deferred: <why, and what unblocks it>
+```
+
+Derive the elements from `## Outcome` (and any proof claim the tasks are meant to demonstrate), not from the task list — reading the tasks back would only tell you the milestone is covered by the tasks you just wrote. Then check each element against the breakdown and resolve it: covered by tasks, or deliberately deferred with the reason. **An element you cannot resolve either way stays on the list unresolved** — `milestone-ready` reads a line with neither `tasks:` nor `deferred:` as uncovered ground and holds the milestone OPEN. That unresolved line is the whole point: it is what makes a gap survive the session instead of evaporating.
+
+On a re-run against a milestone that already has a coverage map, update the existing lines rather than appending a second map.
+
 Then: `bash ../_shared/scripts/backlog.sh check` (hard gate — fix anything it flags). Do **not** commit — this skill runs in the foreground; name the task files written and leave them for the user to review and commit (`/commit`).
 
 ## Re-shaping an underestimated task
@@ -69,4 +87,4 @@ If the dialog rejects a task (the human decides not to do it): `backlog.sh set-s
 
 ## Wrap-up
 
-Show the board. If every milestone item is covered, note that `/burn` can start; list what `backlog.sh ready` would pick first.
+Show the board, then run `bash ../_shared/scripts/backlog.sh milestone-ready <id>` and report its blockers verbatim — that is the honest statement of what this breakdown did and did not cover, and it is what `/land` will see later. Note that `/burn` can start and list what `backlog.sh ready` would pick first; if the readiness report still names uncovered elements, open items, or open proof claims, name them as the work that has to happen before landing and point at what unblocks each (`/decide` for an open item, another `/enrich` pass for uncovered ground).

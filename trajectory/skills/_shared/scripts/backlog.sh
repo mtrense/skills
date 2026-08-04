@@ -24,11 +24,23 @@
 #                 proof (none|pending|proven), superseded_by (id or null)
 #
 # ── Derived state ─────────────────────────────────────────────────────────────
-# A milestone is READY to land when at least one task lists it, every task listing
-# it is done or rejected, and every `proof: pending` decision back-referenced from
-# its body (the `decision: NNNN` markers /decide writes) is proven by a done task.
+# A milestone is READY to land when ALL of:
+#   1. every `## Decisions to make` / `## Needs proving` item is settled — ticked
+#      AND carrying a `decision: NNNN` back-reference (an open item means ground
+#      /enrich was never able to break down);
+#   2. its `## Breakdown` coverage map exists and every line is resolved — either
+#      `tasks: NNNN[, NNNN]` or `deferred: <reason>` (an unresolved line is
+#      outcome ground no task covers);
+#   3. at least one task lists it, and every task listing it is done or rejected;
+#   4. every `proof: pending` decision back-referenced from its body (the
+#      `decision: NNNN` markers /decide writes) is demonstrated — a done proving
+#      task AND every `## Proof` claim on that decision ticked.
 # A pending proof whose only live proving task sits in another milestone is
 # reported as "blocked on proof: task NNNN (milestone MMMM)".
+#
+# Rules 1, 2, and the claim half of 4 are what stop a milestone whose minted
+# tasks all landed from reading READY while the ground they never covered is
+# still open: task statuses alone cannot see work that was never written down.
 #
 # ── Commands ──────────────────────────────────────────────────────────────────
 #   backlog.sh new <task|milestone|decision> <slug> <title...>
@@ -44,7 +56,12 @@
 #   backlog.sh dependents <id>   tasks that depend_on task <id> (reverse edges)
 #   backlog.sh provers <id>      tasks whose `proves` lists decision <id>
 #   backlog.sh set-status <kind> <id> <status>    flip a status (validated per kind)
-#   backlog.sh set-proof <id> <none|pending|proven>   flip a decision's proof field
+#   backlog.sh set-proof <id> <none|pending|proven> [--force]
+#                                flip a decision's proof field; `proven` is
+#                                refused while any `## Proof` claim is unticked
+#                                (--force overrides, for a claimless legacy record)
+#   backlog.sh proof-claims <id> that decision's `## Proof` claims, one per line,
+#                                prefixed OPEN/DONE (exit 1 if any is OPEN)
 #   backlog.sh set-superseded <old-id> <new-id>   old decision -> status: superseded
 #                                + superseded_by: <new-id>
 #   backlog.sh milestone-ready [<id>]   readiness report for one milestone (exit 0
@@ -155,6 +172,59 @@ _milestone_decisions() {
     | grep -oE 'decision: [0-9]{4}' | grep -oE '[0-9]{4}' | sort -u || true
 }
 
+# ── Body-section readers ──────────────────────────────────────────────────────
+# The three edges that cannot live in frontmatter — a milestone's item checklists,
+# its breakdown coverage map, and a decision's proof claims — are checklist lines
+# in the body. These bounded readers are the sanctioned way to see them; nothing
+# else reads a body. Each one is line-shaped, so the grammar is the contract:
+#   milestone item      - [x] <text> — decision: NNNN
+#   breakdown line      - <outcome element> — tasks: NNNN, NNNN   |   — deferred: <why>
+#   proof claim         - [x] <claim> — <how it was demonstrated>
+
+# Lines of one `## <heading>` section (heading text without the `## `).
+_section_lines() {
+  awk -v want="## $2" '/^## /{ insec = ($0 == want); next } insec { print }' "$1"
+}
+
+# Bullet lines of one section (anything starting `- `), or nothing.
+_section_bullets() {
+  _section_lines "$1" "$2" | grep -E '^[[:space:]]*-[[:space:]]' || true
+}
+
+# A milestone's UNSETTLED checklist items: not ticked, or ticked without the
+# `decision: NNNN` back-reference /decide writes (either way, no decision record
+# exists, so nothing downstream can wire or clear it).
+_milestone_open_items() {
+  local f="$1" h line
+  for h in "Decisions to make" "Needs proving"; do
+    while IFS= read -r line; do
+      [ -n "$line" ] || continue
+      if printf '%s' "$line" | grep -qE '^[[:space:]]*-[[:space:]]*\[[xX]\]' \
+         && printf '%s' "$line" | grep -qE 'decision:[[:space:]]*[0-9]{4}'; then continue; fi
+      printf '%s: %s\n' "$h" "$(printf '%s' "$line" | sed -E 's/^[[:space:]]*-[[:space:]]*(\[[[:space:]xX]?\][[:space:]]*)?//')"
+    done <<< "$(_section_bullets "$f" "$h")"
+  done
+}
+
+# Breakdown lines that resolve to neither tasks nor a deliberate deferral.
+_milestone_breakdown_gaps() {
+  _section_bullets "$1" "Breakdown" \
+    | grep -vE 'tasks:[[:space:]]*[0-9]{4}|deferred:[[:space:]]*[^[:space:]]' || true
+}
+
+# 0 iff the milestone has a non-empty ## Breakdown coverage map.
+_milestone_has_breakdown() {
+  [ -n "$(_section_bullets "$1" "Breakdown")" ]
+}
+
+# A decision's proof claims (checklist lines under ## Proof), all / unticked.
+_decision_claims() {
+  _section_bullets "$1" "Proof" | grep -E '^[[:space:]]*-[[:space:]]*\[[ xX]\]' || true
+}
+_decision_open_claims() {
+  _decision_claims "$1" | grep -E '^[[:space:]]*-[[:space:]]*\[[[:space:]]?\]' || true
+}
+
 # Readiness of one milestone. Prints detail lines; last line is the verdict:
 # READY | OPEN | LANDED. Returns 0 iff READY.
 _milestone_ready_report() {
@@ -163,6 +233,14 @@ _milestone_ready_report() {
   [ -n "$mfile" ] || { echo "no such milestone: $mid" >&2; return 2; }
   mstatus="$(_load milestone | jq -r --arg id "$mid" 'map(select(._id==$id))|.[0].status')"
   if [ "$mstatus" = "landed" ]; then echo "LANDED"; return 1; fi
+
+  # Open checklist items: ground /decide never settled, so /enrich could not
+  # break it down and no task exists for it. Task statuses cannot see this.
+  local open_items; open_items="$(_milestone_open_items "$mfile")"
+  if [ -n "$open_items" ]; then
+    printf '%s\n' "$open_items" | sed 's/^/  open item: /'
+    verdict="OPEN"
+  fi
 
   tasks_json="$(_load task)"
   local open_tasks total
@@ -177,16 +255,41 @@ _milestone_ready_report() {
     verdict="OPEN"
   fi
 
+  # Coverage map: which outcome ground each task covers, and what is knowingly
+  # not covered. Its absence is the state where every minted task can be done
+  # while the outcome is not delivered.
+  if [ "$total" -gt 0 ] && ! _milestone_has_breakdown "$mfile"; then
+    echo "  no ## Breakdown coverage map — add one (outcome element -> tasks: NNNN | deferred: why) via /enrich"
+    verdict="OPEN"
+  fi
+  local gaps; gaps="$(_milestone_breakdown_gaps "$mfile")"
+  if [ -n "$gaps" ]; then
+    printf '%s\n' "$gaps" | sed 's/^[[:space:]]*-[[:space:]]*/  uncovered outcome element: /'
+    verdict="OPEN"
+  fi
+
   local decisions_json; decisions_json="$(_load decision)"
   for d in $(_milestone_decisions "$mfile"); do
     local dproof
     dproof="$(printf '%s' "$decisions_json" | jq -r --arg id "$d" 'map(select(._id==$id))|.[0].proof // "missing"')"
     [ "$dproof" = "pending" ] || continue
-    # pending: proven iff some non-rejected proving task is done
-    local prover_done prover_live
+    # pending: demonstrated iff some non-rejected proving task is done AND every
+    # proof claim on the decision is ticked. A decision whose statement carries
+    # several claims is routinely part-proven — one `proves` edge is not evidence
+    # that all of them landed.
+    local prover_done prover_live dfile open_claims
     prover_done="$(printf '%s' "$tasks_json" | jq -r --arg d "$d" '
       [.[]|select((.proves|index($d)) and .status=="done")|._id]|join(", ")')"
-    if [ -n "$prover_done" ]; then continue; fi
+    if [ -n "$prover_done" ]; then
+      dfile="$(printf '%s' "$decisions_json" | jq -r --arg id "$d" 'map(select(._id==$id))|.[0]._file // empty')"
+      open_claims="$([ -n "$dfile" ] && _decision_open_claims "$dfile" || true)"
+      if [ -n "$open_claims" ]; then
+        echo "  decision $d: proving task(s) $prover_done done, but proof claims are still open —"
+        printf '%s\n' "$open_claims" | sed -E 's/^[[:space:]]*-[[:space:]]*\[[[:space:]]?\][[:space:]]*/      /'
+        verdict="OPEN"
+      fi
+      continue
+    fi
     prover_live="$(printf '%s' "$tasks_json" | jq -r --arg d "$d" '
       [.[]|select((.proves|index($d)) and (.status|IN("todo","in-progress")))]')"
     if [ "$(printf '%s' "$prover_live" | jq 'length')" -gt 0 ]; then
@@ -214,6 +317,31 @@ _warnings() {
     | ([$tasks[]|select((.proves|index($d)) and (.status|IN("todo","in-progress","done")))]) as $provers
     | select(($provers|length)==0)
     | "pending proof with no live proving task: decision \(._id) (\(.title))"'
+  # partial breakdown: tasks already exist for a milestone that still has open
+  # items — the shape that lets every existing task land on an undelivered outcome
+  local mf mid open_n task_n milestones_json
+  milestones_json="$(_load milestone)"
+  shopt -s nullglob
+  for mf in "$MILESTONES_DIR"/[0-9][0-9][0-9][0-9]-*.md; do
+    mid="$(basename "$mf")"; mid="${mid:0:4}"
+    printf '%s' "$milestones_json" | jq -e --arg id "$mid" \
+      'map(select(._id==$id and .status=="open"))|length>0' >/dev/null || continue
+    open_n="$(_milestone_open_items "$mf" | grep -c . || true)"
+    task_n="$(printf '%s' "$tasks_json" | jq -r --arg m "$mid" '[.[]|select(.milestones|index($m))]|length')"
+    if [ "$open_n" -gt 0 ] && [ "$task_n" -gt 0 ]; then
+      echo "milestone $mid is partially broken down: $task_n task(s) exist but $open_n item(s) are still open (/decide, then /enrich)"
+    fi
+    if [ "$task_n" -gt 0 ] && ! _milestone_has_breakdown "$mf"; then
+      echo "milestone $mid has $task_n task(s) but no ## Breakdown coverage map (/enrich)"
+    fi
+  done
+  # pending proof recorded without the claims it has to demonstrate
+  printf '%s' "$decisions_json" | jq -r '.[]|select(.proof=="pending")|"\(._id)\t\(._file)"' \
+  | while IFS=$'\t' read -r did dfile; do
+      [ -n "$dfile" ] || continue
+      [ -z "$(_decision_claims "$dfile")" ] \
+        && echo "decision $did is proof: pending with no ## Proof claims — nothing states what a proving task must demonstrate (/decide)"
+    done
   # superseded decision missing its superseded_by pointer
   printf '%s' "$decisions_json" | jq -r '
     .[] | select(.status=="superseded" and .superseded_by==null)
@@ -274,6 +402,8 @@ status: open
 
 ## Needs proving
 
+## Breakdown
+
 ## Landing
 EOF
       ;;
@@ -292,6 +422,8 @@ superseded_by: null
 ## Rationale
 
 ## Consequences
+
+## Proof
 EOF
       ;;
     esac
@@ -365,11 +497,23 @@ EOF
     ;;
 
   set-proof)
-    id="$(_pad4 "${1:?usage: backlog.sh set-proof <id> <none|pending|proven>}")"
-    new="${2:?usage: backlog.sh set-proof <id> <none|pending|proven>}"
+    id="$(_pad4 "${1:?usage: backlog.sh set-proof <id> <none|pending|proven> [--force]}")"
+    new="${2:?usage: backlog.sh set-proof <id> <none|pending|proven> [--force]}"
+    force=0; [ "${3:-}" = "--force" ] && force=1
     case "$new" in none | pending | proven) ;; *) echo "invalid proof: $new" >&2; exit 2 ;; esac
     file="$(_load decision | jq -r --arg id "$id" 'map(select(._id==$id))|.[0]._file // empty')"
     [ -n "$file" ] || { echo "no such decision: $id" >&2; exit 1; }
+    # Flipping to proven is the moment the obligation disappears — refuse while
+    # any claim is unticked, so a part-proven decision cannot be closed wholesale.
+    if [ "$new" = "proven" ] && [ "$force" -ne 1 ]; then
+      open_claims="$(_decision_open_claims "$file")"
+      if [ -n "$open_claims" ]; then
+        echo "refusing: decision $id still has open proof claims —" >&2
+        printf '%s\n' "$open_claims" | sed 's/^/  /' >&2
+        echo "tick each claim in $file as a landed task demonstrates it, or re-run with --force" >&2
+        exit 1
+      fi
+    fi
     sed -i.bak "1,/^proof:/s/^proof:.*/proof: $new/" "$file" && rm -f "$file.bak"
     echo "$file -> proof: $new"
     ;;
@@ -402,11 +546,33 @@ EOF
 
   pending-proofs)
     tasks_json="$(_load task)"
-    _load decision | jq -r --argjson tasks "$tasks_json" '
-      .[] | select(.proof=="pending")
-      | ._id as $d
-      | ([$tasks[]|select(.proves|index($d))|"\(._id) (\(.status))"]|join(", ")) as $p
-      | "\(._id) [\(.status)] \(.title) — proving tasks: \(if $p=="" then "NONE" else $p end)"'
+    _load decision | jq -r 'map(select(.proof=="pending"))|sort_by(._id)|.[]
+      | "\(._id)\t\(.status)\t\(._file)\t\(.title)"' \
+    | while IFS=$'\t' read -r did dstatus dfile dtitle; do
+        provers="$(printf '%s' "$tasks_json" | jq -r --arg d "$did" \
+          '[.[]|select(.proves|index($d))|"\(._id) (\(.status))"]|join(", ")')"
+        n_all="$(_decision_claims "$dfile" | grep -c . || true)"
+        n_open="$(_decision_open_claims "$dfile" | grep -c . || true)"
+        if [ "$n_all" -eq 0 ]; then claims="claims: NONE RECORDED"
+        else claims="claims: $((n_all - n_open))/$n_all ticked"; fi
+        echo "$did [$dstatus] $dtitle — proving tasks: ${provers:-NONE} — $claims"
+        if [ "$n_open" -gt 0 ]; then
+          _decision_open_claims "$dfile" \
+            | sed -E 's/^[[:space:]]*-[[:space:]]*\[[[:space:]]?\][[:space:]]*/    open claim: /'
+        fi
+      done
+    ;;
+
+  proof-claims)
+    want="$(_pad4 "${1:?usage: backlog.sh proof-claims <decision-id>}")"
+    file="$(_load decision | jq -r --arg id "$want" 'map(select(._id==$id))|.[0]._file // empty')"
+    [ -n "$file" ] || { echo "no such decision: $want" >&2; exit 1; }
+    claims="$(_decision_claims "$file")"
+    [ -n "$claims" ] || { echo "(no ## Proof claims recorded)"; exit 1; }
+    printf '%s\n' "$claims" | sed -E \
+      -e 's/^[[:space:]]*-[[:space:]]*\[[xX]\][[:space:]]*/DONE /' \
+      -e 's/^[[:space:]]*-[[:space:]]*\[[[:space:]]?\][[:space:]]*/OPEN /'
+    [ -z "$(_decision_open_claims "$file")" ]
     ;;
 
   check)

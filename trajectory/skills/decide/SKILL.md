@@ -39,12 +39,27 @@ The point is shared understanding *before* persistence, not ceremony. A few focu
 
 ## Persist
 
-Create the record: `bash ../_shared/scripts/backlog.sh new decision <slug> <title>`, fill `## Context`, `## Decision`, `## Rationale`, `## Consequences` via Edit, and set the status the dialog earned — normally `backlog.sh set-status decision <id> accepted` (leave `proposed` only when the user explicitly wants it parked).
+Create the record: `bash ../_shared/scripts/backlog.sh new decision <slug> <title>`, fill `## Context`, `## Decision`, `## Rationale`, `## Consequences` (and `## Proof` when the decision carries a proof obligation — see below) via Edit, and set the status the dialog earned — normally `backlog.sh set-status decision <id> accepted` (leave `proposed` only when the user explicitly wants it parked).
 
 **Milestone-spawned decisions:** when the decision came from a milestone's list —
 
 - From `## Decisions to make`: tick the item and append the back-reference: `- [x] <item> — decision: NNNN`.
 - From `## Needs proving`: the record is persisted with **`proof: pending`** (`backlog.sh set-proof <id> pending`) and the milestone item gets the same `— decision: NNNN` back-reference. This wires the proving loop: `/enrich` will attach the id to a proving task's `proves` list, and `/land` clears it after consulting the user.
+
+### The proof claims
+
+Every `proof: pending` decision gets a **`## Proof` claim list** — one checklist line per thing a running system has to demonstrate before the obligation is discharged:
+
+```markdown
+## Proof
+- [ ] <claim, in the observable terms someone could check> — <how it will be demonstrated>
+```
+
+**Decompose the decision statement clause by clause.** A decision sentence almost always carries several claims ("*the CLI reads layered config, binds both ports, and serves; port 443 terminates TLS…*" is four or five), and they usually get demonstrated by *different* tasks at *different* times — commonly one through the library API and another only through the actual entry point. One claim per clause, and where a clause could be satisfied through more than one surface, say which surface counts. Claims phrased so a reader can only answer yes/no are the point; a claim that restates the whole decision proves nothing.
+
+The claim list is what `/enrich` wires tasks against and what `/land` ticks one at a time. `backlog.sh set-proof <id> proven` refuses while any claim is unticked, and `milestone-ready` reports a decision whose proving task is done but whose claims are open as a blocker — so a part-proven decision cannot be closed wholesale. A `proof: pending` record with no claims is a standing `check`/board warning.
+
+On **supersession**, the new record carries the old one's *unticked* claims (the ticked ones were demonstrated and stay demonstrated on the historical record); on **revision**, re-check the claim list against the revised statement — a revision that widens the decision usually adds claims.
 
 Update the index: add/refresh the one-liner in `documentation/DECISIONS.md` (`- NNNN-slug.md — [status] <one-sentence summary>`).
 

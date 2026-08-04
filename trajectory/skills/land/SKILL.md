@@ -28,7 +28,7 @@ Confirm readiness (`backlog.sh milestone-ready <id>`). Then read the milestone f
 
 ## Step 2: Check against the original goal
 
-Compare what landed against the milestone's `## Outcome` — the original goal, not a drifted memory of it:
+Compare what landed against the milestone's `## Outcome` — the original goal, not a drifted memory of it — using the `## Breakdown` coverage map as the checklist. Take each element of the outcome and ask what actually demonstrates it: an element whose tasks are `done` is *claimed* covered, not *shown* covered, and a `deferred:` line is ground the milestone knowingly does not deliver (say so in the landing record rather than letting it pass as met). Where the outcome names a user-facing surface — a command, an endpoint, a screen — check the closing records show that surface working, not only the layer beneath it.
 
 - **Compliant** — the outcome is delivered as stated.
 - **Deviations and oddities** — departures the closing records carry (scope adjustments, naming drift, surprises). Persist them in the milestone file; deviations are recorded, never laundered.
@@ -38,10 +38,11 @@ If the outcome is materially not delivered despite all tasks being done, that is
 
 ## Step 3: Clear the proofs (with the user)
 
-For each `proof: pending` decision back-referenced from the milestone (`decision: NNNN` markers; `backlog.sh pending-proofs` shows their proving tasks):
+For each `proof: pending` decision back-referenced from the milestone (`decision: NNNN` markers; `backlog.sh pending-proofs` shows their proving tasks and how many claims are ticked):
 
-- Present the evidence: the proving task(s), their closing records, what was demonstrated.
-- **Consult the user** — the flip is theirs to approve, and this is exactly what `AskUserQuestion` is for: present the evidence in prose, then ask per pending proof (options: *proven — flip it* / *not yet — the evidence is thin, keep it pending* / *contradicted — route to `/decide`*). Several pending proofs go in one call, one question each. On approval: `backlog.sh set-proof <id> proven`, and tick the milestone's proving item.
+- **Go claim by claim, never decision by decision.** `backlog.sh proof-claims <id>` lists the decision's `## Proof` claims. For each *open* claim, find the evidence in the closing records and say which task demonstrated it **through which surface** — a claim satisfied only by a test driving the library API is not satisfied by the CLI the claim names. Tick the claim in the decision record (`- [x] … — demonstrated by task NNNN`) only when the evidence actually holds.
+- A claim with no evidence is uncovered ground, not a formality: it means no task delivered that part of the decision. Name it, and treat it as a gap for the disposition question in Step 2 (reopen via `/enrich`) rather than waving it through — this is the failure mode where every task is `done` and the outcome still isn't there.
+- **Consult the user** — the flip is theirs to approve, and this is exactly what `AskUserQuestion` is for: present the per-claim evidence in prose, then ask per pending proof (options: *proven — flip it* / *not yet — the evidence is thin, keep it pending* / *contradicted — route to `/decide`*). Several pending proofs go in one call, one question each. On approval: `backlog.sh set-proof <id> proven` (it refuses while any claim is unticked — that refusal is a finding, not an obstacle to route around with `--force`), and tick the milestone's proving item.
 - **Contradicting evidence** — the proving task showed the decision wrong or shaky: do not edit the decision; route to `/decide <id>` for revision or supersession. The proof stays `pending` on the old record until that resolves.
 
 ## Step 4: Documentation and the landing record
