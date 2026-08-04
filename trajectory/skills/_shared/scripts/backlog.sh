@@ -58,6 +58,10 @@
 #   backlog.sh board [-c]        human board: tasks table, milestones with derived
 #                                state, decisions, warnings (-c colors the status
 #                                column)
+#   backlog.sh dense [-c] [-w N] glyph-only dashboard: one glyph per item, slot =
+#                                id (gaps shown as ·), grouped in tens, N slots
+#                                per row (default 50). Counts per glyph in each
+#                                kind's header; legend last
 #
 # All commands accept optional trailing `--tasks-dir D` / `--milestones-dir D` /
 # `--decisions-dir D` (defaults: ./tasks ./milestones ./documentation/decisions).
@@ -537,6 +541,117 @@ EOF
       printf '\nWARNINGS\n'
       printf '%s\n' "$warns" | sed 's/^/  /'
     fi
+    ;;
+
+  dense)
+    color=0; width=50
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        -c) color=1; shift ;;
+        -w) width="${2:?usage: backlog.sh dense [-c] [-w N]}"; shift 2 ;;
+        *) echo "usage: backlog.sh dense [-c] [-w N]" >&2; exit 2 ;;
+      esac
+    done
+    case "$width" in ''|*[!0-9]*|0) echo "backlog.sh: -w wants a positive integer" >&2; exit 2 ;; esac
+    esc=$'\x1b'
+
+    # The entire visual vocabulary: token -> "glyph color".
+    _tok() {
+      case "$1" in
+        gap)         echo '· 90' ;;
+        todo)        echo '○ 94' ;;
+        blocked)     echo '◦ 90' ;;
+        in-progress) echo '◐ 33' ;;
+        done)        echo '● 32' ;;
+        rejected)    echo '✕ 31' ;;
+        open)        echo '○ 94' ;;
+        ready)       echo '◆ 92' ;;
+        landed)      echo '● 32' ;;
+        proposed)    echo '○ 33' ;;
+        accepted)    echo '● 32' ;;
+        superseded)  echo '~ 90' ;;
+        none)        echo '· 90' ;;
+        pending)     echo '◐ 33' ;;
+        proven)      echo '✔ 32' ;;
+        *)           echo '? 90' ;;
+      esac
+    }
+    _paint() { # glyph color
+      if [ "$color" -eq 1 ]; then printf '%s[%sm%s%s[0m' "$esc" "$2" "$1" "$esc"
+      else printf '%s' "$1"; fi
+    }
+
+    # One kind as glyph rows. $1 = row label, $2 = "NNNN token" lines,
+    # $3 = token order for the count header. Slot position IS the id, so a
+    # missing id renders as a gap and columns stay id-addressable.
+    _dense_kind() {
+      local label="$1" lines="$2" order="$3"
+      local slot=() max=0 id tok i start end g c n counts=""
+      while read -r id tok; do
+        [ -n "${id:-}" ] || continue
+        i=$((10#$id))
+        slot[$i]="$tok"
+        [ "$i" -gt "$max" ] && max="$i"
+      done <<< "$lines"
+      if [ "$max" -eq 0 ]; then printf '%s      (none)\n' "$label"; return; fi
+
+      for tok in $order; do
+        n=0
+        for i in $(seq 1 "$max"); do [ "${slot[$i]:-gap}" = "$tok" ] && n=$((n + 1)); done
+        [ "$n" -gt 0 ] || continue
+        set -- $(_tok "$tok"); g="$1"; c="$2"
+        counts="$counts  $(_paint "$g" "$c")$n"
+      done
+      printf '%s%s\n' "$label" "$counts"
+
+      start=1
+      while [ "$start" -le "$max" ]; do
+        end=$((start + width - 1)); [ "$end" -gt "$max" ] && end="$max"
+        printf '%s %04d ' "$label" "$start"
+        for i in $(seq "$start" "$end"); do
+          set -- $(_tok "${slot[$i]:-gap}"); g="$1"; c="$2"
+          _paint "$g" "$c"
+          [ $((i % 10)) -eq 0 ] && [ "$i" -lt "$end" ] && printf ' '
+        done
+        printf '\n'
+        start=$((end + 1))
+      done
+    }
+
+    tasks_json="$(_load task)"
+    # todo splits into ready (all deps done) and blocked — the distinction the
+    # burn-down actually schedules on.
+    task_lines="$(printf '%s' "$tasks_json" | jq -r '
+      (map({(._id): .status}) | add // {}) as $st
+      | sort_by(._id)[]
+      | ._id + " " + (if .status=="todo"
+          then (if all(.depends_on[]; ($st[.] // "missing")=="done") then "todo" else "blocked" end)
+          else .status end)')"
+    _dense_kind T "$task_lines" "todo blocked in-progress done rejected"
+
+    ms_lines=""
+    while IFS=$'\t' read -r mid mstatus; do
+      [ -n "${mid:-}" ] || continue
+      state="$mstatus"
+      if [ "$mstatus" = "open" ] && _milestone_ready_report "$mid" >/dev/null 2>&1; then state="ready"; fi
+      ms_lines="$ms_lines$mid $state"$'\n'
+    done <<< "$(_load milestone | jq -r 'sort_by(._id)|.[]|"\(._id)\t\(.status)"')"
+    _dense_kind M "$ms_lines" "open ready landed"
+
+    decisions_json="$(_load decision)"
+    _dense_kind D \
+      "$(printf '%s' "$decisions_json" | jq -r 'sort_by(._id)|.[]|"\(._id) \(.status)"')" \
+      "proposed accepted rejected superseded"
+    _dense_kind P \
+      "$(printf '%s' "$decisions_json" | jq -r 'sort_by(._id)|.[]|"\(._id) \(.proof)"')" \
+      "none pending proven"
+
+    warns="$(_warnings)"
+    if [ -n "$warns" ]; then
+      printf '⚠ %s  (backlog.sh check)\n' "$(printf '%s\n' "$warns" | wc -l | tr -d ' ')"
+    fi
+
+    printf 'T ○ready ◦blocked ◐wip ●done ✕rejected | M ○open ◆ready ●landed | D ○proposed ●accepted ✕rejected ~superseded | P proof ·none ◐pending ✔proven | ·gap\n'
     ;;
 
   ""|help|-h|--help)
