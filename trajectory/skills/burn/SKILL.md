@@ -26,7 +26,7 @@ The user's argument, if any: `$ARGUMENTS` — `<count>@<workers>` (e.g. `5@2`, `
 
 ## Setup
 
-1. **Model map** — `cat .workflow-overrides/model-map 2>/dev/null || echo "low=sonnet medium=sonnet high=opus"`. Workers are dispatched with the Agent tool's `model` parameter set per the task's `complexity`; the task file stays abstract.
+1. **Model map** — `cat .workflow-overrides/model-map 2>/dev/null || echo "low=sonnet medium=opus high=opus"`. Workers are dispatched with the Agent tool's `model` parameter set per the task's `complexity`; the task file stays abstract.
 2. **Reclaim crashed tasks** — any task `backlog.sh by-status task in-progress` lists that has no live worktree behind it (`git worktree list`) is a crashed or killed prior run: flip it back to `todo`. This is what makes `/burn` resumable and idempotent.
 3. **Available set** — `backlog.sh ready`: `status: todo` with every `depends_on` done, ascending id. That id order IS the pick order. Re-derive this set each pass — landings unlock new tasks mid-run.
 4. **Run state** (session-only, never persisted): per task — escalation used? (max once per task per run, whatever triggered it), grader rejections this run, excluded-from-run flag. After a crash, resume restarts a task at its **base** tier; only the appended grader feedback survives as guidance.
