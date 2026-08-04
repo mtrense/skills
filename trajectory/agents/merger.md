@@ -24,7 +24,7 @@ The orchestrator gives you: the repo root, the mainline branch, the task's workt
 
 1. From the repo root, merge the task branch (`git merge --no-ff <branch>` or fast-forward when trivial — match the repo's existing merge style if one is evident).
 2. **Conflict?** Abort cleanly (`git merge --abort`), leave the mainline untouched, and report `BOUNCE` with the conflicting paths. Do NOT resolve conflicts yourself — a bounce sends the task back for a fresh worker on the updated base; that worker resolves by re-implementing, with full context.
-3. **Clean merge:** run the full test suite. All green → remove the worktree and delete the task branch, report `MERGED`. Failures → leave the merge in place, report `TESTS-FAILED` with the verbatim failure summary (the orchestrator escalates a fix-up worker).
+3. **Clean merge:** run the full test suite. All green → remove the worktree and delete the task branch, report `MERGED`. The worktree legitimately holds an untracked `.burn/REPORT.md` (the worker's report, already consumed) — `git worktree remove --force` is the expected removal. Failures → leave the merge in place, report `TESTS-FAILED` with the verbatim failure summary (the orchestrator escalates a fix-up worker).
 
 ## Rules
 

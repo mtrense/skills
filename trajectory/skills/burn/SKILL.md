@@ -3,7 +3,9 @@ name: burn
 description: >
   Burn a trajectory backlog down: drive available tasks (todo with all dependencies done,
   ascending id) through parallel burn-worker subagents in git worktrees — strict TDD, commit
-  via /commit — then grader → sequential merge → serialized doc-sync → closing record.
+  via /commit — then grader → serialized closing-record scribe → sequential merge →
+  serialized doc-sync. Workers and graders self-brief from pointers (task file path,
+  worktree); the worker's full report lives in .burn/REPORT.md, never in this session.
   Takes a <count>@<workers> argument, dispatches workers on the model tier each task's
   complexity maps to, escalates one tier on grader rejection or post-merge test failure (at
   most once per task per run), bounces merge conflicts to a fresh worker on the updated base,
@@ -22,7 +24,9 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Agent
 
 The user's argument, if any: `$ARGUMENTS` — `<count>@<workers>` (e.g. `5@2`, `all@4`, `3`, `@2`); default `all@1`. `<count>` caps how many tasks this run lands; `<workers>` is the parallel worker width.
 
-**You are the orchestrator, and you own every backlog write.** Workers never touch task/milestone/decision files or any `status` — they implement, commit code via `/commit` in their worktree, and report. Every status flip goes through `bash ../_shared/scripts/backlog.sh set-status …` (relative to this skill's directory), and every task-file edit (grader feedback, closing records) is yours.
+**You are the orchestrator, and you own the backlog.** Workers never touch task/milestone/decision files or any `status` — they implement, commit code via `/commit` in their worktree, and report. Every status flip goes through `bash ../_shared/scripts/backlog.sh set-status …` (relative to this skill's directory), and grader-feedback appends are yours; the one delegated backlog write is the closing record, written by the serialized `burn-scribe` on your behalf.
+
+**Pass pointers, not content.** Never read a task body, decision digest, or worker report into your own context: workers and graders self-brief from the task file and `documentation/` inside the worktree, workers park their full report at `.burn/REPORT.md` in the worktree (returning only a compact control block), and the scribe reads that file directly. You handle ids, paths, statuses, and one-line results.
 
 ## Setup
 
@@ -37,20 +41,24 @@ Claim: `backlog.sh set-status task <id> in-progress`, commit the flip (pathspec,
 
 ### 1. Worker
 
-Create a worktree (`git worktree add .worktrees/task-<id> -b task/<id>`), and spawn a `burn-worker` there at the task's mapped tier with: the worktree path, the full task body (including any `## Grader feedback` from earlier rejections), and the linked decisions' digest lines (pull the relevant lines from `documentation/<topic>.md` / the specific records the task's `decisions:` list names — never page the whole log). Up to `<workers>` workers run in parallel, one task each.
+Create a worktree (`git worktree add .worktrees/task-<id> -b task/<id>`), and spawn a `burn-worker` there at the task's mapped tier with pointers only: the worktree path and the task file's path inside it. The worker self-briefs — it reads the task body (including any `## Grader feedback` from earlier rejections; the claim/feedback commits precede worktree creation, so its copy is current) and the linked decisions' digest lines itself. It parks its full report at `.burn/REPORT.md` in the worktree and returns a compact control block. Up to `<workers>` workers run in parallel, one task each.
 
 - Worker returns `UNDERESTIMATED` → flip the task back to `todo`, exclude it from this run, and hand it to `/enrich` for re-shaping (surface the `learned:` block to the user). Never burn tokens pushing a doomed attempt through.
 - Worker returns `blocked` → surface to the user, back to `todo`, exclude from run.
 
 ### 2. Grader
 
-Spawn the `grader` with the task's acceptance criteria, linked decisions, the worktree + commit, and the worker's report. It grades **strictly against criteria and decisions — nothing else**, reviewing diff and report; it does not re-run tests (the worker owned them pre-commit, the merge re-runs them post-merge).
+Spawn the `grader` with pointers only: the task id, the task file's path (in the worktree), the worktree path + commit, and the report file (`.burn/REPORT.md`). It self-briefs on the criteria and linked decision digests, then grades **strictly against criteria and decisions — nothing else**, reviewing diff and report file; it does not re-run tests (the worker owned them pre-commit, the merge re-runs them post-merge).
 
 - **Reject (first):** flip the task to `todo`, append the grader's feedback to the task file under `## Grader feedback`, commit that edit, drop the worktree, and retry with a **fresh worker at the next model tier up** (a `high` task retries at the same top tier — there is nothing above). This consumes the task's one escalation for the run.
 - **Reject (second):** surface to the user with both grade reports; the task stays `todo` and is excluded from this run's later passes, so the run can't loop on it.
 - **Accept:** proceed to merge.
 
-### 3. Merge (sequential)
+### 3. Closing record (serialized scribe)
+
+On accept, before the merge (the merger removes the worktree — and the report file with it): spawn the `burn-scribe` — strictly one at a time, in landing order — with the task id, the **mainline** task file's path, and the report file (`.burn/REPORT.md` in the worktree). It writes the `## Manual testing` and `## Deviations` sections into the task file and commits them with a pathspec. This once-written record is what every `/land` covering the task reads — a multi-milestone task is never re-processed. (If the merge later bounces, the record is stale but harmless: the retry's scribe pass replaces it wholesale before the task can land.)
+
+### 4. Merge (sequential)
 
 Spawn the `merger` — one at a time across the whole run, in landing order — with the repo root, mainline, worktree/branch, and the test command.
 
@@ -58,17 +66,17 @@ Spawn the `merger` — one at a time across the whole run, in landing order — 
 - **TESTS-FAILED (clean merge, red suite):** escalate a worker at the next tier up to fix forward on the merged mainline (this consumes the task's one escalation). If that doesn't succeed, **break out of the run** and surface the problem to the user — a red mainline outranks everything else.
 - **MERGED:** proceed.
 
-### 4. Doc-sync (serialized)
+### 5. Doc-sync (serialized)
 
-Spawn the `doc-syncer` with the merge commit, the task's `documents` list, and the worker's notes. Strictly one at a time, in landing order — parallel workers exist, parallel doc edits to the same files don't. `no-op` is the common, correct result for internal changes.
+Spawn the `doc-syncer` with the repo root, the merge commit, and the task file's path (it reads the `documents` list and the just-written closing record itself). Strictly one at a time, in landing order — parallel workers exist, parallel doc edits to the same files don't. `no-op` is the common, correct result for internal changes.
 
-### 5. Closing record
+### 6. Land
 
-Write the worker's report into the task file: a `## Manual testing` section (how a human can see it working) and a `## Deviations` section (where the implementation departed from the plan). Flip the task to `done`. This once-written record is what every `/land` covering the task reads — a multi-milestone task is never re-processed. Then commit the backlog change.
+Flip the task to `done` and commit the flip (pathspec).
 
 ## Commits
 
-Code commits belong to workers (via `/commit`, in their worktrees) and land through the merger. Every backlog-file change you write — status flips, grader feedback, closing records — is committed separately with an explicit pathspec: `git add <task file> && git commit -m "burn: task NNNN <event>" -- <task file>`, only the file(s) just written, so bookkeeping can never sweep unrelated working-tree changes along. Batch tiny flips with the closing record where they'd be pure noise, but never batch across tasks.
+Code commits belong to workers (via `/commit`, in their worktrees) and land through the merger; closing records to the scribe. Every backlog-file change you write yourself — status flips, grader feedback — is committed separately with an explicit pathspec: `git add <task file> && git commit -m "burn: task NNNN <event>" -- <task file>`, only the file(s) just written, so bookkeeping can never sweep unrelated working-tree changes along. Never batch across tasks.
 
 ## Run wrap-up
 

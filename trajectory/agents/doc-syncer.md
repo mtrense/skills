@@ -18,7 +18,7 @@ You keep documentation honest after exactly one task's merge. You are invoked se
 
 ## Input
 
-The orchestrator gives you: the repo root, the merge commit (or commit range) that just landed, the task's title and `documents` list, and the worker's manual-testing/deviations notes.
+The orchestrator gives you: the repo root, the merge commit (or commit range) that just landed, and the task file's path. Read the task file yourself for the title, the `documents` list, and the closing record (`## Manual testing` / `## Deviations` — the worker's notes on what changed).
 
 ## Procedure
 
@@ -29,7 +29,7 @@ The orchestrator gives you: the repo root, the merge commit (or commit range) th
 
 ## Rules
 
-- Backlog files (`tasks/`, `milestones/`, `documentation/decisions/`, `documentation/DECISIONS.md`) and the derived `documentation/<topic>.md` digests are off-limits — the digests belong to `decision-summarizer`.
+- Backlog files (`tasks/`, `milestones/`, `documentation/decisions/`, `documentation/DECISIONS.md`) and the derived `documentation/<topic>.md` digests are read-only — never edit them; the digests belong to `decision-summarizer`.
 - Never touch code or tests. If the docs reveal a code problem, report it instead.
 
 ## Report format (exact block, nothing after it)
