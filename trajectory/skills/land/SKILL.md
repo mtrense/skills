@@ -11,7 +11,7 @@ description: >
   /burn's job) or for progress questions (answer with backlog.sh board / milestone-ready).
 argument-hint: <optional milestone id>
 model: opus
-allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Agent
+allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Agent, AskUserQuestion
 ---
 
 # Land — Verify, Record, Clear the Proofs
@@ -34,19 +34,19 @@ Compare what landed against the milestone's `## Outcome` — the original goal, 
 - **Deviations and oddities** — departures the closing records carry (scope adjustments, naming drift, surprises). Persist them in the milestone file; deviations are recorded, never laundered.
 - **Contradictions** — a deviation that contradicts an existing decision is **never just recorded**: route it to `/decide <id>` so the decision is revised or superseded, keeping the decision log truthful. The landing waits on that dialog or explicitly notes it as open.
 
-If the outcome is materially not delivered despite all tasks being done, that is a shaping failure worth naming: discuss with the user whether to land-with-gap (recorded) or reopen via `/enrich` (new tasks against the same milestone).
+If the outcome is materially not delivered despite all tasks being done, that is a shaping failure worth naming: name the gap in prose, then settle it with `AskUserQuestion` — *land with the gap recorded* / *reopen via `/enrich`* (new tasks against the same milestone) / *revise the milestone's outcome to what was actually built*. The diagnosis is open work; the disposition is a closed set, and it is the user's call.
 
 ## Step 3: Clear the proofs (with the user)
 
 For each `proof: pending` decision back-referenced from the milestone (`decision: NNNN` markers; `backlog.sh pending-proofs` shows their proving tasks):
 
 - Present the evidence: the proving task(s), their closing records, what was demonstrated.
-- **Consult the user** — the flip is theirs to approve. On approval: `backlog.sh set-proof <id> proven`, and tick the milestone's proving item.
+- **Consult the user** — the flip is theirs to approve, and this is exactly what `AskUserQuestion` is for: present the evidence in prose, then ask per pending proof (options: *proven — flip it* / *not yet — the evidence is thin, keep it pending* / *contradicted — route to `/decide`*). Several pending proofs go in one call, one question each. On approval: `backlog.sh set-proof <id> proven`, and tick the milestone's proving item.
 - **Contradicting evidence** — the proving task showed the decision wrong or shaky: do not edit the decision; route to `/decide <id>` for revision or supersession. The proof stays `pending` on the old record until that resolves.
 
 ## Step 4: Documentation and the landing record
 
-Take the outcomes of all tasks and update project documentation where the composed result (as opposed to any single task — `doc-syncer` already handled those) makes it stale: overview docs, architecture notes, getting-started flows. Engage in dialog if unsure whether a doc should change. Leave `documentation/<topic>.md` digests to the `decision-summarizer` (they only move when decisions move).
+Take the outcomes of all tasks and update project documentation where the composed result (as opposed to any single task — `doc-syncer` already handled those) makes it stale: overview docs, architecture notes, getting-started flows. Engage in dialog if unsure whether a doc should change — where that reduces to "which of these docs did this milestone make stale?", ask it as one `AskUserQuestion` with `multiSelect` over the candidates instead of a doc-by-doc prose round-trip. See [Asking the user](../_shared/workflow-overview.md#asking-the-user). Leave `documentation/<topic>.md` digests to the `decision-summarizer` (they only move when decisions move).
 
 Fill the milestone's `## Landing` section:
 

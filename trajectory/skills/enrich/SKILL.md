@@ -12,7 +12,7 @@ description: >
   definition (that's /aim).
 argument-hint: <optional milestone id, or task id to re-shape>
 model: opus
-allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Agent
+allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Agent, AskUserQuestion
 ---
 
 # Enrich — Milestone to Well-Shaped Tasks
@@ -44,6 +44,15 @@ Work through the milestone's outcome with the user, proposing a breakdown into t
 
 The user reorders, vetoes, and re-scopes; nothing persists until the breakdown is agreed.
 
+**How to ask** (see [Asking the user](../_shared/workflow-overview.md#asking-the-user)). Present the proposed breakdown as prose — a list of tasks is not a multiple choice, and the user's reordering and re-scoping needs room. Reach for `AskUserQuestion` on the closed calls that fall out of it:
+
+- **Cut lines** — when one milestone item could reasonably be one task or several, offer the candidate splits as options (`preview` showing each split's task titles makes the comparison concrete).
+- **Linker judgment calls** — per surfaced overlap: *fold into task NNNN* / *keep separate, add a `depends_on` edge* / *keep separate, unrelated*.
+- **Vocabulary gaps** — *extend the vocabulary via a `/kickoff` revision* / *reword the task to an existing term* — never silently pick one.
+- **Complexity** when genuinely borderline: `low` / `medium` / `high`, with the description naming what the tier buys (it is `/burn`'s model routing).
+
+Batch related closed calls into one `AskUserQuestion` call rather than one turn each.
+
 ## Persist
 
 Per agreed task: `bash ../_shared/scripts/backlog.sh new task <slug> <title>`, then Edit the frontmatter lists (`milestones: ["<this milestone>"]`, `complexity`, `depends_on`, `decisions`, `proves`, `documents`) and fill `## Plan`, `## Acceptance criteria`, `## Notes`.
@@ -56,7 +65,7 @@ When `/burn` hands back an UNDERESTIMATED task (or the user names one), reshape 
 
 ## Rejection ripple
 
-If the dialog rejects a task (the human decides not to do it): `backlog.sh set-status task <id> rejected`, then immediately `backlog.sh dependents <id>` and rewire every edge in this session — to a replacement or by dropping it (a live dependency on a rejected task fails `check`). If the task was on a decision's `proves` side, re-home the proof on another task or route the decision to `/decide`.
+If the dialog rejects a task (the human decides not to do it): `backlog.sh set-status task <id> rejected`, then immediately `backlog.sh dependents <id>` and rewire every edge in this session — to a replacement or by dropping it (a live dependency on a rejected task fails `check`). If the task was on a decision's `proves` side, re-home the proof on another task or route the decision to `/decide`. Both rewirings are closed sets — ask them with `AskUserQuestion` (one question per dangling edge: *repoint to task NNNN* / *drop the edge*; for the proof: *re-home on task NNNN* / *route to `/decide`*), so nothing is silently chosen on the user's behalf.
 
 ## Wrap-up
 

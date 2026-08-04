@@ -13,7 +13,7 @@ description: >
   NOT trigger for read-only lookups of existing decisions.
 argument-hint: <statement to decide | existing decision id | empty for the next open item>
 model: opus
-allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Agent
+allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Agent, AskUserQuestion
 ---
 
 # Decide — One Decision, Understood Then Persisted
@@ -35,6 +35,8 @@ The point is shared understanding *before* persistence, not ceremony. A few focu
 3. **What are the real alternatives, and why this one?** Ground rationale in what was actually discussed — never fabricate alternatives for the record's sake.
 4. **Consequences** — what this forecloses, what it commits the project to, what it makes cheap.
 
+**How to ask** (see [Asking the user](../_shared/workflow-overview.md#asking-the-user)): step 3 is this skill's natural `AskUserQuestion` moment — once the alternatives are on the table, put them up as the options (your recommendation first, each description carrying its trade-off) and let the user pick. The **`preview` field** earns its keep here when the alternatives are concrete artifacts — competing schema shapes, config layouts, API signatures — so the user compares the actual bytes side by side rather than two adjectives. Only ever offer alternatives that were genuinely surfaced: padding the list to four fabricates rationale for the record, which is exactly what step 3 forbids. Steps 1, 2, and 4 stay in prose — framing what is being decided, and drawing out consequences, is open work.
+
 ## Persist
 
 Create the record: `bash ../_shared/scripts/backlog.sh new decision <slug> <title>`, fill `## Context`, `## Decision`, `## Rationale`, `## Consequences` via Edit, and set the status the dialog earned — normally `backlog.sh set-status decision <id> accepted` (leave `proposed` only when the user explicitly wants it parked).
@@ -48,7 +50,7 @@ Update the index: add/refresh the one-liner in `documentation/DECISIONS.md` (`- 
 
 ## Revision mode
 
-For an existing decision, the dialog identifies **what needs to change and why** — new evidence, a contradiction surfaced by a proving task (routed here by `/land`), or drifted context. Two outcomes:
+For an existing decision, the dialog identifies **what needs to change and why** — new evidence, a contradiction surfaced by a proving task (routed here by `/land`), or drifted context. Understand the *why* in prose; then settle the outcome with `AskUserQuestion`, since it is a clean closed set (*revise the record in place* / *supersede with a new decision* / *the record stands, no change*) with materially different consequences per branch. Two outcomes:
 
 - **Revision** — the decision stands, its record was wrong or incomplete: edit the record in place, note the revision and its trigger in the body, refresh the index line.
 - **Supersession** — the decision itself changes: create the new record (as above, carrying the old one's proof obligation if evidence hasn't settled it), then `backlog.sh set-superseded <old-id> <new-id>` and update both index lines. Never edit the superseded record's content — it stays as the historical account.

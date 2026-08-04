@@ -11,7 +11,7 @@ description: >
   those to /aim).
 argument-hint: <the bug, improvement, or chore to capture>
 model: opus
-allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Agent
+allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Agent, AskUserQuestion
 ---
 
 # Supplement — Small Tasks, Same Rigor
@@ -25,6 +25,8 @@ A supplement task differs from an enriched one in exactly one way: `milestones: 
 ## Shape before persisting
 
 Assess the input first. **If it is bigger than one well-shaped task** (multiple independent outcomes, a hidden design decision, "and also…" chains), propose a breakdown into several tasks — or, when it is actually feature-sized, route it to `/aim` instead. Nothing persists until the shape is agreed; tasks are never split after persistence.
+
+That sizing call is the one clean closed question here — pose it with `AskUserQuestion` (*capture as one task* / *break into N tasks* — `preview` the proposed titles / *this is feature-sized, route to `/aim`*), with your assessment first. The same closed calls as `/enrich` apply downstream — linker judgment calls, vocabulary gaps, borderline complexity — batched into one call where they arrive together; understanding the bug or the improvement itself stays prose. See [Asking the user](../_shared/workflow-overview.md#asking-the-user).
 
 Per task, assemble the same material as `/enrich`:
 

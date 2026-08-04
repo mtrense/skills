@@ -15,7 +15,7 @@ description: >
   verification (that's /land).
 argument-hint: "[<count>|all][@<workers>]  (default all@1)"
 model: sonnet
-allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Agent
+allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Agent, AskUserQuestion
 ---
 
 # Burn — The Burn-down
@@ -73,6 +73,16 @@ Spawn the `doc-syncer` with the repo root, the merge commit, and the task file's
 ### 6. Land
 
 Flip the task to `done` and commit the flip (pathspec).
+
+## Surfacing to the user
+
+`/burn` runs unattended by design, so the few points where it *does* stop for the user are exactly the ones worth posing as `AskUserQuestion` — each is a closed set with a clear default, and an option list resolves it in one turn instead of a prose round-trip mid-run:
+
+- **Second grader rejection** — *hand to `/enrich` for re-shaping* / *retry once more at the top tier* / *leave in `todo`, excluded from this run* (the default).
+- **Worker `UNDERESTIMATED` or `blocked`** — *re-shape via `/enrich` now* / *park it and continue the run* (the default) / *stop the run here*.
+- **Break-out on a red mainline** (post-merge tests still failing after the escalation) — *revert the merge* / *stop the run and leave mainline as-is for inspection*. A red mainline outranks everything else, so ask, never guess.
+
+Keep the surrounding narration compact: the question carries the decision, not a replay of the worker's report (which stays in `.burn/REPORT.md`). Everything else in the run — status flips, escalations, bounces, doc-sync — is yours to decide and merely reported at wrap-up. See [Asking the user](../_shared/workflow-overview.md#asking-the-user).
 
 ## Commits
 

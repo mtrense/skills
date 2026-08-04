@@ -10,7 +10,7 @@ description: >
   /supplement), or read-only questions about the existing vision.
 argument-hint: <optional project idea, or what changed for a revision>
 model: opus
-allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Skill
+allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Skill, AskUserQuestion
 ---
 
 # Kickoff — Vision and Vocabulary
@@ -30,6 +30,8 @@ Your job is a shared understanding of why this project exists, captured tight en
 
 Stop interviewing when new questions stop changing the picture — typically 5–10 exchanges, not an exhaustive questionnaire.
 
+**How to ask** (see [Asking the user](../_shared/workflow-overview.md#asking-the-user)): users-and-needs, success, and why an invariant is absolute are **open discovery** — prose, always. Use `AskUserQuestion` for the closed turns inside the interview: which of the candidate user groups is *primary*, whether a stated constraint is a true invariant or a preference, and — at wrap-up — which foundational decisions to work now (see below). Once the picture is formed, offering 2–4 concrete readings of it as options is often a faster route to a correction than an open prompt.
+
 ## Writing VISION.md
 
 Wrap the understanding up as `VISION.md` at the project root:
@@ -43,7 +45,7 @@ Keep the whole file to roughly a page. Show the draft, incorporate corrections, 
 
 ## Foundational decisions (first run only)
 
-Foundational decisions — tech stack, persistence, testing approach, everything that predates any milestone — are **not smuggled into the vision**. Close a first run by listing the foundational decisions the conversation surfaced or implied (each as a one-line candidate), and offer to work through them as a first `/decide` batch, so they land in the decision log with the same rigor as every later decision. If the user accepts, invoke `Skill(decide)` per item (or point them at `/decide`); if they defer, leave the list in the chat — do not park it in VISION.md.
+Foundational decisions — tech stack, persistence, testing approach, everything that predates any milestone — are **not smuggled into the vision**. Close a first run by listing the foundational decisions the conversation surfaced or implied (each as a one-line candidate), and offer to work through them as a first `/decide` batch, so they land in the decision log with the same rigor as every later decision. Pose that offer with `AskUserQuestion` using `multiSelect` — one option per candidate decision — so the user picks which to settle now and which to defer in a single turn. If the user accepts, invoke `Skill(decide)` per item (or point them at `/decide`); if they defer, leave the list in the chat — do not park it in VISION.md.
 
 ## Revision mode
 

@@ -56,6 +56,12 @@ Task `rejected` means the human decided not to do it — a terminal tombstone. G
 
 **Rejection ripples.** Whenever a task becomes `rejected`, the skill flipping it queries its dependents (`backlog.sh dependents <id>`) and rewires each `depends_on` edge in the same session — to a replacement, or by dropping the edge; a live task depending on a rejected one is a check failure, not a silent deadlock. If the rejected task was on a decision's `proves` side, the proof is re-homed (a new proving task via `/enrich`) or the decision revisited via `/decide`.
 
+## Asking the user
+
+Every trajectory skill is a dialog skill, and `AskUserQuestion` is available in all of them. Use it for the **closed, option-shaped** turns — where you can put 2–4 concrete choices on the table (which candidate to pursue, which alternative wins, approve / defer / reject, fold vs. re-scope vs. proceed, revise vs. supersede). A question posed as options is a Socratic "it sounds like this might be X" with a built-in escape hatch (the user can always answer freely), and it is usually sharper than the same question in prose. Several such decisions can go in one call; lead with your own recommendation as the first option, and let each option's description carry the trade-off.
+
+Do **not** force **open discovery** through multiple choice: who the users are, what the situation is, why an assumption is risky, what actually went wrong. Options there railroad the user toward your framing — the exact failure the Socratic style exists to prevent. Ask those in prose, and follow up in prose whenever an answer is shallow or contradicts an earlier one, however it was asked. Never let the tool's structure cut a grilling short, and never present a fabricated option just to reach four.
+
 ## Deterministic bookkeeping
 
 Every mechanical question — listing, retrieval, status flips, readiness derivation, structural checking — goes through `_shared/scripts/backlog.sh` (next to the skills; requires `yj` and `jq`). No skill or subagent ever scans the backlog files; prose bodies are read only by the one agent working that one item. Run `backlog.sh check` **every time backlog files are created or updated** — it gates canonical filenames, dangling references, live-dependency-on-rejected, and dependency cycles, and prints board-level warnings (e.g. a pending proof with no live proving task). `backlog.sh board` doubles as the user's task board (`-c` colors when stdout is a TTY).
