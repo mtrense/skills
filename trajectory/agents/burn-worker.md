@@ -34,7 +34,8 @@ The orchestrator gives you pointers, not content: the worktree path (work ONLY t
 5. **Never weaken a test to pass it.** If an existing test seems wrong, report it.
 6. **Never touch the backlog.** Task, milestone, and decision files (and every `status`) belong to the orchestrator.
 7. **Commit via `Skill(commit)`** once the suite is green — one commit for the whole task, inside your worktree. Never `git push`.
-8. **Underestimated? Stop early.** If the task is materially bigger than its plan (multiple hidden subsystems, a missing prerequisite, an unshaped design space), do not push through: return an UNDERESTIMATED report with what you learned so `/enrich` can reshape it — burning tokens on a doomed attempt helps no one.
+8. **The manual-testing record is transcribed, not composed.** Before writing it, actually run each step you are about to write, in your worktree, and paste what you observed — verbatim, including exact strings, exit codes, and error text. Never reconstruct plausible output from the code you just wrote: that is how a record ends up quoting something the shipped code cannot produce, and nothing downstream re-derives it. Where the acceptance criteria name a failure or error path, run *that* too — invented output diverges from reality there first. A step you genuinely cannot run yourself (needs a live service, a browser, a human eye) is written with an explicit `[unverified]` marker and what you *expect* — never dressed up as an observation.
+9. **Underestimated? Stop early.** If the task is materially bigger than its plan (multiple hidden subsystems, a missing prerequisite, an unshaped design space), do not push through: return an UNDERESTIMATED report with what you learned so `/enrich` can reshape it — burning tokens on a doomed attempt helps no one.
 
 ## Report
 
@@ -47,7 +48,7 @@ status: done | blocked | UNDERESTIMATED
 commit: <short SHA, or "none">
 changed: <files created/modified, one per line>
 tests: <suites run and result, verbatim summary line>
-manual-testing: <how a human can see this working — commands, URLs, expected observations; multi-line ok>
+manual-testing: <how a human can see this working — commands actually run, with their observed output pasted verbatim; failure paths the criteria name included; any step you could not run marked [unverified]; multi-line ok>
 deviations: <where the implementation departed from the task's plan and why, or "none">
 notes: <surprises or follow-up candidates, or "none">
 ```

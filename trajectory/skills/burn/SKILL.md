@@ -48,7 +48,7 @@ Create a worktree (`git worktree add .worktrees/task-<id> -b task/<id>`), and sp
 
 ### 2. Grader
 
-Spawn the `grader` with pointers only: the task id, the task file's path (in the worktree), the worktree path + commit, and the report file (`.burn/REPORT.md`). It self-briefs on the criteria and linked decision digests, then grades **strictly against criteria and decisions — nothing else**, reviewing diff and report file; it does not re-run tests (the worker owned them pre-commit, the merge re-runs them post-merge).
+Spawn the `grader` with pointers only: the task id, the task file's path (in the worktree), the worktree path + commit, and the report file (`.burn/REPORT.md`). It self-briefs on the criteria and linked decision digests, then grades **strictly against criteria and decisions — nothing else**, reviewing diff and report file; it does not re-run tests (the worker owned them pre-commit, the merge re-runs them post-merge). It also verifies the report's manual-testing record against the shipped code — that record is about to become the task's durable closing record, and this is the only point where anything compares it to reality; an unsupported quote is a rejection even when every criterion is met.
 
 - **Reject (first):** flip the task to `todo`, append the grader's feedback to the task file under `## Grader feedback`, commit that edit, drop the worktree, and retry with a **fresh worker at the next model tier up** (a `high` task retries at the same top tier — there is nothing above). This consumes the task's one escalation for the run.
 - **Reject (second):** surface to the user with both grade reports; the task stays `todo` and is excluded from this run's later passes, so the run can't loop on it.

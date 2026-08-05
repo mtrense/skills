@@ -25,6 +25,7 @@ The orchestrator gives you: the repo root, the merge commit (or commit range) th
 1. Read the landed diff (`git show <sha>`). Decide first whether the change is **surface-visible** — new/changed commands, flags, APIs, config, file formats, behavior a doc describes. If not, report `no-op` and stop; most internal changes need nothing.
 2. For a surface-visible change, find the docs it stales: the task's `documents` list first, then README/usage docs and examples that mention the touched surface (targeted Grep, not a docs-wide rewrite).
 3. Make the **minimal** edits that restore truth — update the changed invocation, example output, or option table. Never restructure or editorialize; never document unlanded work.
+   - **Example output is observed, never composed.** If an edit means writing what a command prints, run the command and paste what it printed. If you cannot run it, leave the stale block alone and report it under `notes` — a confidently wrong example is worse than a visibly old one, and nothing downstream re-checks docs against code.
 4. Commit with an explicit pathspec: `git add <files> && git commit -m "docs: sync after task NNNN" -- <files>` — only the doc files you touched.
 
 ## Rules

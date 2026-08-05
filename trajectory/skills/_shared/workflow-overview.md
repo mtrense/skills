@@ -26,6 +26,10 @@ Read this to understand where the current skill sits in the family. Trajectory i
 
 **Why claims and not one boolean.** A decision statement usually carries several claims, and they get demonstrated by different tasks through different surfaces — commonly one through the library API and another only through the actual entry point. With one `proves` edge per decision, a task delivering four claims out of five reads as a complete proof, the milestone reads READY, and the undelivered fifth surfaces only when someone tries to use the thing. `backlog.sh set-proof <id> proven` therefore refuses while any claim is unticked, and `milestone-ready` reports a done prover with open claims as a blocker.
 
+## Records are evidence, so records are verified
+
+A task's closing record (`## Manual testing`) is not a note — it is the evidence `/land` ticks proof claims against and the source of the demo walk-through the user will follow literally. Its failure mode is quiet and durable: a worker composes a plausible walk-through from the code it just wrote instead of running it, the quoted output was never what shipped, and because nothing downstream re-derives the record from the code, the fiction survives every later read. So the record is **observed at every point it is touched**: `burn-worker` runs each step it writes (failure paths included) and pastes real output, marking `[unverified]` anything it genuinely could not run; `grader` checks each command and quoted literal against the shipped code and rejects an unsupported one even when every criterion is met; `burn-scribe` transcribes quoted output as bytes, markers intact; `doc-syncer` runs a command before writing what it prints; and `/land` re-verifies the records carrying the landing before demoing or ticking a claim on them, since the tree has moved since the grader saw it. An `[unverified]` step is an expectation, never evidence.
+
 ## Project artifacts
 
 | Path | Role | Owner |
