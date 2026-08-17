@@ -104,7 +104,10 @@ bash <skills-root>/research-status/research-status.sh research --path <rel_path>
 (`<skills-root>` is the `.claude/skills/` directory these skills are installed
 in; read the first field of the one output line.) Skip (and note) any file whose
 derived status is `stub`/`inquiry` (it should not carry AUDITs) so a stray
-directive can't wedge the cycle.
+directive can't wedge the cycle. The helper exits non-zero rather than printing
+nothing when the path matches no chapter listed in `INDEX.md` — treat that as a
+finding (a file carrying AUDITs but absent from the outline) and report its
+stderr message, don't silently skip.
 
 ### Step 3: Build the next batch
 

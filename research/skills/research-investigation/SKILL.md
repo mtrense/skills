@@ -25,6 +25,7 @@ If the second argument is missing and you are running under `/research-investiga
 1. Derive the topic's status by running `bash <skills-root>/research-status/research-status.sh research --path <topic-file>` and reading the first whitespace-delimited field of the output line. (`<skills-root>` is the `.claude/skills/` directory the research skills are installed in — `~/.claude/skills` for a global install, `<project>/.claude/skills` for a project install.) Confirm the derived status is `inquiry` or `draft` (partially investigated).
    - If the derived status is `stub`, abort: "Run `/research-inquiry` first to create the section outline."
    - If the derived status is `audited` or `done`, abort: "This topic has already passed investigation. Use `/research-refine` to make changes."
+   - If the helper exits non-zero, abort and surface its stderr message verbatim: exit 3 means the path matches no chapter listed in `INDEX.md`, and the message distinguishes an unlisted-but-on-disk file (an outline gap) from a path that does not exist. The helper normalizes the path (content-relative, `content/`-prefixed, absolute all work), so this is a real finding, not a spelling problem.
 2. Read `research/CLAUDE.md` for conventions, tone, citation style.
 3. Read the target topic file at `research/content/<topic-file>`.
 4. Locate the target RESEARCH directive. If a section heading was specified, find the RESEARCH directive under that heading. Otherwise, find the first `<!-- RESEARCH: ... -->` directive in the file.

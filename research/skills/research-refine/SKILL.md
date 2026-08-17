@@ -33,6 +33,7 @@ If `$ARGUMENTS` is empty, auto-discover the next AUDIT comment to resolve:
 1. Derive the topic's status: `bash <skills-root>/research-status/research-status.sh research --path <topic-file>` and read the first field of the output line.
    - Status should be `draft` or `audited`. The refine skill can operate on either.
    - If `stub` or `inquiry`, abort: "Content has not been written yet. Run investigation first."
+   - If the helper exits non-zero, abort and surface its stderr message verbatim (exit 3 = the path matches no chapter listed in `INDEX.md`; the message says whether the file is on disk but unlisted). The helper normalizes the path, so a non-zero exit is a real finding.
 2. Read `research/CLAUDE.md` for conventions.
 3. Read the target topic file.
 4. Read `research/DECISIONS.md` for relevant prior decisions.

@@ -30,7 +30,11 @@ The skill's instructions are authoritative. This file only adds:
   field is what advances the derived status. When you need this topic's current
   status, derive it via the shared helper
   (`bash <skills-root>/research-status/research-status.sh research --path <topic>`),
-  reading the first field of its line; `Bash` is available for this. Reading
+  reading the first field of its line; `Bash` is available for this. The helper
+  normalizes the path (content-relative, `content/`-prefixed, absolute all work)
+  and exits non-zero rather than printing nothing when a path matches no chapter
+  in `INDEX.md` — on a non-zero exit, halt and report its stderr message verbatim
+  (it distinguishes an unlisted-but-on-disk file from a wrong path). Reading
   other topics is allowed (the consistency lens needs it); writing to them is not.
 - **No commits**: do not run `git commit`, `git add`, or invoke any commit
   skill. The outer orchestrator (or the human) handles commits after reviewing

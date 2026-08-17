@@ -28,6 +28,7 @@ If `$ARGUMENTS` is empty, auto-discover the next graphics AUDIT:
 1. Derive the topic's status: `bash <skills-root>/research-status/research-status.sh research --path <topic>` and read the first field of the output line.
    - Topics with status `stub` or `inquiry` are skipped — abort if targeted.
    - Topics with status `draft`, `audited`, or `done` are eligible.
+   - If the helper exits non-zero, abort and surface its stderr message verbatim (exit 3 = the path matches no chapter listed in `INDEX.md`; the message says whether the file is on disk but unlisted). The helper normalizes the path, so a non-zero exit is a real finding.
 2. Read `research/CLAUDE.md` for project conventions, especially any graphical language or style guidance.
 3. Read the target topic file and the surrounding context of the AUDIT comment.
 4. Read `research/glossary.md` for correct terminology.

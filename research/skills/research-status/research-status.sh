@@ -60,6 +60,16 @@
 #                     directory prefix P (e.g. --path data-pipelines/)
 #   Filters suppress the summary/untracked footer so the output stays a clean,
 #   machine-parsable candidate list for the cycle skills.
+#
+#   `--path` is normalized before matching, so every natural way of naming a
+#   chapter works: content-relative (`foundations/x.md`), `content/`-prefixed,
+#   `<research_dir>/content/`-prefixed, `./`-prefixed, an absolute path under the
+#   content directory, and with or without a trailing slash on a directory.
+#   A `--path` that matches no chapter in INDEX.md is an ERROR (exit 3, message on
+#   stderr) — never silent empty output — and says whether the file exists on disk
+#   but is missing from INDEX.md. An empty result from `--status` alone stays a
+#   normal, exit-0 "nothing in that phase" answer, which is what the cycle skills
+#   loop on.
 
 set -euo pipefail
 
@@ -87,6 +97,41 @@ if [[ ! -f "$index_file" ]]; then
   echo "Error: INDEX.md not found at $index_file" >&2
   exit 1
 fi
+
+if [[ -n "$status_filter" ]]; then
+  case "$status_filter" in
+    stub|inquiry|draft|audited|done|missing) ;;
+    *) echo "Error: unknown --status '$status_filter' (expected stub|inquiry|draft|audited|done|missing)" >&2
+       exit 2 ;;
+  esac
+fi
+
+# ── Normalize --path so every natural spelling of a chapter path matches ──────
+# Callers (skills, forks, humans) name chapters in several equivalent ways; all
+# of them collapse to a path relative to <research_dir>/content/.
+path_filter_raw="$path_filter"
+if [[ -n "$path_filter" ]]; then
+  p="$path_filter"
+  p="${p%/}"                                    # trailing slash
+  if [[ "$p" == /* ]]; then                     # absolute → strip content-dir prefix
+    content_abs="$(cd "$content_dir" 2>/dev/null && pwd || true)"
+    [[ -n "$content_abs" && "$p" == "$content_abs"/* ]] && p="${p#"$content_abs"/}"
+    research_abs="$(cd "$research_dir" 2>/dev/null && pwd || true)"
+    [[ -n "$research_abs" && "$p" == "$research_abs"/* ]] && p="${p#"$research_abs"/}"
+  fi
+  p="${p#./}"
+  rd="${research_dir%/}"; rd="${rd#./}"
+  [[ -n "$rd" && "$rd" != "." ]] && p="${p#"$rd"/}"
+  p="${p#content/}"
+  p="${p#./}"
+  path_filter="$p"
+  if [[ -z "$path_filter" ]]; then
+    echo "Error: --path '$path_filter_raw' resolves to the whole content directory; omit --path instead" >&2
+    exit 2
+  fi
+fi
+
+path_hits=0
 
 filtered=0
 [[ -n "$status_filter" || -n "$path_filter" ]] && filtered=1
@@ -141,8 +186,11 @@ emit() {
   local rel="$1" md="$2"
   in_index["$rel"]=1
   if [[ ! -f "$md" ]]; then
-    [[ -n "$status_filter" && "$status_filter" != "missing" ]] && return
-    [[ -n "$path_filter" ]] && ! path_matches "$rel" && return
+    if [[ -n "$path_filter" ]]; then
+      path_matches "$rel" || return 0
+      path_hits=$(( path_hits + 1 ))
+    fi
+    [[ -n "$status_filter" && "$status_filter" != "missing" ]] && return 0
     printf '%-8s %-44s (file absent on disk)\n' "missing" "$rel"
     tally[missing]=$(( ${tally[missing]:-0} + 1 ))
     return
@@ -188,8 +236,11 @@ emit() {
   (( rs > 0 && lenses > 0 )) && warn="audit-before-investigation"
   (( conf_open > 0 && lenses == 4 )) && warn="stray-confidence"
 
-  [[ -n "$status_filter" && "$status_filter" != "$status" ]] && return
-  [[ -n "$path_filter" ]] && ! path_matches "$rel" && return
+  if [[ -n "$path_filter" ]]; then
+    path_matches "$rel" || return 0
+    path_hits=$(( path_hits + 1 ))
+  fi
+  [[ -n "$status_filter" && "$status_filter" != "$status" ]] && return 0
 
   tally[$status]=$(( ${tally[$status]:-0} + 1 ))
   printf '%-8s %-44s research=%d conf=%d/%d audit=%d/%d lenses=%d/4 gfx=%s refs=%d/%d' \
@@ -210,6 +261,22 @@ fi
 for rel in "${ordered_files[@]}"; do
   emit "$rel" "$content_dir/$rel"
 done
+
+# ── A --path that matches nothing is an error, never silent empty output ─────
+if [[ -n "$path_filter" && $path_hits -eq 0 ]]; then
+  {
+    echo "Error: --path '$path_filter_raw' matches no chapter listed in $index_file"
+    echo "       (normalized to '$path_filter', matched against paths relative to $content_dir)"
+    if [[ -e "$content_dir/$path_filter" ]]; then
+      echo "       $content_dir/$path_filter exists on disk but is NOT listed in INDEX.md —"
+      echo "       add it to the outline (e.g. via /research-add-chapter) so it is tracked."
+    else
+      echo "       No such file or directory under $content_dir either. Expected a"
+      echo "       content-relative path such as 'foundations/x.md' or 'foundations/'."
+    fi
+  } >&2
+  exit 3
+fi
 
 # ── Footers (suppressed when filtering) ──────────────────────────────────────
 if [[ $filtered -eq 0 ]]; then

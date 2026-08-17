@@ -37,6 +37,14 @@ bash <skills-root>/research-status/research-status.sh research [--path P] [--sta
 If the project's research directory is not the default `research`, pass its path as
 the first positional argument instead.
 
+`--path` is normalized by the helper, so it accepts a content-relative path
+(`foundations/x.md`), a `content/`- or `research/content/`-prefixed one, a `./`-prefixed
+or absolute one, and a directory with or without a trailing slash — pass the user's
+token through as-is. If the helper exits non-zero, report its stderr message verbatim
+instead of reporting "no chapters": exit 3 means the path matches nothing in
+`INDEX.md` (the message says whether the file exists on disk but is unlisted — an
+outline gap to fix), exit 2 an invalid argument, exit 1 a missing `INDEX.md`.
+
 ## Output
 
 Present the helper's output verbatim in a fenced block, then add a one-paragraph

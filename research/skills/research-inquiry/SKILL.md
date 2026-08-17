@@ -16,7 +16,7 @@ You are creating a detailed outline for a topic file, adding section headings an
 
 1. Derive the topic's status by running `bash <skills-root>/research-status/research-status.sh research --path $ARGUMENTS` and reading the first whitespace-delimited field of the output line. (`<skills-root>` is the `.claude/skills/` directory the research skills are installed in — `~/.claude/skills` for a global install, `<project>/.claude/skills` for a project install.) Confirm the derived status is `stub`.
    - If the derived status is not `stub`, abort with an error explaining which phase should have run and what the current status means.
-   - If the helper emits no line for the topic (it is not present under `research/content/`), abort with an error.
+   - If the helper exits non-zero, abort and surface its stderr message verbatim: exit 3 means the path matches no chapter listed in `INDEX.md`, and the message says whether the file exists on disk but is unlisted (an outline gap to fix) or does not exist at all. The path may be given in any spelling (content-relative, `content/`- or `research/content/`-prefixed, absolute) — the helper normalizes it — so a non-zero exit is a real finding, not a formatting problem.
 2. Read `research/CLAUDE.md` for project conventions, tone, and scope guidance.
 3. Read the target topic file to confirm it exists and is a stub.
 4. Read `research/INDEX.md` fully to understand related topics and avoid overlap.

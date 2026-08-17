@@ -41,6 +41,12 @@ shapes, same severity calls, same `audit:` frontmatter tracking.
    available inside this fork.)
    - A topic at derived status `stub` or `inquiry` is **not ready** — halt with
      reason `topic not ready for audit (status: <status>)`.
+   - The helper normalizes the path (content-relative, `content/`- or
+     `research/content/`-prefixed, `./`-prefixed, absolute, trailing slash or
+     not), and exits non-zero rather than printing nothing when the path matches
+     no chapter listed in `INDEX.md`. On a non-zero exit, halt with reason
+     `status helper failed: <its stderr message>` — exit 3 tells you whether the
+     file is on disk but unlisted (an outline gap) or does not exist.
    - Eligible statuses: `draft`, `audited`, `done`. (Re-auditing an already
      `audited`/`done` topic is allowed but should be rare — the cycle skips
      these; a direct invocation may re-run.)

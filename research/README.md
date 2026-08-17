@@ -273,9 +273,20 @@ bash <skills-root>/research-status/research-status.sh <research-dir> [--path P] 
   (`~/.claude/skills` global, `<project>/.claude/skills` project-local).
 - `<research-dir>` — the project's research directory (default `research`).
 - `--path P` — scope to one chapter (`--path api-design/rest/conventions.md`) or a
-  subtree (`--path api-design/`).
+  subtree (`--path api-design/`). `P` is normalized before matching, so any natural
+  spelling works — content-relative, `content/`-prefixed, `<research-dir>/content/`-prefixed,
+  `./`-prefixed, absolute, with or without a trailing slash.
 - `--status S` — emit only chapters whose derived status is `S` (used by the cycle
-  skills to enumerate candidates: `--status stub`, `--status draft`, etc.).
+  skills to enumerate candidates: `--status stub`, `--status draft`, etc.). An
+  unknown status is an error (exit 2), not an empty list.
+
+**Empty output means one thing only.** A `--path` that matches no chapter listed in
+`INDEX.md` exits **3** with an explanatory message on stderr — including whether the
+file exists on disk but is missing from `INDEX.md` (the listing gap to fix in the
+outline). So a silent empty result can only ever mean "no chapter is at that
+`--status`", which is exactly the condition the cycle skills loop on. A caller that
+gets no lines for a path it believes valid should read stderr and the exit code
+rather than concluding the chapter is absent.
 
 It prints one line per chapter, ordered by `INDEX.md`, with detail counts of what is
 still missing before `done`:
