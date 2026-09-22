@@ -4,13 +4,15 @@ description: >
   Bump the current project's version and cut an annotated git tag carrying a
   changelog. Detects the version manifest (package.json, Cargo.toml,
   pyproject.toml, and similar), computes the new SemVer from an argument that is
-  either an explicit version or one of `major`/`minor`/`patch`, gathers a
+  either an explicit version, one of `major`/`minor`/`patch`, or `current`
+  (tag the version the manifest already declares — the usual way to cut the
+  first release of a project scaffolded at `v0.1.0`), gathers a
   changelog from the commits since the last version tag (via the
   `changelog-gatherer` subagent), writes it to CHANGELOG.md, and creates a git
   tag whose message is that changelog. User-invoked only (`/version-bump`) —
   cutting a release is an explicit human decision, never an inferred one.
 disable-model-invocation: true
-argument-hint: "major | minor | patch | <x.y.z>"
+argument-hint: "major | minor | patch | current | <x.y.z>"
 model: sonnet
 allowed-tools: Bash(git tag *), Bash(git log *), Bash(git describe *), Bash(git rev-parse *), Bash(git push *), Bash(git status *), Bash(ls *), Bash(head *), Bash(grep *), Bash(printf *), Bash(for *), Read, Write, Edit, Glob, Skill, Agent
 ---
@@ -78,11 +80,20 @@ The user passes `$ARGUMENTS`. It is exactly one of:
 - `major` — increment major, zero the rest (`0.4.2` → `1.0.0`).
 - `minor` — increment minor, zero patch (`0.4.2` → `0.5.0`).
 - `patch` — increment patch (`0.4.2` → `0.4.3`).
+- `current` — **no bump.** Release the version the manifest already declares. This is
+  the first-tag case: a project builder scaffolded `0.1.0` into `package.json` and that
+  version has never been tagged, so there is nothing to increment — only a changelog to
+  gather and a tag to cut.
 - An explicit version like `1.2.3` (a leading `v` is tolerated and stripped for
   computation, but see Step 3 for how the tag is named).
 
 If `$ARGUMENTS` is empty or is none of the above, stop and ask the user which bump
 they want. Do not guess.
+
+`current` changes the shape of the run: **skip Step 2 and Step 5 entirely** (no version
+is computed, no manifest is edited) and treat `A.B.C` in every later step as the
+version already in the manifest. Everything else — changelog, CHANGELOG.md, commit,
+tag — is unchanged.
 
 ### Step 1: Identify the manifest and current version
 
@@ -102,7 +113,17 @@ surrounding syntax** (quotes, key name, formatting) so the edit in Step 5 is
 surgical. Note the manifest's version format — some use pre-release/build suffixes
 (`1.2.0-rc.1`, `1.2.0+build.5`); preserve or drop them deliberately, not by accident.
 
-### Step 2: Compute the new version
+Under `current` the manifest's version *is* the release version, so it must be
+parseable — if no manifest declares one, ask the user for the version to tag rather
+than inventing one, and confirm whether to write it into a `VERSION` file.
+
+### Step 2: Compute the new version (skipped for `current`)
+
+For `current`, the new version **is** the current version: no arithmetic, no edit.
+Verify instead that this version has **not already been tagged** (check the **Recent
+tags** block); if it has, stop and tell the user — they want a real bump, not a
+re-release. Then state plainly: *"Releasing `<manifest>`'s current version `A.B.C` —
+no bump."* and go to Step 3.
 
 - **Explicit version:** use it verbatim (after stripping any leading `v`). Sanity-check
   it is valid SemVer and **greater than** the current version; if it is not greater,
@@ -153,7 +174,10 @@ the subagent. It returns markdown of the shape:
 If the subagent reports there are no user-relevant commits in the range, tell the user
 and confirm they still want to cut the release before continuing.
 
-### Step 5: Apply the version edit
+### Step 5: Apply the version edit (skipped for `current`)
+
+Under `current` the manifest already carries the release version — leave it untouched
+and go to Step 6. CHANGELOG.md is then the only file in the release commit.
 
 `Edit` the manifest chosen in Step 1 to replace the current version with the new one.
 Change **only** the version value — match the exact quoting/formatting you captured in
@@ -206,6 +230,7 @@ Output to the user:
 
 1. The full changelog block from Step 4 (this is the "output in the chat" deliverable).
 2. A summary line: *"Bumped `<manifest>` `X.Y.Z` → `A.B.C`, committed as `<hash>`, tagged `<tag name>`."*
+   Under `current`: *"Released `<manifest>`'s existing version `A.B.C` (no bump), committed as `<hash>`, tagged `<tag name>`."*
 3. The files changed.
 4. A reminder that the tag is local: *"Run `git push && git push origin <tag name>` (or `git push --follow-tags`) to publish."* Do not push unless the user asks.
 
@@ -217,9 +242,12 @@ Output to the user:
 - **The tag message is the changelog.** The same block goes to CHANGELOG.md, the tag
   annotation, and the chat — one source, three destinations.
 - **Bump exactly one version value.** Surgical edits only; never reformat the manifest.
+  Under `current`, bump nothing at all — the manifest is read-only for that run.
 - **Match existing tag naming.** Don't introduce a `v` prefix (or drop one) that breaks
   the project's tag history.
 - **Refuse to clobber.** An existing tag of the same name, or a target version not
-  greater than the current one, is a stop-and-ask, not an overwrite.
+  greater than the current one, is a stop-and-ask, not an overwrite. `current` is the
+  one case where the target equals the manifest's version by design — but an existing
+  tag for it still stops the run.
 - **Never use `git -C`.** Always run git from the current working directory — the `-C`
   flag breaks Claude Code's permission system.
