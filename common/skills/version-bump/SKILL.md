@@ -188,6 +188,12 @@ Step 1. If the user asked to keep multiple manifests in sync, edit each of them.
 - **CHANGELOG.md exists:** insert the new section from Step 4 immediately below the
   top header (and below an `## [Unreleased]` heading if one is present), above the most
   recent prior release section. Preserve the rest of the file verbatim.
+- **`## [Unreleased]` has entries:** those entries ship in this release. Fold them into
+  the new section — merge by Keep-a-Changelog subsection, dropping any that duplicate a
+  gathered entry (keep the hand-written wording when two say the same thing) — and
+  leave the `## [Unreleased]` heading in place with nothing under it. Never leave the
+  same change listed under both. The merged section is now the changelog block: Step 8's
+  tag message and Step 9's chat output use it, not the raw Step 4 block.
 - **CHANGELOG.md is absent:** create it with a standard header, then the new section:
 
   ```markdown
@@ -213,22 +219,33 @@ commit should contain only the bump.
 
 ### Step 8: Create the annotated tag
 
-Write the changelog block from Step 4 to `$TMPDIR/tag-message.txt` with the `Write`
-tool, then create the annotated tag on the release commit:
+Write the changelog block (as finalized in Step 6) to `$TMPDIR/tag-message.txt` with
+the `Write` tool, then create the annotated tag on the release commit:
 
 ```
-git tag -a "<tag name>" -F "$TMPDIR/tag-message.txt"
+git tag -a "<tag name>" --cleanup=verbatim -F "$TMPDIR/tag-message.txt"
 ```
 
-Using `-F` with a temp file keeps the multi-line markdown message intact and needs no
-escaping. If a tag with that name already exists, stop and tell the user — do not
-overwrite or force a tag.
+`--cleanup=verbatim` is mandatory: git's default cleanup treats every line starting
+with `#` as a comment and strips it, which deletes every `## [A.B.C]` / `### Added`
+heading from the message. Using `-F` with a temp file keeps the multi-line markdown
+intact and needs no escaping. If a tag with that name already exists, stop and tell the
+user — do not overwrite or force a tag.
+
+Then verify the stored message kept its headings:
+
+```
+git tag -l --format='%(contents)' "<tag name>"
+```
+
+If the `##`/`###` lines are missing, do not delete or recreate the tag yourself — report
+it and give the user the exact fix to run (`git tag -d <tag name>; git tag -a <tag name> --cleanup=verbatim -F <message file>`).
 
 ### Step 9: Report
 
 Output to the user:
 
-1. The full changelog block from Step 4 (this is the "output in the chat" deliverable).
+1. The full changelog block as finalized in Step 6 (this is the "output in the chat" deliverable).
 2. A summary line: *"Bumped `<manifest>` `X.Y.Z` → `A.B.C`, committed as `<hash>`, tagged `<tag name>`."*
    Under `current`: *"Released `<manifest>`'s existing version `A.B.C` (no bump), committed as `<hash>`, tagged `<tag name>`."*
 3. The files changed.
