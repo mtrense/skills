@@ -11,7 +11,8 @@ description: >
   green), dispatches workers on the model tier each task's complexity maps to, escalates
   one tier on grader rejection or post-merge test failure (at most once per task per run),
   bounces merge conflicts to a fresh worker on the updated base, stops at hold-gated demos
-  that turn green, and hands UNDERESTIMATED tasks back to /enrich. Resumable and idempotent.
+  that turn green (and asks before burning past one still unseen), and hands
+  UNDERESTIMATED tasks back to /enrich. Resumable and idempotent.
   Trigger on "/burn", "burn down the backlog", "work the tasks", "start implementing", "run
   the workers", "build until the demo works". Do NOT trigger for shaping work (that's
   /enrich or /supplement) or the human test cycle on a green demo (that's /land).
@@ -40,9 +41,10 @@ The user's argument, if any: `$ARGUMENTS` — `<target>@<workers>` (e.g. `5@2`, 
 
 1. **Model map** — `cat .workflow-overrides/model-map 2>/dev/null || echo "low=sonnet medium=opus high=opus"`. Workers are dispatched with the Agent tool's `model` parameter set per the task's `complexity`; the task file stays abstract.
 2. **Reclaim crashed tasks** — any task `backlog.sh by-status task in-progress` lists that has no live worktree behind it (`git worktree list`) is a crashed or killed prior run: flip it back to `todo`. This is what makes `/burn` resumable and idempotent.
-3. **Demo target** (`demo:<id>` only) — run `backlog.sh demo-check <id>` first. Already green with no live task listing it → there is nothing to burn; say so and point at `/land`. Green with live tasks → burn those. Red with an empty `ready --demo <id>` set → `demo-state <id>` tells you whether it is waiting on in-progress or blocked work or is STALLED; for a stalled demo point at `/enrich <id>` and stop.
-4. **Available set** — `backlog.sh ready` (or `backlog.sh ready --demo <id>`): `status: todo` with every `depends_on` done, ascending id. That id order IS the pick order. Re-derive this set each pass — landings unlock new tasks mid-run.
-5. **Run state** (session-only, never persisted): per task — escalation used? (max once per task per run, whatever triggered it), grader rejections this run, excluded-from-run flag; per run — demos that turned green, demos that regressed, and whether a `hold` gate fired. After a crash, resume restarts a task at its **base** tier; only the appended grader feedback survives as guidance.
+3. **Unseen holds** — `backlog.sh held` lists green `gate: hold` demos nobody has shown yet (a previous run stopped at them, or the end-of-run sweep turned them green). A hold gate means "don't build on top of this before the human has looked", and that holds until `/land`, not just at the moment of the flip. If any are listed, ask before dispatching: *stop — `/land <id>` first* (recommended) / *burn anyway* (the user knows the queued work doesn't depend on the verdict). Under `demo:<id>` targeting the held demo itself (fixes `/land` captured), proceed without asking.
+4. **Demo target** (`demo:<id>` only) — run `backlog.sh demo-check <id>` first. Already green with no live task listing it → there is nothing to burn; say so and point at `/land`. Green with live tasks → burn those. Red with an empty `ready --demo <id>` set → `demo-state <id>` tells you whether it is waiting on in-progress or blocked work or is STALLED; for a stalled demo point at `/enrich <id>` and stop.
+5. **Available set** — `backlog.sh ready` (or `backlog.sh ready --demo <id>`): `status: todo` with every `depends_on` done, ascending id. That id order IS the pick order. Re-derive this set each pass — landings unlock new tasks mid-run.
+6. **Run state** (session-only, never persisted): per task — escalation used? (max once per task per run, whatever triggered it), grader rejections this run, excluded-from-run flag; per run — demos that turned green, demos that regressed, and whether a `hold` gate fired. After a crash, resume restarts a task at its **base** tier; only the appended grader feedback survives as guidance.
 
 ## The per-task sequence
 
@@ -101,6 +103,7 @@ Demo checks run project code with this session's permissions. A red result cause
 - **Second grader rejection** — *hand to `/enrich` for re-shaping* / *retry once more at the top tier* / *leave in `todo`, excluded from this run* (the default).
 - **Worker `UNDERESTIMATED` or `blocked`** — *re-shape via `/enrich` now* / *park it and continue the run* (the default) / *stop the run here*.
 - **Break-out on a red mainline** (post-merge tests still failing after the escalation) — *revert the merge* / *stop the run and leave mainline as-is for inspection*. A red mainline outranks everything else, so ask, never guess.
+- **Unseen hold at start** (Setup step 3) — *stop — `/land <id>` first* (the default) / *burn anyway*.
 - **Demo regression** — *revert the merge of task NNNN* / *fix forward: escalate a worker on the regression* / *continue and record it* (the regression then heads the wrap-up). Default to fixing forward when the log points squarely at the merged change.
 
 Keep the surrounding narration compact: the question carries the decision, not a replay of the worker's report (which stays in `.burn/REPORT.md`). Everything else in the run — status flips, escalations, bounces, doc-sync, demo checks — is yours to decide and merely reported at wrap-up. See [Asking the user](../_shared/workflow-overview.md#asking-the-user).
@@ -118,4 +121,5 @@ Report:
 - **Demos ready to show** — every demo that is green now, its gate, and the pointer: `/land <id>` runs the human test cycle. Lead with this; it is why the run happened.
 - **Regressions** — demos that went from green to red, with the suspected merge.
 - **Stalled demos** — red with no live task (`backlog.sh demo-state`): the missing work was never written down → `/enrich <id>`. In `demo:<id>` mode, an exhausted available set with the target still red is exactly this.
+- **Waiting demos** — red with no live task because a verdict item awaits an unshown demo (`WAITING` in `demo-state`): not a gap, held-back work → `/land` the awaited demo. Name which green demo unblocks which waiting one; that is often the strongest reason to land next.
 - Tasks landed (with merge commits), tasks bounced/excluded and why, escalations used (note a landed escalation in the task's `## Notes`), UNDERESTIMATED hand-backs, and the board (`backlog.sh board`).

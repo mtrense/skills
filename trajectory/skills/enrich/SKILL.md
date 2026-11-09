@@ -21,13 +21,15 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Agent, AskUserQuestion
 
 > For the full workflow this skill belongs to, see [workflow-overview.md](../_shared/workflow-overview.md).
 
-The user's argument, if any: `$ARGUMENTS` — a demo id, or a task id to re-shape (see "Re-shaping" below). If empty, run `bash ../_shared/scripts/backlog.sh demo-state` (relative to this skill's directory) and take the lowest-id demo reporting `STALLED` — a stalled demo is a gap in the running system and outranks fresh breakdown; otherwise the lowest-id red demo with no tasks yet.
+The user's argument, if any: `$ARGUMENTS` — a demo id, or a task id to re-shape (see "Re-shaping" below). If empty, run `bash ../_shared/scripts/backlog.sh demo-state` (relative to this skill's directory) and take the lowest-id demo reporting `STALLED` — a stalled demo is a gap in the running system and outranks fresh breakdown; otherwise the lowest-id red demo with no tasks yet. Demos reporting `WAITING` are skipped: they await a human verdict on another demo, not breakdown.
 
 **A persisted task is by definition clear and well shaped.** All shaping happens *before* writing files — propose several tasks where a scenario step looks like one, merge where two steps are one change — because tasks are never split after persistence; their ids stay live for their whole life.
 
 ## Gate: open decisions block breakdown
 
 Read the demo file. If any `## Decisions to make` **or** `## Needs proving` item is unchecked (no `decision: NNNN` back-reference), **refuse to break the demo down** and route the items to `/decide` — a task written against an unmade decision just encodes a guess, and a needs-proving item that never became a `proof: pending` decision can't be wired into any task's `proves` list, so the obligation silently evaporates. This is a hard gate; the user overriding it should be rare and explicit. When overridden, the step the blocked item covers simply gets no task yet — the demo's check will fail on it, the demo will stall once everything else lands, and the stall brings you back here. Say that plainly: *"minting N tasks now; step 3 stays unbuilt until the logging decision is made — the demo will stall there"*.
+
+**Verdict items** (`— after: NNNN`) are the strongest form of this gate: they wait for the user to *see* demo NNNN, so the route is `/land NNNN` first, then `/decide`. Don't offer the override for them — breaking a demo down before the verdict it depends on is exactly the work this marker exists to hold back. `backlog.sh demo-state <id>` reports such a demo as **WAITING**; when invoked argless, skip it.
 
 ## The check task comes first
 

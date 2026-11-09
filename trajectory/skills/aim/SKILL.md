@@ -36,6 +36,7 @@ Synthesize the idea + scout report and confirm with the user — one focused exc
 - **Human check** — what only a person can judge (does the flow feel right, is the wording clear, is it fast enough to not annoy). Short; it may be empty for a purely mechanical demo.
 - **Gate** — `flag` (default: a green demo is queued for the human while burning continues) or `hold` (an unattended run stops when it turns green, because the next work depends on the human's verdict — a UX direction, an architecture bet). Ask this as a closed question only when the answer is not obvious.
 - **Decisions to make** — the decisions the user needs to make before breakdown can start (from the scout's unknowns + your own reading). Each as a one-line checkbox item. Keep this to forks that would genuinely change what gets built; a choice an agent can make sensibly and the user would rubber-stamp is not an item.
+- **Verdict items** — does this demo build on a direction the user has not yet *seen*? If an earlier demo is still red or green (not `shown`) and what this demo builds depends on how the user judges it — the UX direction it tries out, the architecture bet it exercises — that judgment is a decision nobody can make yet. Write it as a decision item marked with the demo it waits on: `- [ ] <what the verdict settles> — after: NNNN`. Until demo NNNN is shown, `/decide` will not take the item, `/enrich` will not break this demo down, and the board reports it as **WAITING** rather than stalled — work is held back on exactly the thing that is unknown, nothing else. Ask the user explicitly when the scout reports an unshown demo the idea builds on; don't add verdict items for demos the idea merely follows in time.
 - **Needs proving** — the risky assumptions this demo stands on that only running code can demonstrate. Each as a one-line checkbox item. These two lists are the demo's contract with `/decide` (which turns them into decision records and back-references them) and `/land` (which clears the proofs).
 
 Surface scout-reported overlaps with existing demos/tasks now — the user may want to fold, re-scope, or proceed anyway. That is a closed set: ask it with `AskUserQuestion` (one question per overlap; options *fold into the existing demo* / *narrow this demo to the remainder* / *proceed as scoped*), and keep the shaping of outcome, scenario, decisions, and proof items themselves in prose — they are open discovery, and options would flatten them. See [Asking the user](../_shared/workflow-overview.md#asking-the-user).
@@ -57,6 +58,7 @@ Create the file: `bash ../_shared/scripts/backlog.sh new demo <slug> <title>`, s
 
 ## Decisions to make
 - [ ] <one-line decision item>
+- [ ] <what the verdict on an unshown demo settles> — after: NNNN
 
 ## Needs proving
 - [ ] <one-line proof item>
@@ -71,4 +73,4 @@ Run `bash ../_shared/scripts/backlog.sh check`. Do **not** commit — this skill
 
 ## Wrap-up
 
-Show the board (`backlog.sh board`). Point at the next move: `/decide` if the demo has open decision items (that gate blocks `/enrich`), otherwise `/enrich` directly.
+Show the board (`backlog.sh board`). Point at the next move: `/decide` if the demo has open decision items (that gate blocks `/enrich`), otherwise `/enrich` directly. If it carries verdict items, say what it waits on: `/land NNNN` for the awaited demo comes first, and the items decidable now can be settled meanwhile.

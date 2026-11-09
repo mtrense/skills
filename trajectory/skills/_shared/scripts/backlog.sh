@@ -37,6 +37,11 @@
 # A red demo with no live (todo|in-progress) task listing it is STALLED: every
 # known piece of work is finished and the outcome still does not run, so the
 # missing work was never written down. That is the gap signal (-> /enrich).
+# A red demo with no live task that has an open `## Decisions to make` item
+# carrying `after: NNNN`, where demo NNNN is not yet shown, is WAITING instead:
+# its next step depends on the human's verdict on that demo (-> /land NNNN, then
+# /decide). Verdict items are how work is held back until a human has seen
+# something — a knowledge dependency on breakdown, never a scheduling barrier.
 #
 # ── Commands ──────────────────────────────────────────────────────────────────
 #   backlog.sh new <task|demo|decision> <slug> <title...>
@@ -73,6 +78,11 @@
 #                                exit 0 iff every checked demo is green
 #   backlog.sh demo-state [<id>] state report for one demo (exit 0 iff GREEN) or,
 #                                with no id, for every red/green demo
+#   backlog.sh waiting-on <id>   open verdict items (`after: <id>`) in other
+#                                demos, one per line: `NNNN<TAB><item text>`
+#   backlog.sh held              green demos with gate: hold — built, not yet
+#                                seen by the human (/burn will not dispatch past
+#                                them without asking)
 #   backlog.sh pending-proofs    every proof:pending decision with its proving
 #                                tasks and their statuses
 #   backlog.sh check             structural gate: canonical filenames, dangling
@@ -190,6 +200,8 @@ _demo_decisions() {
 # readers are the sanctioned way to see them; nothing else reads a body. Each one
 # is line-shaped, so the grammar is the contract:
 #   demo item           - [x] <text> — decision: NNNN
+#   verdict item        - [ ] <text> — after: NNNN   (a Decisions-to-make item
+#                       that cannot be decided before demo NNNN is shown)
 #   proof claim         - [x] <claim> — <how it was demonstrated>
 
 # Lines of one `## <heading>` section (heading text without the `## `).
@@ -217,6 +229,29 @@ _demo_open_items() {
   done
 }
 
+# A demo's open verdict items: unsettled `## Decisions to make` items carrying
+# `after: NNNN`. One line each: `NNNN<TAB><item text>`.
+_demo_verdict_items() {
+  _demo_open_items "$1" | grep -E '^Decisions to make: .*after:[[:space:]]*[0-9]{4}' \
+    | sed -E 's/^Decisions to make: //' \
+    | while IFS= read -r item; do
+        printf '%s\t%s\n' "$(printf '%s' "$item" | grep -oE 'after:[[:space:]]*[0-9]{4}' | grep -oE '[0-9]{4}' | head -1)" "$item"
+      done || true
+}
+
+# Demo ids a demo is still waiting on: awaited by an open verdict item and not
+# yet shown (a dropped one counts too — the item needs re-homing, see _warnings).
+_demo_waiting() { # $1 demo id, $2 demos json
+  local f
+  f="$(printf '%s' "$2" | jq -r --arg id "$1" 'map(select(._id==$id))|.[0]._file // empty')"
+  [ -n "$f" ] || return 0
+  _demo_verdict_items "$f" | cut -f1 | sort -u | while read -r a; do
+    [ -n "$a" ] || continue
+    printf '%s' "$2" | jq -e --arg id "$a" 'map(select(._id==$id and .status=="shown"))|length>0' >/dev/null \
+      || echo "$a"
+  done
+}
+
 # A decision's proof claims (checklist lines under ## Proof), all / unticked.
 _decision_claims() {
   _section_bullets "$1" "Proof" | grep -E '^[[:space:]]*-[[:space:]]*\[[ xX]\]' || true
@@ -240,21 +275,25 @@ _fm_set() {
   rm -f "$tmp"
 }
 
-# Derived display state of one demo (JSON object in, word out): STALLED replaces
-# red when no live task lists the demo.
-_demo_display_state() { # $1 demo id, $2 demo status, $3 tasks json
+# Derived display state of one demo (JSON object in, word out): with no live
+# task listing the demo, red becomes WAITING when it awaits another demo's
+# verdict, STALLED otherwise.
+_demo_display_state() { # $1 demo id, $2 demo status, $3 tasks json, $4 demos json
   local live
   if [ "$2" != "red" ]; then echo "$2"; return; fi
   live="$(printf '%s' "$3" | jq -r --arg d "$1" \
     '[.[]|select((.demos|index($d)) and (.status|IN("todo","in-progress")))]|length')"
-  if [ "$live" -eq 0 ]; then echo "stalled"; else echo "red"; fi
+  if [ "$live" -ne 0 ]; then echo "red"
+  elif [ -n "$(_demo_waiting "$1" "$4")" ]; then echo "waiting"
+  else echo "stalled"; fi
 }
 
 # State report of one demo. Prints detail lines; last line is the verdict:
-# GREEN | RED | STALLED | SHOWN | DROPPED. Returns 0 iff GREEN.
+# GREEN | RED | WAITING | STALLED | SHOWN | DROPPED. Returns 0 iff GREEN.
 _demo_state_report() {
-  local did="$1" demo dfile dstatus dcheck dchecked tasks_json head verdict d
-  demo="$(_load demo | jq -c --arg id "$did" 'map(select(._id==$id))|.[0] // empty')"
+  local did="$1" demo dfile dstatus dcheck dchecked tasks_json demos_json head verdict d
+  demos_json="$(_load demo)"
+  demo="$(printf '%s' "$demos_json" | jq -c --arg id "$did" 'map(select(._id==$id))|.[0] // empty')"
   [ -n "$demo" ] || { echo "no such demo: $did" >&2; return 2; }
   dfile="$(printf '%s' "$demo" | jq -r '._file')"
   dstatus="$(printf '%s' "$demo" | jq -r '.status')"
@@ -277,6 +316,20 @@ _demo_state_report() {
   # Unsettled items: ground /decide never settled, so /enrich could not break it down.
   local open_items; open_items="$(_demo_open_items "$dfile")"
   [ -z "$open_items" ] || printf '%s\n' "$open_items" | sed 's/^/  open item: /'
+
+  # Verdict items: which awaited demos are still unseen, which have been shown.
+  local a ast waiting
+  while IFS=$'\t' read -r a _; do
+    [ -n "$a" ] || continue
+    ast="$(printf '%s' "$demos_json" | jq -r --arg id "$a" 'map(select(._id==$id))|.[0].status // "missing"')"
+    case "$ast" in
+      shown)   echo "  verdict given: demo $a is shown — its verdict item can be decided now (/decide)" ;;
+      dropped) echo "  awaits dropped demo $a — re-home or drop the verdict item" ;;
+      missing) echo "  awaits demo $a, which does not exist" ;;
+      *)       echo "  awaiting verdict: demo $a ($ast) — /land $a first, then /decide" ;;
+    esac
+  done <<< "$(_demo_verdict_items "$dfile" | cut -f1 | sort -u)"
+  waiting="$(_demo_waiting "$did" "$demos_json")"
 
   local total live done_ids
   total="$(printf '%s' "$tasks_json" | jq -r --arg d "$did" '[.[]|select(.demos|index($d))]|length')"
@@ -308,7 +361,10 @@ _demo_state_report() {
 
   case "$dstatus" in
     green) verdict="GREEN" ;;
-    *) if [ -z "$live" ]; then
+    *) if [ -z "$live" ] && [ -n "$waiting" ]; then
+         verdict="WAITING"
+         echo "  waiting: the next step depends on the human's verdict on demo(s) $(printf '%s' "$waiting" | paste -sd, -)"
+       elif [ -z "$live" ]; then
          verdict="STALLED"
          echo "  stalled: red with no live task — the missing work was never written down (/enrich $did)"
        else verdict="RED"; fi ;;
@@ -330,11 +386,34 @@ _warnings() {
     | ([$tasks[]|select((.proves|index($d)) and (.status|IN("todo","in-progress","done")))]) as $provers
     | select(($provers|length)==0)
     | "pending proof with no live proving task: decision \(._id) (\(.title))"'
-  # stalled demos: red with no live task listing them
+  # stalled demos: red with no live task listing them and no verdict to wait for
+  # (a waiting demo is the honest state of held-back work, not a warning)
   printf '%s' "$demos_json" | jq -r --argjson tasks "$tasks_json" '
     .[] | select(.status=="red") | ._id as $d
     | select([$tasks[]|select((.demos|index($d)) and (.status|IN("todo","in-progress")))]|length==0)
-    | "demo \(._id) is stalled: red with no live task (\(.title)) — /enrich \(._id)"'
+    | "\(._id)\t\(.title)"' \
+  | while IFS=$'\t' read -r sid stitle; do
+      [ -n "$sid" ] || continue
+      [ -z "$(_demo_waiting "$sid" "$demos_json")" ] \
+        && echo "demo $sid is stalled: red with no live task ($stitle) — /enrich $sid"
+    done
+  # verdict items whose awaited demo was dropped — the verdict will never come
+  local vf vid va
+  shopt -s nullglob
+  for vf in "$DEMOS_DIR"/[0-9][0-9][0-9][0-9]-*.md; do
+    vid="$(basename "$vf")"; vid="${vid:0:4}"
+    printf '%s' "$demos_json" | jq -e --arg id "$vid" \
+      'map(select(._id==$id and (.status|IN("red","green"))))|length>0' >/dev/null || continue
+    while IFS=$'\t' read -r va _; do
+      [ -n "$va" ] || continue
+      printf '%s' "$demos_json" | jq -e --arg id "$va" 'map(select(._id==$id and .status=="dropped"))|length>0' >/dev/null \
+        && echo "demo $vid awaits the verdict of dropped demo $va — re-home or drop the item (/decide or edit the demo)"
+    done <<< "$(_demo_verdict_items "$vf" | cut -f1 | sort -u)"
+  done
+  # green hold-gated demos nobody has seen yet — /burn will not build past them
+  printf '%s' "$demos_json" | jq -r '
+    .[] | select(.status=="green" and .gate=="hold")
+    | "demo \(._id) is green under gate: hold and not yet shown — /land \(._id) before burning on"'
   # demos that can never turn green
   printf '%s' "$demos_json" | jq -r '
     .[] | select((.status|IN("red","green")) and (.check|length)==0)
@@ -636,6 +715,20 @@ EOF
     fi
     ;;
 
+  waiting-on)
+    want="$(_pad4 "${1:?usage: backlog.sh waiting-on <demo-id>}")"
+    shopt -s nullglob
+    for f in "$DEMOS_DIR"/[0-9][0-9][0-9][0-9]-*.md; do
+      wid="$(basename "$f")"; wid="${wid:0:4}"
+      [ "$wid" != "$want" ] || continue
+      _demo_verdict_items "$f" | awk -F'\t' -v w="$want" -v id="$wid" '$1==w { print id "\t" $2 }'
+    done
+    ;;
+
+  held)
+    _load demo | jq -r 'map(select(.status=="green" and .gate=="hold"))|sort_by(._id)|.[]._id'
+    ;;
+
   pending-proofs)
     tasks_json="$(_load task)"
     _load decision | jq -r 'map(select(.proof=="pending"))|sort_by(._id)|.[]
@@ -736,6 +829,16 @@ EOF
         printf '%s' "$decisions_json" | jq -e --arg id "$d" 'map(select(._id==$id))|length>0' >/dev/null \
           || { echo "FAIL demo $(basename "$f"): back-references decision $d which does not exist"; fail=1; }
       done
+      # verdict items must await an existing, other demo
+      fid="$(basename "$f")"; fid="${fid:0:4}"
+      while IFS=$'\t' read -r a _; do
+        [ -n "$a" ] || continue
+        if [ "$a" = "$fid" ]; then
+          echo "FAIL demo $(basename "$f"): a verdict item awaits the demo itself (after: $a)"; fail=1
+        elif ! printf '%s' "$demos_json" | jq -e --arg id "$a" 'map(select(._id==$id))|length>0' >/dev/null; then
+          echo "FAIL demo $(basename "$f"): a verdict item awaits demo $a which does not exist"; fail=1
+        fi
+      done <<< "$(_demo_verdict_items "$f" | cut -f1 | sort -u)"
     done
 
     # 6. warnings (never fail the gate; the board repeats them)
@@ -756,7 +859,7 @@ EOF
       sed -E \
         -e "s/${pre}(done|shown|proven)${post}/\1${esc}[32m\2${esc}[0m\3/" \
         -e "s/${pre}(todo|accepted)${post}/\1${esc}[94m\2${esc}[0m\3/" \
-        -e "s/${pre}(in-progress|proposed|pending)${post}/\1${esc}[33m\2${esc}[0m\3/" \
+        -e "s/${pre}(in-progress|proposed|pending|waiting)${post}/\1${esc}[33m\2${esc}[0m\3/" \
         -e "s/${pre}(red|stalled)${post}/\1${esc}[31m\2${esc}[0m\3/" \
         -e "s/${pre}(rejected|superseded|dropped)${post}/\1${esc}[90m\2${esc}[0m\3/" \
         -e "s/${pre}(green)${post}/\1${esc}[92m\2${esc}[0m\3/"
@@ -780,13 +883,14 @@ EOF
 
     echo
     echo "DEMOS"
-    ds="$(_load demo | jq -r 'sort_by(._id)|.[]|"\(._id)\t\(.status)\t\(.gate)\t\(.checked_at // "-")\t\(.title)"')"
+    demos_json="$(_load demo)"
+    ds="$(printf '%s' "$demos_json" | jq -r 'sort_by(._id)|.[]|"\(._id)\t\(.status)\t\(.gate)\t\(.checked_at // "-")\t\(.title)"')"
     if [ -z "$ds" ]; then
       echo "  (none)"
     else
       head="$(_head_sha)"
       while IFS=$'\t' read -r did dstatus dgate dchecked dtitle; do
-        state="$(_demo_display_state "$did" "$dstatus" "$tasks_json")"
+        state="$(_demo_display_state "$did" "$dstatus" "$tasks_json" "$demos_json")"
         stale="$dchecked"
         if [ "$dchecked" != "-" ] && [ "$dchecked" != "$head" ] && [ "$state" != "shown" ] && [ "$state" != "dropped" ]; then
           stale="$dchecked(stale)"
@@ -834,6 +938,7 @@ EOF
         done)        echo '● 32' ;;
         rejected)    echo '✕ 31' ;;
         red)         echo '○ 31' ;;
+        waiting)     echo '‖ 33' ;;
         stalled)     echo '! 31' ;;
         green)       echo '◆ 92' ;;
         shown)       echo '● 32' ;;
@@ -900,12 +1005,13 @@ EOF
           else .status end)')"
     _dense_kind T "$task_lines" "todo blocked in-progress done rejected"
 
+    demos_json="$(_load demo)"
     demo_lines=""
     while IFS=$'\t' read -r did dstatus; do
       [ -n "${did:-}" ] || continue
-      demo_lines="$demo_lines$did $(_demo_display_state "$did" "$dstatus" "$tasks_json")"$'\n'
-    done <<< "$(_load demo | jq -r 'sort_by(._id)|.[]|"\(._id)\t\(.status)"')"
-    _dense_kind S "$demo_lines" "red stalled green shown dropped"
+      demo_lines="$demo_lines$did $(_demo_display_state "$did" "$dstatus" "$tasks_json" "$demos_json")"$'\n'
+    done <<< "$(printf '%s' "$demos_json" | jq -r 'sort_by(._id)|.[]|"\(._id)\t\(.status)"')"
+    _dense_kind S "$demo_lines" "red waiting stalled green shown dropped"
 
     decisions_json="$(_load decision)"
     _dense_kind D \
@@ -920,7 +1026,7 @@ EOF
       printf '⚠ %s  (backlog.sh check)\n' "$(printf '%s\n' "$warns" | wc -l | tr -d ' ')"
     fi
 
-    printf 'T ○ready ◦blocked ◐wip ●done ✕rejected | S demo ○red !stalled ◆green ●shown ✕dropped | D ○proposed ●accepted ✕rejected ~superseded | P proof ·none ◐pending ✔proven | ·gap\n'
+    printf 'T ○ready ◦blocked ◐wip ●done ✕rejected | S demo ○red ‖waiting !stalled ◆green ●shown ✕dropped | D ○proposed ●accepted ✕rejected ~superseded | P proof ·none ◐pending ✔proven | ·gap\n'
     ;;
 
   ""|help|-h|--help)

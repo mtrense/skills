@@ -24,7 +24,9 @@ The user's argument, if any: `$ARGUMENTS`. Three entry modes:
 
 - **A statement** ("use SQLite", "we should decide how errors surface") → new decision, start the dialog from it.
 - **An existing decision reference** (an id, filename, or "revisit the storage decision") → revision mode (below).
-- **Empty** → pick up the next open decision item: find the lowest-id red demo (`bash ../_shared/scripts/backlog.sh by-status demo red`, relative to this skill's directory), read its `## Decisions to make` list, and take the first unchecked item (one without a `decision: NNNN` back-reference); `## Needs proving` items come after. If several demos have open items, stay with the lowest id unless the user redirects; if none exist anywhere, say so and stop.
+- **Empty** → pick up the next open decision item: find the lowest-id red demo (`bash ../_shared/scripts/backlog.sh by-status demo red`, relative to this skill's directory), read its `## Decisions to make` list, and take the first unchecked item (one without a `decision: NNNN` back-reference); `## Needs proving` items come after. Skip **verdict items** (`— after: NNNN`) whose awaited demo is not yet `shown` — `backlog.sh demo-state <id>` lists them as *awaiting verdict*. If several demos have open items, stay with the lowest id unless the user redirects; if none exist anywhere, say so and stop.
+
+**Verdict items wait for the showing.** An item marked `— after: NNNN` can only be decided once the user has seen demo NNNN — that is the whole point of the marker. Given one explicitly while NNNN is still red or green, refuse and point at `/land NNNN`; deciding it now would encode a guess about a judgment the user hasn't formed. (If the user says the verdict no longer matters, remove the `after:` marker from the item and decide it as an ordinary item — their call, made explicitly.) Once NNNN is shown, ground the dialog in its `## Showing` record: what the user saw, what they said, which findings they settled — the verdict is the context of this decision.
 
 ## The dialog (kept brief)
 
@@ -43,7 +45,7 @@ Create the record: `bash ../_shared/scripts/backlog.sh new decision <slug> <titl
 
 **Demo-spawned decisions:** when the decision came from a demo's list —
 
-- From `## Decisions to make`: tick the item and append the back-reference: `- [x] <item> — decision: NNNN`.
+- From `## Decisions to make`: tick the item and append the back-reference: `- [x] <item> — decision: NNNN` (a verdict item keeps its marker: `- [x] <item> — after: MMMM — decision: NNNN`).
 - From `## Needs proving`: the record is persisted with **`proof: pending`** (`backlog.sh set-proof <id> pending`) and the demo item gets the same `— decision: NNNN` back-reference. This wires the proving loop: `/enrich` will attach the id to a proving task's `proves` list, and `/land` clears it after consulting the user.
 
 ### The proof claims

@@ -6,7 +6,8 @@ description: >
   checks, deviations and caveats) from the demo's scenario and the closing records of the
   tasks behind it, let the user try it, turn their feedback into new tasks, clear the proof
   claims the demo now evidences after consulting the user (routing contradicted decisions to
-  /decide instead of editing them), update documentation, and flip the demo to shown.
+  /decide instead of editing them), update documentation, flip the demo to shown, and
+  settle the verdict items other demos were waiting on.
   Trigger on "/land", "show me the demo", "what can I test", "land the demo", "demo time",
   "is the demo ready", or when /burn reports a demo ready to show. Do NOT trigger for
   task-level completion (that's /burn's job) or for progress questions (answer with
@@ -88,6 +89,14 @@ Settle the demo itself with `AskUserQuestion`:
 - **Not yet** — fix-before-showing tasks were captured; the demo stays as it is and comes back to `/land` once `/burn demo:<id>` has landed them (a green demo with live tasks is burned until they are done).
 - **Drop** — the demo is abandoned: `backlog.sh set-status demo <id> dropped`, and ripple its live tasks (`backlog.sh by-demo <id>`): reject, re-point to another demo, or keep as plain tasks — one closed question per task.
 
+## Step 8: Settle the verdicts other demos wait on
+
+Run `backlog.sh waiting-on <id>`: the verdict items (`— after: <id>`) other demos hold open until this one was seen. They exist because a later demo builds on what the user thinks of this one — and the user has just formed that judgment, so this is the cheapest moment to record it.
+
+- **Shown** — for each item, ask (one `AskUserQuestion`, one question per item): *decide it now* (recommended — invoke `Skill(decide)` with the item; it grounds the dialog in the `## Showing` record you just wrote) / *later* (the item is decidable from now on; `/decide` argless will pick it up). Each verdict settled here unblocks `/enrich` for the waiting demo.
+- **Dropped** — the verdict will never come. Per item: *decide it without the verdict* (remove the `after:` marker, then `/decide`) / *re-point it to another demo* (edit the marker) / *drop the item* (and say whether the waiting demo still makes sense — it may need `/aim` re-shaping or dropping too).
+- **Not yet** — nothing to settle; the waiting demos keep waiting.
+
 ## Wrap-up
 
-Run `bash ../_shared/scripts/backlog.sh check`. Do **not** commit — this skill runs in the foreground; name every file touched (demo file, decision files, task files, docs) and leave them for the user to review and commit (`/commit`). Show the board and point forward: the next green demo, `/burn demo:<id>` for captured fixes, or `/aim` for the next demo when the runway is clear.
+Run `bash ../_shared/scripts/backlog.sh check`. Do **not** commit — this skill runs in the foreground; name every file touched (demo file, decision files, task files, docs) and leave them for the user to review and commit (`/commit`). Show the board and point forward: the next green demo, `/burn demo:<id>` for captured fixes, `/enrich` for a demo this showing unblocked, or `/aim` for the next demo when the runway is clear.
