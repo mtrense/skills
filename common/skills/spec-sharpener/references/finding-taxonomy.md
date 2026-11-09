@@ -12,6 +12,13 @@ Prioritize findings in this order when deciding what to surface first:
 3. **Clarity / quality** — understandable but vague, under-specified, or fragile.
 4. **Wording / style** — correct and clear but imprecise, inconsistent, or messy.
 
+Severity is one axis. Every non-wording finding is also tagged **load-bearing**
+(its answer steers other parts of the spec — settle now) or **deferrable**
+(local, cheap to revise, better answered during implementation — noted as an
+inline deferred marker). The test and the marker format are in
+`deferred-marker.md`. Passages already carrying a `> **Deferred `<slug>`:**`
+marker are settled-for-now — don't re-flag them.
+
 ---
 
 ## 1. Ambiguities

@@ -4,11 +4,13 @@ description: >-
   Assess and harden a greenfield project's documentation/specification so it is
   unambiguous enough to implement from. Hunts for ambiguities, contradictions,
   gaps, undefined terms, and unstated assumptions, then interviews the user one
-  issue at a time (proposing concrete options), and applies each agreed fix
-  directly to the docs — the sharpened spec itself is the record; no ADRs are
-  written. Built to be run repeatedly until the spec is crystal clear.
+  issue at a time on the load-bearing questions (proposing concrete options),
+  notes questions better answered during implementation as inline deferred
+  markers, and applies each agreed fix directly to the docs — the sharpened
+  spec itself is the record; no ADRs are written. Built to be run repeatedly
+  until the spec is crystal clear.
 disable-model-invocation: true
-argument-hint: "[spec doc(s) to assess — path/glob; omit to assess all reasonable docs]"
+argument-hint: "[--reopen[=<slug>,…]] [spec doc(s) to assess — path/glob; omit to assess all reasonable docs]"
 ---
 
 # Spec Sharpener
@@ -85,12 +87,29 @@ remains.
   to wording and style), but the order is strict: things that *block* a build
   come before things that would *fork* a build, which come before clarity, which
   comes before pure wording.
+- **Settle direction now; defer what's better answered on the way.** Severity
+  says how bad a finding is; a second axis says whether it must be answered
+  *now*. A **load-bearing** finding's answer steers other parts of the spec — it
+  is interviewed one-by-one. A **deferrable** one is real but local, cheap to
+  revise, and likely to get a better answer once implementation brings insight —
+  it is noted as an inline *deferred marker* at its spot (format and test:
+  `references/deferred-marker.md`) and answered when it becomes necessary.
+  Deferring can also be a decision made now: isolate the fork behind a proper
+  seam so it can be tested, switched, or decided later. Spend the user's
+  attention on the questions that can divert the build, not on a long tail that
+  can't.
 
 ## Workflow
 
 ### Step 0 — Scope the survey (`$ARGUMENTS`)
 
-`$ARGUMENTS` names the specification documents to assess — a path or glob, or
+`$ARGUMENTS` may start with a **reopen flag**: `--reopen` reopens every deferred
+marker in scope, `--reopen=<slug>[,<slug>…]` just the named ones. Reopened
+questions come back as normal findings (the surveyor re-classifies them — they
+may be load-bearing now). Without the flag, deferred markers are settled-for-now
+and not re-asked.
+
+The rest of `$ARGUMENTS` names the specification documents to assess — a path or glob, or
 several. It is **optional**:
 
 - **Given:** treat that set as the scope. Pass the exact paths/globs to the
@@ -102,7 +121,7 @@ several. It is **optional**:
 
 **Skill-owned build artifacts are out of scope regardless of how the scope was given.** In a project using the domain-driven workflow, `domain-model.md`, `context-map.md`, `bounded-contexts/`, and the `tasks/` backlog are derived, skill-owned artifacts, not input spec: the modeling skills own them through their re-entrant revision modes, whose side effects (a context rename ripples through the backlog; a reshaped aggregate cluster invalidates the map) a raw text edit would silently skip — and that workflow's scaling law forbids scanning the `tasks/` corpus at all. The natural sharpening target there is `vision.md` plus any other human-authored input docs. The surveyor already treats these artifacts as read-only model context and tags findings about them for routing (see Step 4); if the user explicitly names one in `$ARGUMENTS`, say why it's excluded and offer the owning skill instead.
 
-**Exemplars are the exception: skill-produced, but a sharpening target.** An `exemplars/` directory (concrete sample artifacts — configs, datasets, payloads — brainstormed via `/exemplar`, each with a `NOTES.md` carrying `status: illustrative | normative`) is spec stated in bytes, and this skill is its designated sharpener *and* its promotion gate: an `illustrative` exemplar that survives a sweep clean is promoted to `normative` here (Step 6), which is what lets tasks bind to it. Findings inside exemplars are normal encodable findings; only a `normative`-exemplar-vs-ADR contradiction takes the routed path like any other ADR conflict. One byte-level exception: an intaken exemplar whose `NOTES.md` carries `sync: upstream` mirrors a design-tool export verbatim, so its artifact bytes are never edited here — a resolution touching them is encoded as a line in that `NOTES.md`'s *Fix upstream* list (the encoder edits NOTES.md, not the artifact), for the human to carry back into the source tool.
+**Exemplars are the exception: skill-produced, but a sharpening target.** An `exemplars/` directory (concrete sample artifacts — configs, datasets, payloads — brainstormed via `/exemplar`, each with a `NOTES.md` carrying `status: illustrative | normative`) is spec stated in bytes, and this skill is its designated sharpener *and* its promotion gate: an `illustrative` exemplar that survives a sweep clean is promoted to `normative` here (Step 8), which is what lets tasks bind to it. Findings inside exemplars are normal encodable findings; only a `normative`-exemplar-vs-ADR contradiction takes the routed path like any other ADR conflict. One byte-level exception: an intaken exemplar whose `NOTES.md` carries `sync: upstream` mirrors a design-tool export verbatim, so its artifact bytes are never edited here — a resolution touching them is encoded as a line in that `NOTES.md`'s *Fix upstream* list (the encoder edits NOTES.md, not the artifact), for the human to carry back into the source tool.
 
 For a **large or unfamiliar repo** where you can't tell up front what counts as
 "the spec", don't guess and don't page the whole tree into your own context:
@@ -118,13 +137,24 @@ own discovery is enough.
 Do **not** read the docs, the decision log, or the taxonomy yourself. Instead
 dispatch the `spec-surveyor` subagent via the `Agent` tool
 (`subagent_type: spec-surveyor`). Give it the repo root, the document scope from
-Step 0 (or "all reasonable docs" when none was given), and, on a re-run, a
-one-line note of what previous runs already covered.
+Step 0 (or "all reasonable docs" when none was given), the reopen request if the
+flag was given (`all` or the slugs), and, on a re-run, a one-line note of what
+previous runs already covered.
 
 It returns a **system-model paragraph** and a **compact, prioritized backlog** in
 which each finding already carries its quoted anchor, the problem, why it matters,
-and 2–4 concrete options. If the project has a decision log, the surveyor has
-already dropped findings settled by `Accepted` decisions.
+2–4 concrete options, a severity tag, and — except for wording — a
+`load-bearing | deferrable` tag with a one-line `Bearing:` reason, plus a
+`Shapes:` line naming the findings its answer would moot or reshape. If the
+project has a decision log, the surveyor has already dropped findings settled by
+`Accepted` decisions; deferred markers are likewise dropped unless reopened (or
+re-raised because they became load-bearing).
+
+Split the backlog into three lanes and work them in this order:
+
+1. **Load-bearing** — the interview proper (Step 4), strongest first.
+2. **Deferrable** — one batched triage (Step 6).
+3. **Wording** — one batched polish pass (Step 7).
 
 Hold that backlog as your working state for this run. It is compact by design —
 this is what keeps your context lean. Do **not** print it as a list, and do
@@ -132,28 +162,40 @@ this is what keeps your context lean. Do **not** print it as a list, and do
 spot on demand if the interview genuinely needs the live text (e.g. the user asks
 exactly what the doc says today).
 
-If the survey reports no blockers or fork-risks and only trivial-or-nothing
-remains, skip to the wrap in Step 6 and tell the user the spec looks
-implementation-ready.
+If the load-bearing lane is empty, tell the user the spec's direction is settled
+and go straight to the batches (Steps 6–7), or to the wrap (Step 8) if they are
+empty too.
 
 ### Step 3 — Open the interview
 
-Give the user a one-line orientation only — a rough tally, e.g. *"I went through
-the spec and found around a dozen things, from a couple of real blockers down to
-some wording. Let's take them strongest-first, one at a time."* Then go straight
-into the first (highest-priority) issue. No findings report.
+Give the user a one-line orientation only — a rough tally by lane, e.g. *"I went
+through the spec: about five questions that steer the build, eight that are
+better answered during implementation, and some wording. Let's settle the five
+one at a time, then batch the rest."* Then go straight into the first
+load-bearing issue. No findings report.
 
-### Step 4 — The interview loop (per issue)
+### Step 4 — The interview loop (per load-bearing issue)
 
 For each finding, present it in this shape:
 
 > **Where:** `path/to/doc.md` — quote or pinpoint the exact spot.
 > **What:** State the problem plainly (the ambiguity / contradiction / gap).
 > **Why it matters:** Make it concrete — e.g. *"a developer could reasonably
-> read this as X or as Y, and would build two different things."*
+> read this as X or as Y, and would build two different things."* Include what
+> the answer steers (the `Bearing:` line) — that is why it is asked now.
 > **Options:** 2–4 concrete resolutions, each with a one-line trade-off. Mark a
 > recommended default when you genuinely have one.
-> **Your call:** Ask them to pick an option, blend them, or give their own.
+> **Your call:** Ask them to pick an option, blend them, give their own — or
+> defer it.
+
+**Defer is always a valid answer**, in two flavours: *open* (note the question
+at its spot, answer later) or *isolated* (decide now to put the fork behind a
+proper seam — interface, strategy, config switch, adapter — so it can be
+tested, switched, or decided later; the seam is spec text, only the choice
+behind it stays open). If the user pushes back that a question can wait, take
+it — they are the judge of what steers their build. If you think the user is
+deferring something that genuinely steers other parts, say what it steers once,
+then respect their call.
 
 Adapt the mode to the kind of finding:
 - **Spec is silent (a gap):** you're eliciting their intent — options are
@@ -177,25 +219,61 @@ with:
 - the finding (title, affected doc(s), the verbatim quoted anchor, why it
   mattered — straight from the backlog item),
 - the **agreed resolution** in prose (the option chosen, a blend, or the user's
-  own answer — whatever was actually settled).
+  own answer — whatever was actually settled), or the **deferral**: open, or
+  isolated behind a named seam (say where the seam belongs in the spec), plus
+  the decide-when moment and the options known today for the marker.
 
 It makes the minimal edits to all affected docs so they now state the
-resolution unambiguously, and returns a one-line `ENCODED: <title>`
-confirmation. The sharpened text is the entire record — no ADR is written.
-Relay the confirmation to the user in a sentence — don't paste the document
-back.
+resolution unambiguously (or carry the deferred marker), and returns a one-line
+`ENCODED: <title>` confirmation. The sharpened text is the entire record — no
+ADR is written. Relay the confirmation to the user in a sentence — don't paste
+the document back.
+
+**Re-check the remaining backlog against the answer** before moving on — from
+the backlog you hold, not by re-reading docs. Start from the encoded finding's
+`Shapes:` list, but use judgement beyond it: a finding the answer moots is
+dropped; one it makes local becomes deferrable (moves to the triage lane); one
+whose options it changes gets its options adjusted; one it newly makes
+load-bearing moves up. Tell the user in one line when something changed
+(*"that also settles F7, and makes F9 deferrable"*); say nothing when nothing
+did.
 
 Encoders run **one at a time**, never in parallel: the interview is sequential,
 and successive resolutions may touch the same document. If it returns
 `BLOCKED:` (e.g. the anchor no longer matches), read the reason, resolve it
 with the user or by a quick targeted Read, and re-dispatch.
 
-### Step 6 — Next, or wrap
+Move to the next load-bearing finding and repeat Step 4 until that lane is
+empty or the user wants to pause.
 
-Move to the next highest-priority finding and repeat Step 4. Continue until the
-user wants to pause or the backlog is exhausted for this run. When you pause,
-give a one-line status: how many resolved this run, how many remain, and the
-nature of what's left.
+### Step 6 — Deferral triage (one batch)
+
+Present the deferrable lane **at once, compactly** — one line per finding:
+title, the `Bearing:` reason it can wait, and the recommended option if any.
+Ask which to **note as deferred** (the default for all), which to **answer
+now**, and which to **isolate behind a seam** now. Use `AskUserQuestion`
+(multiSelect) for the "answer now" / "isolate" picks when the list fits;
+otherwise prose.
+
+- **Note:** dispatch one `decision-encoder` call with the whole batch — per
+  item the finding, its anchor, a decide-when moment (from `Bearing:`), and
+  its options — to write the inline markers.
+- **Answer now:** run each through Step 4–5 like a load-bearing finding.
+- **Isolate:** settle the seam with the user (one short exchange each — what
+  the seam is, where it lives), then encode as an isolated deferral.
+
+### Step 7 — Wording polish (one batch)
+
+Present the wording lane as a compact list of `quote → proposed rewrite`
+lines. Ask: apply all, pick some, or skip. Dispatch one `decision-encoder`
+call with the approved rewrites as a batch. Skipped items will resurface on a
+later run; say so.
+
+### Step 8 — Wrap
+
+When the lanes are done or the user pauses, give a one-line status: resolved
+this run, deferred (with slugs), remaining and their nature. Mention that
+`--reopen[=<slug>]` brings deferred questions back.
 
 **Exemplar promotion (at wrap, when the project has `exemplars/`).** Collect the
 `illustrative` exemplars that are now finding-free: the ones the surveyor
@@ -221,19 +299,26 @@ An **existing** decision log is respected as read-only input: the `spec-surveyor
 ## Re-running
 
 On every run: re-dispatch the `spec-surveyor` (it re-reads the docs *and* the
-decision log, rebuilds the model, re-sweeps, and drops anything already settled),
-then continue the interview on what remains — including new issues introduced by
-recent edits. The fresh survey runs in the subagent and is discarded, so re-runs
-stay cheap for your context. When the survey turns up no remaining blockers or
-fork-risks and only trivial-or-nothing is left, say so plainly: the spec looks
-implementation-ready, with a note on any residual minor items the user chose to
-leave.
+decision log, rebuilds the model, re-sweeps, and drops anything already settled
+or deferred), then continue the interview on what remains — including new issues
+introduced by recent edits. Deferred markers stay quiet unless reopened with
+`--reopen` or re-raised by the surveyor because the spec has since come to
+depend on them. The fresh survey runs in the subagent and is discarded, so
+re-runs stay cheap for your context. When the survey turns up no load-bearing
+findings, say so plainly: the spec's direction is settled and it is
+implementation-ready, with deferred questions noted at their spots and a note
+on any residual minor items the user chose to leave.
 
 ## What not to do
 
 - **Don't produce a standalone findings report** as the deliverable. The output
   is the interview plus the edits.
-- **Don't dump the backlog.** One issue per turn.
+- **Don't dump the backlog.** One load-bearing issue per turn. The deferral
+  triage and wording polish are deliberate compact batches — no one-by-one
+  interview for things that don't steer the build.
+- **Don't answer deferred questions by default.** A marker is not a gap to
+  fill on the next run; it waits for `--reopen` or for the spec to start
+  depending on it.
 - **Don't edit ahead of agreement.** No change lands until the user confirms it.
 - **Don't advance prematurely.** Resolve and encode the current issue (i.e. get
   the encoder's `ENCODED` confirmation) before starting the next one.
