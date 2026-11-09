@@ -6,7 +6,7 @@ description: >
   vocabulary, wrapped up as VISION.md with an explicit ## Vocabulary section. Trigger on
   "/kickoff", "start a new project", "let's define the vision", "kick this project off", or
   when the user wants to revise an existing VISION.md ("the vision changed", "update the
-  vision"). Do NOT trigger for milestone planning (/aim), task capture (/enrich,
+  vision"). Do NOT trigger for demo planning (/aim), task capture (/enrich,
   /supplement), or read-only questions about the existing vision.
 argument-hint: <optional project idea, or what changed for a revision>
 model: opus
@@ -45,7 +45,7 @@ Keep the whole file to roughly a page. Show the draft, incorporate corrections, 
 
 ## Foundational decisions (first run only)
 
-Foundational decisions — tech stack, persistence, testing approach, everything that predates any milestone — are **not smuggled into the vision**. Close a first run by listing the foundational decisions the conversation surfaced or implied (each as a one-line candidate), and offer to work through them as a first `/decide` batch, so they land in the decision log with the same rigor as every later decision. Pose that offer with `AskUserQuestion` using `multiSelect` — one option per candidate decision — so the user picks which to settle now and which to defer in a single turn. If the user accepts, invoke `Skill(decide)` per item (or point them at `/decide`); if they defer, leave the list in the chat — do not park it in VISION.md.
+Foundational decisions — tech stack, persistence, testing approach, everything that predates any demo — are **not smuggled into the vision**. Close a first run by listing the foundational decisions the conversation surfaced or implied (each as a one-line candidate), and offer to work through them as a first `/decide` batch, so they land in the decision log with the same rigor as every later decision. Pose that offer with `AskUserQuestion` using `multiSelect` — one option per candidate decision — so the user picks which to settle now and which to defer in a single turn. If the user accepts, invoke `Skill(decide)` per item (or point them at `/decide`); if they defer, leave the list in the chat — do not park it in VISION.md.
 
 ## Revision mode
 
@@ -53,4 +53,4 @@ With `VISION.md` present, run diff-oriented: read the current file, ask what cha
 
 ## Wrap-up
 
-Leave `VISION.md` uncommitted — this skill runs in the foreground, so the user reviews the change and commits it themselves (`/commit`). Close by naming the file written and pointing at the next move: `/aim` for the first milestone (or `/decide` if a foundational batch is pending).
+Leave `VISION.md` uncommitted — this skill runs in the foreground, so the user reviews the change and commits it themselves (`/commit`). Close by naming the file written and pointing at the next move: `/aim` for the first demo (or `/decide` if a foundational batch is pending).

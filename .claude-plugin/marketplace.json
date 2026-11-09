@@ -51,7 +51,7 @@
     {
       "name": "trajectory",
       "source": "./trajectory",
-      "description": "Milestone-labelled, proof-driven build workflow: vision kickoff, milestones as labels with explicit proof obligations, decision log with derived topic digests, parallel TDD burn-down with grading, and verified landings.",
+      "description": "Demo-driven, proof-driven build workflow: vision kickoff, demos as executable human checkpoints (a scenario plus an end-to-end check that alone turns them green), tasks in one flat dependency graph, decisions with explicit proof obligations, parallel TDD burn-down with grading and demo checks after merges, and a verified human test cycle.",
       "category": "workflow"
     },
     {

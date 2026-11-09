@@ -1,13 +1,13 @@
 ---
 name: supplement
 description: >
-  Add a small milestone-less task to a trajectory backlog — a bug, a small improvement, a
+  Add a small demo-less task to a trajectory backlog — a bug, a small improvement, a
   chore — with the same rigor as /enrich: plan, decision/doc references, complexity,
   dependencies, acceptance criteria, duplicate/link scan, and vocabulary check, including
   proposing a breakdown into several tasks when the input turns out bigger than one
   well-shaped task. Trigger on "/supplement", "file a bug task", "small task:", "add a chore",
-  or when the user hands over a fix/improvement that doesn't warrant a milestone. Do NOT
-  trigger for milestone-scoped breakdown (that's /enrich) or for feature-sized ideas (route
+  or when the user hands over a fix/improvement that doesn't warrant a demo of its own. Do NOT
+  trigger for demo-scoped breakdown (that's /enrich) or for feature-sized ideas (route
   those to /aim).
 argument-hint: <the bug, improvement, or chore to capture>
 model: opus
@@ -20,7 +20,7 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Agent, AskUserQuestion
 
 The user's argument: `$ARGUMENTS` — the bug, improvement, or chore. If empty, ask what needs capturing.
 
-A supplement task differs from an enriched one in exactly one way: `milestones: []`. Everything else — the shaping rigor, the checks, the gates — is identical, because `/burn` and the `grader` treat both the same.
+A supplement task differs from an enriched one in exactly one way: it serves no demo (`demos: []`) — unless the fix is plainly needed by an existing demo, in which case list it (`demos: ["NNNN"]`) so `/burn` re-runs that demo's check when it lands. Everything else — the shaping rigor, the checks, the gates — is identical, because `/burn` and the `grader` treat both the same.
 
 ## Shape before persisting
 
@@ -42,8 +42,8 @@ Per task, assemble the same material as `/enrich`:
 
 ## Persist
 
-Per task: `bash ../_shared/scripts/backlog.sh new task <slug> <title>` (relative to this skill's directory), Edit frontmatter (`milestones: []`) and body, then `bash ../_shared/scripts/backlog.sh check`. Do **not** commit — this skill runs in the foreground; name the files written and leave them for the user to review and commit (`/commit`).
+Per task: `bash ../_shared/scripts/backlog.sh new task <slug> <title>` (relative to this skill's directory), Edit frontmatter (`demos`, usually `[]`) and body, then `bash ../_shared/scripts/backlog.sh check`. Do **not** commit — this skill runs in the foreground; name the files written and leave them for the user to review and commit (`/commit`).
 
 ## Wrap-up
 
-Show the board; note where the new task(s) sit in `backlog.sh ready` order (available supplements burn in plain ascending-id order alongside milestone tasks — milestones are labels, not queues).
+Show the board; note where the new task(s) sit in `backlog.sh ready` order (available supplements burn in plain ascending-id order alongside demo tasks — demos are checkpoints, not queues).

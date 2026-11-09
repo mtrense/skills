@@ -1,6 +1,6 @@
 {
   "name": "trajectory",
-  "description": "Milestone-labelled, proof-driven build workflow: Socratic vision kickoff, milestones as labels (never barriers), decisions with explicit proof obligations discharged by done tasks, parallel TDD burn-down with grading and bounce-on-conflict merging, and verified milestone landings.",
+  "description": "Demo-driven, proof-driven build workflow: vision kickoff, demos as executable human checkpoints (a scenario plus an end-to-end check that alone turns them green), tasks in one flat dependency graph, decisions with explicit proof obligations, parallel TDD burn-down with grading and demo checks after merges, and a verified human test cycle.",
   "author": {
     "name": "Max Trense",
     "email": "dev@trense.info"
@@ -8,7 +8,7 @@
   "homepage": "https://github.com/mtrense/skills",
   "repository": "https://github.com/mtrense/skills",
   "keywords": [
-    "milestones",
+    "demos",
     "proof-driven",
     "decisions",
     "backlog",

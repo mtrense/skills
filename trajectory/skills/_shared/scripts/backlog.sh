@@ -2,7 +2,7 @@
 # Deterministic query-and-bookkeeping surface over a trajectory project's backlog.
 #
 # The backlog is three directories of markdown files whose YAML frontmatter is the
-# query index: tasks/NNNN-slug.md, milestones/NNNN-slug.md, and
+# query index: tasks/NNNN-slug.md, demos/NNNN-slug.md, and
 # documentation/decisions/NNNN-slug.md. The backlog can grow large, so NO skill or
 # subagent ever scans the file bodies — every mechanical question is answered here
 # and returns only ids / paths / small JSON. Prose bodies are read only by the one
@@ -11,46 +11,45 @@
 # ── Identity ──────────────────────────────────────────────────────────────────
 # An item's canonical id is the 4-digit `NNNN` filename prefix — it is NEVER
 # duplicated into frontmatter (two sources of truth drift, and YAML parses bare
-# 0042 as octal). Each kind (task/milestone/decision) has its own id sequence.
-# List references (`depends_on`, `milestones`, `decisions`, `proves`) are
-# normalized to 4-digit strings however the frontmatter wrote them.
+# 0042 as octal). Each kind (task/demo/decision) has its own id sequence.
+# List references (`depends_on`, `demos`, `decisions`, `proves`) are normalized
+# to 4-digit strings however the frontmatter wrote them.
 #
 # ── Frontmatter fields ────────────────────────────────────────────────────────
 #   all kinds     title
 #   task          status (todo|in-progress|done|rejected), complexity (low|medium|high),
-#                 milestones [], depends_on [], decisions [], proves [], documents []
-#   milestone     status (open|landed)
+#                 demos [], depends_on [], decisions [], proves [], documents []
+#   demo          status (red|green|shown|dropped), gate (flag|hold),
+#                 check (shell command, run from the project root), checked_at (sha|null)
 #   decision      status (proposed|accepted|rejected|superseded),
 #                 proof (none|pending|proven), superseded_by (id or null)
 #
-# ── Derived state ─────────────────────────────────────────────────────────────
-# A milestone is READY to land when ALL of:
-#   1. every `## Decisions to make` / `## Needs proving` item is settled — ticked
-#      AND carrying a `decision: NNNN` back-reference (an open item means ground
-#      /enrich was never able to break down);
-#   2. its `## Breakdown` coverage map exists and every line is resolved — either
-#      `tasks: NNNN[, NNNN]` or `deferred: <reason>` (an unresolved line is
-#      outcome ground no task covers);
-#   3. at least one task lists it, and every task listing it is done or rejected;
-#   4. every `proof: pending` decision back-referenced from its body (the
-#      `decision: NNNN` markers /decide writes) is demonstrated — a done proving
-#      task AND every `## Proof` claim on that decision ticked.
-# A pending proof whose only live proving task sits in another milestone is
-# reported as "blocked on proof: task NNNN (milestone MMMM)".
-#
-# Rules 1, 2, and the claim half of 4 are what stop a milestone whose minted
-# tasks all landed from reading READY while the ground they never covered is
-# still open: task statuses alone cannot see work that was never written down.
+# ── Demos ─────────────────────────────────────────────────────────────────────
+# A demo is a checkpoint worth calling the human over for: a scenario plus an
+# executable end-to-end `check`. It is NOT a container of tasks — tasks list the
+# demos they are known to serve (`demos: [...]`) as a hint for scheduling, never
+# as a definition of done. A demo's red/green status is set ONLY by `demo-check`,
+# which runs the check command: the code decides, never task bookkeeping.
+#   red      the check fails (or does not exist yet) — still being built
+#   green    the check passes — ready for the human test cycle (/land)
+#   shown    the human ran the test cycle and accepted it (set by /land)
+#   dropped  human tombstone — the demo is abandoned
+# A red demo with no live (todo|in-progress) task listing it is STALLED: every
+# known piece of work is finished and the outcome still does not run, so the
+# missing work was never written down. That is the gap signal (-> /enrich).
 #
 # ── Commands ──────────────────────────────────────────────────────────────────
-#   backlog.sh new <task|milestone|decision> <slug> <title...>
+#   backlog.sh new <task|demo|decision> <slug> <title...>
 #                                mint the next id, write the frontmatter + body
 #                                skeleton, print the created path
 #   backlog.sh next-id <kind>    next free 4-digit id for that kind
-#   backlog.sh ready             todo tasks whose every depends_on is done
-#                                (the burn-down's available set), ascending id
+#   backlog.sh ready [--demo <id>]
+#                                todo tasks whose every depends_on is done (the
+#                                burn-down's available set), ascending id; with
+#                                --demo, only tasks listing that demo plus the
+#                                tasks they transitively depend on
 #   backlog.sh by-status <kind> <s>   ids of <kind> whose status is <s>
-#   backlog.sh by-milestone <id> task ids listing milestone <id>
+#   backlog.sh by-demo <id>      task ids listing demo <id>
 #   backlog.sh get <kind> <id>   that item's frontmatter as JSON (+ _id, _file)
 #   backlog.sh blockers <id>     task <id>'s depends_on that are NOT yet done
 #   backlog.sh dependents <id>   tasks that depend_on task <id> (reverse edges)
@@ -64,15 +63,24 @@
 #                                prefixed OPEN/DONE (exit 1 if any is OPEN)
 #   backlog.sh set-superseded <old-id> <new-id>   old decision -> status: superseded
 #                                + superseded_by: <new-id>
-#   backlog.sh milestone-ready [<id>]   readiness report for one milestone (exit 0
-#                                iff ready) or, with no id, for every open one
+#   backlog.sh demo-check <id>... | --all
+#                                run each demo's `check` command from the project
+#                                root, flip status red/green, record checked_at
+#                                (short HEAD sha); full output goes to
+#                                .trajectory/demo-NNNN.log. --all checks every red
+#                                and green demo. Prints one line per demo
+#                                (`NNNN GREEN|RED`, plus FLIPPED when it changed);
+#                                exit 0 iff every checked demo is green
+#   backlog.sh demo-state [<id>] state report for one demo (exit 0 iff GREEN) or,
+#                                with no id, for every red/green demo
 #   backlog.sh pending-proofs    every proof:pending decision with its proving
 #                                tasks and their statuses
 #   backlog.sh check             structural gate: canonical filenames, dangling
 #                                references, live deps on rejected tasks,
 #                                dependency cycles -> non-zero exit; plus warnings
-#                                (pending proof without a live proving task, ...)
-#   backlog.sh board [-c]        human board: tasks table, milestones with derived
+#                                (stalled demos, pending proof without a live
+#                                proving task, ...)
+#   backlog.sh board [-c]        human board: tasks table, demos with derived
 #                                state, decisions, warnings (-c colors the status
 #                                column)
 #   backlog.sh dense [-c] [-w N] glyph-only dashboard: one glyph per item, slot =
@@ -80,21 +88,22 @@
 #                                per row (default 50). Counts per glyph in each
 #                                kind's header; legend last
 #
-# All commands accept optional trailing `--tasks-dir D` / `--milestones-dir D` /
-# `--decisions-dir D` (defaults: ./tasks ./milestones ./documentation/decisions).
+# All commands accept optional trailing `--tasks-dir D` / `--demos-dir D` /
+# `--decisions-dir D` (defaults: ./tasks ./demos ./documentation/decisions).
 #
 # Requires: yj (YAML->JSON, invoked as `yj -yj`) and jq.
 set -euo pipefail
 
 TASKS_DIR="tasks"
-MILESTONES_DIR="milestones"
+DEMOS_DIR="demos"
 DECISIONS_DIR="documentation/decisions"
+LOG_DIR=".trajectory"
 
 args=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --tasks-dir) TASKS_DIR="$2"; shift 2 ;;
-    --milestones-dir) MILESTONES_DIR="$2"; shift 2 ;;
+    --demos-dir) DEMOS_DIR="$2"; shift 2 ;;
     --decisions-dir) DECISIONS_DIR="$2"; shift 2 ;;
     *) args+=("$1"); shift ;;
   esac
@@ -107,9 +116,9 @@ command -v yj >/dev/null 2>&1 || { echo "backlog.sh: yj not found on PATH" >&2; 
 _dir_for() {
   case "$1" in
     task) echo "$TASKS_DIR" ;;
-    milestone) echo "$MILESTONES_DIR" ;;
+    demo) echo "$DEMOS_DIR" ;;
     decision) echo "$DECISIONS_DIR" ;;
-    *) echo "backlog.sh: unknown kind '$1' (want task|milestone|decision)" >&2; exit 2 ;;
+    *) echo "backlog.sh: unknown kind '$1' (want task|demo|decision)" >&2; exit 2 ;;
   esac
 }
 
@@ -146,13 +155,16 @@ _load() {
       + (if $kind=="task" then
           {status: (.status // "todo"),
            complexity: (.complexity // "medium"),
-           milestones: ids("milestones"),
+           demos: ids("demos"),
            depends_on: ids("depends_on"),
            decisions: ids("decisions"),
            proves: ids("proves"),
            documents: ((.documents // []) | if type=="array" then . else [.] end)}
-        elif $kind=="milestone" then
-          {status: (.status // "open")}
+        elif $kind=="demo" then
+          {status: (.status // "red"),
+           gate: (.gate // "flag"),
+           check: ((.check // "") | tostring),
+           checked_at: (if .checked_at == null then null else (.checked_at|tostring) end)}
         else
           {status: (.status // "proposed"),
            proof: (.proof // "none"),
@@ -162,10 +174,10 @@ _load() {
   printf ']'
 }
 
-# Decision ids back-referenced from a milestone body via the `decision: NNNN`
-# markers /decide writes (the milestone->decision edge lives in prose, so this
-# one bounded grep is the sanctioned way to read it).
-_milestone_decisions() {
+# Decision ids back-referenced from a demo body via the `decision: NNNN`
+# markers /decide writes (the demo->decision edge lives in prose, so this one
+# bounded grep is the sanctioned way to read it).
+_demo_decisions() {
   local file="$1"
   # Skip the frontmatter block so a stray frontmatter field never matches.
   awk 'NR==1&&$0=="---"{f=1;next} f==1&&$0=="---"{f=2;next} f!=1{print}' "$file" \
@@ -173,12 +185,11 @@ _milestone_decisions() {
 }
 
 # ── Body-section readers ──────────────────────────────────────────────────────
-# The three edges that cannot live in frontmatter — a milestone's item checklists,
-# its breakdown coverage map, and a decision's proof claims — are checklist lines
-# in the body. These bounded readers are the sanctioned way to see them; nothing
-# else reads a body. Each one is line-shaped, so the grammar is the contract:
-#   milestone item      - [x] <text> — decision: NNNN
-#   breakdown line      - <outcome element> — tasks: NNNN, NNNN   |   — deferred: <why>
+# The two edges that cannot live in frontmatter — a demo's item checklists and a
+# decision's proof claims — are checklist lines in the body. These bounded
+# readers are the sanctioned way to see them; nothing else reads a body. Each one
+# is line-shaped, so the grammar is the contract:
+#   demo item           - [x] <text> — decision: NNNN
 #   proof claim         - [x] <claim> — <how it was demonstrated>
 
 # Lines of one `## <heading>` section (heading text without the `## `).
@@ -191,10 +202,10 @@ _section_bullets() {
   _section_lines "$1" "$2" | grep -E '^[[:space:]]*-[[:space:]]' || true
 }
 
-# A milestone's UNSETTLED checklist items: not ticked, or ticked without the
+# A demo's UNSETTLED checklist items: not ticked, or ticked without the
 # `decision: NNNN` back-reference /decide writes (either way, no decision record
 # exists, so nothing downstream can wire or clear it).
-_milestone_open_items() {
+_demo_open_items() {
   local f="$1" h line
   for h in "Decisions to make" "Needs proving"; do
     while IFS= read -r line; do
@@ -206,17 +217,6 @@ _milestone_open_items() {
   done
 }
 
-# Breakdown lines that resolve to neither tasks nor a deliberate deferral.
-_milestone_breakdown_gaps() {
-  _section_bullets "$1" "Breakdown" \
-    | grep -vE 'tasks:[[:space:]]*[0-9]{4}|deferred:[[:space:]]*[^[:space:]]' || true
-}
-
-# 0 iff the milestone has a non-empty ## Breakdown coverage map.
-_milestone_has_breakdown() {
-  [ -n "$(_section_bullets "$1" "Breakdown")" ]
-}
-
 # A decision's proof claims (checklist lines under ## Proof), all / unticked.
 _decision_claims() {
   _section_bullets "$1" "Proof" | grep -E '^[[:space:]]*-[[:space:]]*\[[ xX]\]' || true
@@ -225,91 +225,104 @@ _decision_open_claims() {
   _decision_claims "$1" | grep -E '^[[:space:]]*-[[:space:]]*\[[[:space:]]?\]' || true
 }
 
-# Readiness of one milestone. Prints detail lines; last line is the verdict:
-# READY | OPEN | LANDED. Returns 0 iff READY.
-_milestone_ready_report() {
-  local mid="$1" mfile mstatus tasks_json verdict="READY" d
-  mfile="$(_load milestone | jq -r --arg id "$mid" 'map(select(._id==$id))|.[0]._file // empty')"
-  [ -n "$mfile" ] || { echo "no such milestone: $mid" >&2; return 2; }
-  mstatus="$(_load milestone | jq -r --arg id "$mid" 'map(select(._id==$id))|.[0].status')"
-  if [ "$mstatus" = "landed" ]; then echo "LANDED"; return 1; fi
+_head_sha() { git rev-parse --short HEAD 2>/dev/null || echo "nogit"; }
 
-  # Open checklist items: ground /decide never settled, so /enrich could not
-  # break it down and no task exists for it. Task statuses cannot see this.
-  local open_items; open_items="$(_milestone_open_items "$mfile")"
-  if [ -n "$open_items" ]; then
-    printf '%s\n' "$open_items" | sed 's/^/  open item: /'
-    verdict="OPEN"
-  fi
+# Rewrite (or insert) one top-level frontmatter field of a file.
+_fm_set() {
+  local file="$1" key="$2" val="$3" tmp
+  tmp="$(mktemp "${TMPDIR:-/tmp}/backlog.XXXXXX")"
+  awk -v key="$key" -v val="$val" '
+    NR==1 && $0=="---" { infm=1; print; next }
+    infm && $0=="---" { if (!done) print key ": " val; infm=0; print; next }
+    infm && index($0, key ":")==1 { print key ": " val; done=1; next }
+    { print }' "$file" > "$tmp"
+  cat "$tmp" > "$file"
+  rm -f "$tmp"
+}
 
+# Derived display state of one demo (JSON object in, word out): STALLED replaces
+# red when no live task lists the demo.
+_demo_display_state() { # $1 demo id, $2 demo status, $3 tasks json
+  local live
+  if [ "$2" != "red" ]; then echo "$2"; return; fi
+  live="$(printf '%s' "$3" | jq -r --arg d "$1" \
+    '[.[]|select((.demos|index($d)) and (.status|IN("todo","in-progress")))]|length')"
+  if [ "$live" -eq 0 ]; then echo "stalled"; else echo "red"; fi
+}
+
+# State report of one demo. Prints detail lines; last line is the verdict:
+# GREEN | RED | STALLED | SHOWN | DROPPED. Returns 0 iff GREEN.
+_demo_state_report() {
+  local did="$1" demo dfile dstatus dcheck dchecked tasks_json head verdict d
+  demo="$(_load demo | jq -c --arg id "$did" 'map(select(._id==$id))|.[0] // empty')"
+  [ -n "$demo" ] || { echo "no such demo: $did" >&2; return 2; }
+  dfile="$(printf '%s' "$demo" | jq -r '._file')"
+  dstatus="$(printf '%s' "$demo" | jq -r '.status')"
+  dcheck="$(printf '%s' "$demo" | jq -r '.check')"
+  dchecked="$(printf '%s' "$demo" | jq -r '.checked_at // ""')"
+  case "$dstatus" in
+    shown) echo "SHOWN"; return 1 ;;
+    dropped) echo "DROPPED"; return 1 ;;
+  esac
   tasks_json="$(_load task)"
-  local open_tasks total
-  total="$(printf '%s' "$tasks_json" | jq -r --arg m "$mid" '[.[]|select(.milestones|index($m))]|length')"
-  open_tasks="$(printf '%s' "$tasks_json" | jq -r --arg m "$mid" '
-    [.[]|select((.milestones|index($m)) and (.status|IN("done","rejected")|not))|._id]|join(", ")')"
+  head="$(_head_sha)"
+
+  [ -n "$dcheck" ] || echo "  no check command — the demo can never turn green (add \`check:\` via /aim or /enrich)"
+  if [ -z "$dchecked" ]; then
+    echo "  never checked (backlog.sh demo-check $did)"
+  elif [ "$dchecked" != "$head" ]; then
+    echo "  last checked at $dchecked, HEAD is $head — re-run backlog.sh demo-check $did"
+  fi
+
+  # Unsettled items: ground /decide never settled, so /enrich could not break it down.
+  local open_items; open_items="$(_demo_open_items "$dfile")"
+  [ -z "$open_items" ] || printf '%s\n' "$open_items" | sed 's/^/  open item: /'
+
+  local total live done_ids
+  total="$(printf '%s' "$tasks_json" | jq -r --arg d "$did" '[.[]|select(.demos|index($d))]|length')"
+  live="$(printf '%s' "$tasks_json" | jq -r --arg d "$did" '
+    [.[]|select((.demos|index($d)) and (.status|IN("todo","in-progress")))|._id]|join(", ")')"
+  done_ids="$(printf '%s' "$tasks_json" | jq -r --arg d "$did" '
+    [.[]|select((.demos|index($d)) and .status=="done")|._id]|join(", ")')"
   if [ "$total" -eq 0 ]; then
-    echo "  no tasks list milestone $mid yet (run /enrich)"
-    verdict="OPEN"
-  elif [ -n "$open_tasks" ]; then
-    echo "  open tasks: $open_tasks"
-    verdict="OPEN"
+    echo "  no tasks list demo $did yet (run /enrich)"
+  else
+    [ -z "$live" ] || echo "  open tasks: $live"
+    [ -z "$done_ids" ] || echo "  done tasks: $done_ids"
   fi
 
-  # Coverage map: which outcome ground each task covers, and what is knowingly
-  # not covered. Its absence is the state where every minted task can be done
-  # while the outcome is not delivered.
-  if [ "$total" -gt 0 ] && ! _milestone_has_breakdown "$mfile"; then
-    echo "  no ## Breakdown coverage map — add one (outcome element -> tasks: NNNN | deferred: why) via /enrich"
-    verdict="OPEN"
-  fi
-  local gaps; gaps="$(_milestone_breakdown_gaps "$mfile")"
-  if [ -n "$gaps" ]; then
-    printf '%s\n' "$gaps" | sed 's/^[[:space:]]*-[[:space:]]*/  uncovered outcome element: /'
-    verdict="OPEN"
-  fi
-
+  # Pending proofs back-referenced from the demo: informational. They are cleared
+  # with the user at /land; they never hold the check's verdict hostage.
   local decisions_json; decisions_json="$(_load decision)"
-  for d in $(_milestone_decisions "$mfile"); do
-    local dproof
+  for d in $(_demo_decisions "$dfile"); do
+    local dproof provers dec_file n_all n_open
     dproof="$(printf '%s' "$decisions_json" | jq -r --arg id "$d" 'map(select(._id==$id))|.[0].proof // "missing"')"
     [ "$dproof" = "pending" ] || continue
-    # pending: demonstrated iff some non-rejected proving task is done AND every
-    # proof claim on the decision is ticked. A decision whose statement carries
-    # several claims is routinely part-proven — one `proves` edge is not evidence
-    # that all of them landed.
-    local prover_done prover_live dfile open_claims
-    prover_done="$(printf '%s' "$tasks_json" | jq -r --arg d "$d" '
-      [.[]|select((.proves|index($d)) and .status=="done")|._id]|join(", ")')"
-    if [ -n "$prover_done" ]; then
-      dfile="$(printf '%s' "$decisions_json" | jq -r --arg id "$d" 'map(select(._id==$id))|.[0]._file // empty')"
-      open_claims="$([ -n "$dfile" ] && _decision_open_claims "$dfile" || true)"
-      if [ -n "$open_claims" ]; then
-        echo "  decision $d: proving task(s) $prover_done done, but proof claims are still open —"
-        printf '%s\n' "$open_claims" | sed -E 's/^[[:space:]]*-[[:space:]]*\[[[:space:]]?\][[:space:]]*/      /'
-        verdict="OPEN"
-      fi
-      continue
-    fi
-    prover_live="$(printf '%s' "$tasks_json" | jq -r --arg d "$d" '
-      [.[]|select((.proves|index($d)) and (.status|IN("todo","in-progress")))]')"
-    if [ "$(printf '%s' "$prover_live" | jq 'length')" -gt 0 ]; then
-      printf '%s' "$prover_live" | jq -r --arg d "$d" --arg m "$mid" '.[]
-        | "  blocked on proof: task \(._id) (milestone \(if (.milestones|index($m)) then $m else (.milestones[0] // "none") end)) proves decision \($d)"'
-    else
-      echo "  pending proof: decision $d has NO live proving task (re-home via /enrich or revisit via /decide)"
-    fi
-    verdict="OPEN"
+    dec_file="$(printf '%s' "$decisions_json" | jq -r --arg id "$d" 'map(select(._id==$id))|.[0]._file // empty')"
+    provers="$(printf '%s' "$tasks_json" | jq -r --arg d "$d" \
+      '[.[]|select(.proves|index($d))|"\(._id) (\(.status))"]|join(", ")')"
+    n_all="$(_decision_claims "$dec_file" | grep -c . || true)"
+    n_open="$(_decision_open_claims "$dec_file" | grep -c . || true)"
+    echo "  pending proof: decision $d — proving tasks: ${provers:-NONE} — claims: $((n_all - n_open))/$n_all ticked (cleared at /land)"
   done
 
+  case "$dstatus" in
+    green) verdict="GREEN" ;;
+    *) if [ -z "$live" ]; then
+         verdict="STALLED"
+         echo "  stalled: red with no live task — the missing work was never written down (/enrich $did)"
+       else verdict="RED"; fi ;;
+  esac
   echo "$verdict"
-  [ "$verdict" = "READY" ]
+  [ "$verdict" = "GREEN" ]
 }
 
 # Warning lines shared by `check` and `board`.
 _warnings() {
-  local tasks_json decisions_json
+  local tasks_json decisions_json demos_json
   tasks_json="$(_load task)"
   decisions_json="$(_load decision)"
+  demos_json="$(_load demo)"
   # proof:pending decision with no live (todo|in-progress|done) proving task
   printf '%s' "$decisions_json" | jq -r --argjson tasks "$tasks_json" '
     .[] | select(.proof=="pending" and (.status|IN("rejected","superseded")|not))
@@ -317,22 +330,26 @@ _warnings() {
     | ([$tasks[]|select((.proves|index($d)) and (.status|IN("todo","in-progress","done")))]) as $provers
     | select(($provers|length)==0)
     | "pending proof with no live proving task: decision \(._id) (\(.title))"'
-  # partial breakdown: tasks already exist for a milestone that still has open
-  # items — the shape that lets every existing task land on an undelivered outcome
-  local mf mid open_n task_n milestones_json
-  milestones_json="$(_load milestone)"
+  # stalled demos: red with no live task listing them
+  printf '%s' "$demos_json" | jq -r --argjson tasks "$tasks_json" '
+    .[] | select(.status=="red") | ._id as $d
+    | select([$tasks[]|select((.demos|index($d)) and (.status|IN("todo","in-progress")))]|length==0)
+    | "demo \(._id) is stalled: red with no live task (\(.title)) — /enrich \(._id)"'
+  # demos that can never turn green
+  printf '%s' "$demos_json" | jq -r '
+    .[] | select((.status|IN("red","green")) and (.check|length)==0)
+    | "demo \(._id) has no check command — it can never turn green"'
+  # partially broken down: tasks already exist for a demo that still has open items
+  local df did open_n task_n
   shopt -s nullglob
-  for mf in "$MILESTONES_DIR"/[0-9][0-9][0-9][0-9]-*.md; do
-    mid="$(basename "$mf")"; mid="${mid:0:4}"
-    printf '%s' "$milestones_json" | jq -e --arg id "$mid" \
-      'map(select(._id==$id and .status=="open"))|length>0' >/dev/null || continue
-    open_n="$(_milestone_open_items "$mf" | grep -c . || true)"
-    task_n="$(printf '%s' "$tasks_json" | jq -r --arg m "$mid" '[.[]|select(.milestones|index($m))]|length')"
+  for df in "$DEMOS_DIR"/[0-9][0-9][0-9][0-9]-*.md; do
+    did="$(basename "$df")"; did="${did:0:4}"
+    printf '%s' "$demos_json" | jq -e --arg id "$did" \
+      'map(select(._id==$id and (.status|IN("red","green"))))|length>0' >/dev/null || continue
+    open_n="$(_demo_open_items "$df" | grep -c . || true)"
+    task_n="$(printf '%s' "$tasks_json" | jq -r --arg d "$did" '[.[]|select(.demos|index($d))]|length')"
     if [ "$open_n" -gt 0 ] && [ "$task_n" -gt 0 ]; then
-      echo "milestone $mid is partially broken down: $task_n task(s) exist but $open_n item(s) are still open (/decide, then /enrich)"
-    fi
-    if [ "$task_n" -gt 0 ] && ! _milestone_has_breakdown "$mf"; then
-      echo "milestone $mid has $task_n task(s) but no ## Breakdown coverage map (/enrich)"
+      echo "demo $did is partially broken down: $task_n task(s) exist but $open_n item(s) are still open (/decide, then /enrich)"
     fi
   done
   # pending proof recorded without the claims it has to demonstrate
@@ -353,14 +370,57 @@ _warnings() {
     | ._id as $t | .proves[]
     | select(($by[.] // null) as $d | $d != null and ($d.status|IN("rejected","superseded")))
     | "task \($t) proves decision \(.) which is \($by[.].status)"'
+  # live task serving a demo that is no longer being built
+  printf '%s' "$tasks_json" | jq -r --argjson ds "$demos_json" '
+    (reduce $ds[] as $d ({}; .[$d._id]=$d.status)) as $st
+    | .[] | select(.status|IN("todo","in-progress")) | ._id as $t | .demos[]
+    | select(($st[.] // "")=="dropped")
+    | "task \($t) serves demo \(.) which is dropped"'
+}
+
+# Run one demo's check, flip red/green, record checked_at. Prints the result
+# line; returns 0 iff green.
+_demo_check_one() {
+  local did="$1" demo dfile dstatus dcheck head log rc new mark
+  demo="$(_load demo | jq -c --arg id "$did" 'map(select(._id==$id))|.[0] // empty')"
+  [ -n "$demo" ] || { echo "no such demo: $did" >&2; return 2; }
+  dfile="$(printf '%s' "$demo" | jq -r '._file')"
+  dstatus="$(printf '%s' "$demo" | jq -r '.status')"
+  dcheck="$(printf '%s' "$demo" | jq -r '.check')"
+  case "$dstatus" in
+    shown|dropped) echo "$did SKIPPED ($dstatus — not re-checked)"; return 0 ;;
+  esac
+  head="$(_head_sha)"
+  mkdir -p "$LOG_DIR"
+  log="$LOG_DIR/demo-$did.log"
+  if [ -z "$dcheck" ]; then
+    echo "no check command in $dfile" > "$log"; rc=127
+  else
+    set +e
+    { echo "\$ $dcheck"; echo "# at $head"; bash -c "$dcheck" 2>&1; } > "$log"
+    rc=$?
+    # the exit status of the brace group is that of its last command (the check)
+    set -e
+  fi
+  if [ "$rc" -eq 0 ]; then new="green"; else new="red"; fi
+  _fm_set "$dfile" status "$new"
+  _fm_set "$dfile" checked_at "\"$head\""
+  mark=""; [ "$new" = "$dstatus" ] || mark=" FLIPPED from $dstatus"
+  if [ "$new" = "green" ]; then
+    echo "$did GREEN at $head$mark — log: $log"
+    return 0
+  fi
+  echo "$did RED at $head (exit $rc)$mark — log: $log"
+  tail -n 15 "$log" | sed 's/^/    /'
+  return 1
 }
 
 cmd="${1:-}"; shift || true
 
 case "$cmd" in
   new)
-    kind="${1:?usage: backlog.sh new <task|milestone|decision> <slug> <title...>}"
-    slug="${2:?usage: backlog.sh new <task|milestone|decision> <slug> <title...>}"
+    kind="${1:?usage: backlog.sh new <task|demo|decision> <slug> <title...>}"
+    slug="${2:?usage: backlog.sh new <task|demo|decision> <slug> <title...>}"
     shift 2
     title="$*"
     [ -n "$title" ] || { echo "usage: backlog.sh new <kind> <slug> <title...>" >&2; exit 2; }
@@ -376,7 +436,7 @@ case "$cmd" in
 title: $title
 status: todo
 complexity: medium
-milestones: []
+demos: []
 depends_on: []
 decisions: []
 proves: []
@@ -390,21 +450,26 @@ documents: []
 ## Notes
 EOF
       ;;
-      milestone) cat > "$file" <<EOF
+      demo) cat > "$file" <<EOF
 ---
 title: $title
-status: open
+status: red
+gate: flag
+check: ""
+checked_at: null
 ---
 
 ## Outcome
+
+## Scenario
+
+## Human check
 
 ## Decisions to make
 
 ## Needs proving
 
-## Breakdown
-
-## Landing
+## Showing
 EOF
       ;;
       decision) cat > "$file" <<EOF
@@ -431,16 +496,26 @@ EOF
     ;;
 
   next-id)
-    kind="${1:?usage: backlog.sh next-id <task|milestone|decision>}"
+    kind="${1:?usage: backlog.sh next-id <task|demo|decision>}"
     _load "$kind" | jq -r 'if length==0 then "0001"
       else (map(._id|tonumber)|max+1|tostring|("0000"+.)[-4:]) end'
     ;;
 
   ready)
-    _load task | jq -r '
+    demo=""
+    if [ "${1:-}" = "--demo" ]; then demo="$(_pad4 "${2:?usage: backlog.sh ready [--demo <id>]}")"; fi
+    _load task | jq -r --arg demo "$demo" '
       (map({(._id): .status}) | add // {}) as $st
+      | (map({(._id): .depends_on}) | add // {}) as $deps
+      | (if $demo == "" then null else
+          # tasks listing the demo, plus everything they transitively depend on
+          [ .[] | select(.demos|index($demo)) | ._id ]
+          | until(. as $s | ([ $s[], ($s[] | $deps[.] // [] | .[]) ] | unique) == ($s|unique);
+                  . as $s | [ $s[], ($s[] | $deps[.] // [] | .[]) ] | unique)
+         end) as $scope
       | map(select(.status=="todo"
-            and (all(.depends_on[]; ($st[.] // "missing")=="done"))))
+            and (all(.depends_on[]; ($st[.] // "missing")=="done"))
+            and (._id as $i | $scope == null or ($scope|index($i)) != null)))
       | sort_by(._id) | .[]._id'
     ;;
 
@@ -450,9 +525,9 @@ EOF
     _load "$kind" | jq -r --arg s "$want" 'map(select(.status==$s))|sort_by(._id)|.[]._id'
     ;;
 
-  by-milestone)
-    want="$(_pad4 "${1:?usage: backlog.sh by-milestone <id>}")"
-    _load task | jq -r --arg m "$want" 'map(select(.milestones|index($m)))|sort_by(._id)|.[]._id'
+  by-demo)
+    want="$(_pad4 "${1:?usage: backlog.sh by-demo <id>}")"
+    _load task | jq -r --arg d "$want" 'map(select(.demos|index($d)))|sort_by(._id)|.[]._id'
     ;;
 
   get)
@@ -486,13 +561,18 @@ EOF
     new="${3:?usage: backlog.sh set-status <kind> <id> <status>}"
     case "$kind:$new" in
       task:todo | task:in-progress | task:done | task:rejected) ;;
-      milestone:open | milestone:landed) ;;
+      demo:red | demo:shown | demo:dropped) ;;
+      demo:green) echo "refusing: only \`backlog.sh demo-check\` turns a demo green — run its check" >&2; exit 2 ;;
       decision:proposed | decision:accepted | decision:rejected | decision:superseded) ;;
       *) echo "invalid status '$new' for kind '$kind'" >&2; exit 2 ;;
     esac
     file="$(_load "$kind" | jq -r --arg id "$id" 'map(select(._id==$id))|.[0]._file // empty')"
     [ -n "$file" ] || { echo "no such $kind: $id" >&2; exit 1; }
-    sed -i.bak "1,/^status:/s/^status:.*/status: $new/" "$file" && rm -f "$file.bak"
+    if [ "$kind:$new" = "demo:shown" ]; then
+      cur="$(_load demo | jq -r --arg id "$id" 'map(select(._id==$id))|.[0].status')"
+      [ "$cur" = "green" ] || { echo "refusing: demo $id is $cur — only a green demo can be shown (backlog.sh demo-check $id)" >&2; exit 1; }
+    fi
+    _fm_set "$file" status "$new"
     echo "$file -> status: $new"
     ;;
 
@@ -514,7 +594,7 @@ EOF
         exit 1
       fi
     fi
-    sed -i.bak "1,/^proof:/s/^proof:.*/proof: $new/" "$file" && rm -f "$file.bak"
+    _fm_set "$file" proof "$new"
     echo "$file -> proof: $new"
     ;;
 
@@ -523,22 +603,34 @@ EOF
     new="$(_pad4 "${2:?usage: backlog.sh set-superseded <old-id> <new-id>}")"
     file="$(_load decision | jq -r --arg id "$old" 'map(select(._id==$id))|.[0]._file // empty')"
     [ -n "$file" ] || { echo "no such decision: $old" >&2; exit 1; }
-    sed -i.bak \
-      -e "1,/^status:/s/^status:.*/status: superseded/" \
-      -e "1,/^superseded_by:/s/^superseded_by:.*/superseded_by: \"$new\"/" \
-      "$file" && rm -f "$file.bak"
+    _fm_set "$file" status superseded
+    _fm_set "$file" superseded_by "\"$new\""
     echo "$file -> status: superseded, superseded_by: $new"
     ;;
 
-  milestone-ready)
-    if [ -n "${1:-}" ]; then
-      _milestone_ready_report "$(_pad4 "$1")"
+  demo-check)
+    [ -n "${1:-}" ] || { echo "usage: backlog.sh demo-check <id>... | --all" >&2; exit 2; }
+    if [ "$1" = "--all" ]; then
+      ids="$(_load demo | jq -r 'map(select(.status|IN("red","green")))|sort_by(._id)|.[]._id')"
+      [ -n "$ids" ] || { echo "no red or green demos to check"; exit 0; }
     else
-      rc=0
-      for m in $(_load milestone | jq -r 'map(select(.status=="open"))|sort_by(._id)|.[]._id'); do
-        title="$(_load milestone | jq -r --arg id "$m" 'map(select(._id==$id))|.[0].title')"
-        echo "milestone $m — $title"
-        _milestone_ready_report "$m" || rc=$?
+      ids=""; for a in "$@"; do ids="$ids $(_pad4 "$a")"; done
+    fi
+    rc=0
+    for d in $ids; do _demo_check_one "$d" || rc=1; done
+    exit "$rc"
+    ;;
+
+  demo-state)
+    if [ -n "${1:-}" ]; then
+      _demo_state_report "$(_pad4 "$1")"
+    else
+      ids="$(_load demo | jq -r 'map(select(.status|IN("red","green")))|sort_by(._id)|.[]._id')"
+      [ -n "$ids" ] || { echo "no red or green demos (/aim to define the next one)"; exit 0; }
+      for d in $ids; do
+        title="$(_load demo | jq -r --arg id "$d" 'map(select(._id==$id))|.[0].title')"
+        echo "demo $d — $title"
+        _demo_state_report "$d" || true
       done
       exit 0
     fi
@@ -580,7 +672,7 @@ EOF
     # 1. canonical filenames in all three dirs (a file the loader cannot glob is
     #    invisible to every other command — never scheduled, counted, or checked)
     shopt -s nullglob
-    for d in "$TASKS_DIR" "$MILESTONES_DIR" "$DECISIONS_DIR"; do
+    for d in "$TASKS_DIR" "$DEMOS_DIR" "$DECISIONS_DIR"; do
       [ -d "$d" ] || continue
       for f in "$d"/*.md; do
         b="$(basename "$f")"
@@ -590,29 +682,37 @@ EOF
     done
 
     tasks_json="$(_load task)"
-    milestones_json="$(_load milestone)"
+    demos_json="$(_load demo)"
     decisions_json="$(_load decision)"
 
     # 2. dangling references + live deps on rejected tasks
     problems="$(printf '%s' "$tasks_json" | jq -r \
-      --argjson ms "$milestones_json" --argjson ds "$decisions_json" '
+      --argjson ds "$demos_json" --argjson decs "$decisions_json" '
       (reduce .[] as $t ({}; .[$t._id]=$t.status)) as $tst
-      | ([$ms[]._id]) as $mids
-      | ([$ds[]._id]) as $dids
+      | ([$ds[]._id]) as $demo_ids
+      | ([$decs[]._id]) as $dids
       | [ .[] | ._id as $id | .status as $st |
           (.depends_on[] | select(($tst[.] // "missing")=="missing")
             | "FAIL task \($id): depends_on \(.) does not exist"),
           (select($st|IN("todo","in-progress")) | .depends_on[]
             | select(($tst[.] // "")=="rejected")
             | "FAIL live task \($id): depends_on rejected task \(.) — rewire or drop the edge"),
-          (.milestones[] | select(($mids|index(.))|not)
-            | "FAIL task \($id): milestone \(.) does not exist"),
+          (.demos[] | select(($demo_ids|index(.))|not)
+            | "FAIL task \($id): demo \(.) does not exist"),
           ((.decisions + .proves)[] | select(($dids|index(.))|not)
             | "FAIL task \($id): decision \(.) does not exist")
         ] | .[]')"
     if [ -n "$problems" ]; then echo "$problems"; fail=1; fi
 
-    # 3. dependency cycles (Kahn peel over non-rejected tasks)
+    # 3. demo field values
+    bad="$(printf '%s' "$demos_json" | jq -r '.[]
+      | (select(.status|IN("red","green","shown","dropped")|not)
+          | "FAIL demo \(._id): invalid status \(.status) (want red|green|shown|dropped)"),
+        (select(.gate|IN("flag","hold")|not)
+          | "FAIL demo \(._id): invalid gate \(.gate) (want flag|hold)")')"
+    if [ -n "$bad" ]; then echo "$bad"; fail=1; fi
+
+    # 4. dependency cycles (Kahn peel over non-rejected tasks)
     cycle="$(printf '%s' "$tasks_json" | jq -r '
       map(select(.status!="rejected")) as $nodes
       | ($nodes|map(._id)) as $live
@@ -630,15 +730,15 @@ EOF
         else empty end')"
     if [ -n "$cycle" ]; then echo "$cycle"; fail=1; fi
 
-    # 4. milestone-body decision back-references must resolve
-    for f in "$MILESTONES_DIR"/[0-9][0-9][0-9][0-9]-*.md; do
-      for d in $(_milestone_decisions "$f"); do
+    # 5. demo-body decision back-references must resolve
+    for f in "$DEMOS_DIR"/[0-9][0-9][0-9][0-9]-*.md; do
+      for d in $(_demo_decisions "$f"); do
         printf '%s' "$decisions_json" | jq -e --arg id "$d" 'map(select(._id==$id))|length>0' >/dev/null \
-          || { echo "FAIL milestone $(basename "$f"): back-references decision $d which does not exist"; fail=1; }
+          || { echo "FAIL demo $(basename "$f"): back-references decision $d which does not exist"; fail=1; }
       done
     done
 
-    # 5. warnings (never fail the gate; the board repeats them)
+    # 6. warnings (never fail the gate; the board repeats them)
     warns="$(_warnings)"
     if [ -n "$warns" ]; then printf '%s\n' "$warns" | sed 's/^/WARN /'; fi
 
@@ -654,11 +754,12 @@ EOF
       if [ "$color" -ne 1 ]; then cat; return; fi
       local pre='^([^ ]+ +)' post='( )'
       sed -E \
-        -e "s/${pre}(done|landed|proven)${post}/\1${esc}[32m\2${esc}[0m\3/" \
-        -e "s/${pre}(todo|open|accepted)${post}/\1${esc}[94m\2${esc}[0m\3/" \
+        -e "s/${pre}(done|shown|proven)${post}/\1${esc}[32m\2${esc}[0m\3/" \
+        -e "s/${pre}(todo|accepted)${post}/\1${esc}[94m\2${esc}[0m\3/" \
         -e "s/${pre}(in-progress|proposed|pending)${post}/\1${esc}[33m\2${esc}[0m\3/" \
-        -e "s/${pre}(rejected|superseded)${post}/\1${esc}[90m\2${esc}[0m\3/" \
-        -e "s/${pre}(READY)${post}/\1${esc}[92m\2${esc}[0m\3/"
+        -e "s/${pre}(red|stalled)${post}/\1${esc}[31m\2${esc}[0m\3/" \
+        -e "s/${pre}(rejected|superseded|dropped)${post}/\1${esc}[90m\2${esc}[0m\3/" \
+        -e "s/${pre}(green)${post}/\1${esc}[92m\2${esc}[0m\3/"
     }
 
     tasks_json="$(_load task)"
@@ -667,10 +768,10 @@ EOF
       echo "  (none)"
     else
       {
-        printf 'ID\tSTATUS\tCPLX\tMILESTONES\tTITLE\tDEPS\n'
+        printf 'ID\tSTATUS\tCPLX\tDEMOS\tTITLE\tDEPS\n'
         printf '%s' "$tasks_json" | jq -r 'sort_by(._id)|.[]
           | [._id, .status, .complexity,
-             (if (.milestones|length)>0 then (.milestones|join(",")) else "-" end),
+             (if (.demos|length)>0 then (.demos|join(",")) else "-" end),
              .title,
              (if (.depends_on|length)>0 then "["+(.depends_on|join(","))+"]" else "" end)]
           | @tsv'
@@ -678,18 +779,20 @@ EOF
     fi
 
     echo
-    echo "MILESTONES"
-    ms="$(_load milestone | jq -r 'sort_by(._id)|.[]|"\(._id)\t\(.status)\t\(.title)"')"
-    if [ -z "$ms" ]; then
+    echo "DEMOS"
+    ds="$(_load demo | jq -r 'sort_by(._id)|.[]|"\(._id)\t\(.status)\t\(.gate)\t\(.checked_at // "-")\t\(.title)"')"
+    if [ -z "$ds" ]; then
       echo "  (none)"
     else
-      while IFS=$'\t' read -r mid mstatus mtitle; do
-        state="$mstatus"
-        if [ "$mstatus" = "open" ]; then
-          if _milestone_ready_report "$mid" >/dev/null 2>&1; then state="READY"; fi
+      head="$(_head_sha)"
+      while IFS=$'\t' read -r did dstatus dgate dchecked dtitle; do
+        state="$(_demo_display_state "$did" "$dstatus" "$tasks_json")"
+        stale="$dchecked"
+        if [ "$dchecked" != "-" ] && [ "$dchecked" != "$head" ] && [ "$state" != "shown" ] && [ "$state" != "dropped" ]; then
+          stale="$dchecked(stale)"
         fi
-        printf '%s\t%s\t%s\n' "$mid" "$state" "$mtitle"
-      done <<< "$ms" | column -t -s "$(printf '\t')" | colorize_status
+        printf '%s\t%s\t%s\t%s\t%s\n' "$did" "$state" "$dgate" "$stale" "$dtitle"
+      done <<< "$ds" | column -t -s "$(printf '\t')" | colorize_status
     fi
 
     echo
@@ -730,9 +833,11 @@ EOF
         in-progress) echo '◐ 33' ;;
         done)        echo '● 32' ;;
         rejected)    echo '✕ 31' ;;
-        open)        echo '○ 94' ;;
-        ready)       echo '◆ 92' ;;
-        landed)      echo '● 32' ;;
+        red)         echo '○ 31' ;;
+        stalled)     echo '! 31' ;;
+        green)       echo '◆ 92' ;;
+        shown)       echo '● 32' ;;
+        dropped)     echo '✕ 90' ;;
         proposed)    echo '○ 33' ;;
         accepted)    echo '● 32' ;;
         superseded)  echo '~ 90' ;;
@@ -795,14 +900,12 @@ EOF
           else .status end)')"
     _dense_kind T "$task_lines" "todo blocked in-progress done rejected"
 
-    ms_lines=""
-    while IFS=$'\t' read -r mid mstatus; do
-      [ -n "${mid:-}" ] || continue
-      state="$mstatus"
-      if [ "$mstatus" = "open" ] && _milestone_ready_report "$mid" >/dev/null 2>&1; then state="ready"; fi
-      ms_lines="$ms_lines$mid $state"$'\n'
-    done <<< "$(_load milestone | jq -r 'sort_by(._id)|.[]|"\(._id)\t\(.status)"')"
-    _dense_kind M "$ms_lines" "open ready landed"
+    demo_lines=""
+    while IFS=$'\t' read -r did dstatus; do
+      [ -n "${did:-}" ] || continue
+      demo_lines="$demo_lines$did $(_demo_display_state "$did" "$dstatus" "$tasks_json")"$'\n'
+    done <<< "$(_load demo | jq -r 'sort_by(._id)|.[]|"\(._id)\t\(.status)"')"
+    _dense_kind S "$demo_lines" "red stalled green shown dropped"
 
     decisions_json="$(_load decision)"
     _dense_kind D \
@@ -817,7 +920,7 @@ EOF
       printf '⚠ %s  (backlog.sh check)\n' "$(printf '%s\n' "$warns" | wc -l | tr -d ' ')"
     fi
 
-    printf 'T ○ready ◦blocked ◐wip ●done ✕rejected | M ○open ◆ready ●landed | D ○proposed ●accepted ✕rejected ~superseded | P proof ·none ◐pending ✔proven | ·gap\n'
+    printf 'T ○ready ◦blocked ◐wip ●done ✕rejected | S demo ○red !stalled ◆green ●shown ✕dropped | D ○proposed ●accepted ✕rejected ~superseded | P proof ·none ◐pending ✔proven | ·gap\n'
     ;;
 
   ""|help|-h|--help)

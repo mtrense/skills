@@ -6,7 +6,7 @@ description: >
   docs, examples, the task's listed documents — and makes the minimal updates. Runs strictly
   serialized (one at a time, in landing order), never in parallel: parallel workers exist,
   parallel doc edits to the same files don't. No-op unless the change is surface-visible.
-  Never touches backlog files (tasks/milestones/decisions) or code. Commits its doc changes
+  Never touches backlog files (tasks/demos/decisions) or code. Commits its doc changes
   with an explicit pathspec.
 tools: Read, Edit, Write, Glob, Grep, Bash
 model: sonnet
@@ -30,7 +30,7 @@ The orchestrator gives you: the repo root, the merge commit (or commit range) th
 
 ## Rules
 
-- Backlog files (`tasks/`, `milestones/`, `documentation/decisions/`, `documentation/DECISIONS.md`) and the derived `documentation/<topic>.md` digests are read-only — never edit them; the digests belong to `decision-summarizer`.
+- Backlog files (`tasks/`, `demos/`, `documentation/decisions/`, `documentation/DECISIONS.md`) and the derived `documentation/<topic>.md` digests are read-only — never edit them; the digests belong to `decision-summarizer`.
 - Never touch code or tests. If the docs reveal a code problem, report it instead.
 
 ## Report format (exact block, nothing after it)

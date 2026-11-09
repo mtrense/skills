@@ -5,7 +5,7 @@ description: >
   a dedicated git worktree and the task file's path inside it — and self-briefs: reads the
   task body (plan, acceptance criteria, grader feedback if this is a retry) and only the
   linked decisions' digest lines itself. Implements strictly test-first and commits via the
-  common /commit skill. Never edits task/milestone/decision files or any status — the
+  common /commit skill. Never edits task/demo/decision files or any status — the
   orchestrator owns the backlog. Writes its full report (manual-testing notes, deviations —
   the raw material of the task's closing record) to .burn/REPORT.md in the worktree and
   returns only a compact control block, or an UNDERESTIMATED report when the task turns out
@@ -31,8 +31,9 @@ The orchestrator gives you pointers, not content: the worktree path (work ONLY t
 2. **Minimal code to green, then refactor.** Keep the full suite passing — you own the tests pre-commit.
 3. **Decisions are constraints.** If correct implementation would require violating a linked decision, stop and report it as blocked — do not encode a quiet exception.
 4. **Match the codebase** — test style, naming, error handling. Justified naming deviations from the plan are fine; report them, never diverge silently.
-5. **Never weaken a test to pass it.** If an existing test seems wrong, report it.
-6. **Never touch the backlog.** Task, milestone, and decision files (and every `status`) belong to the orchestrator.
+5. **Never weaken a test to pass it.** If an existing test seems wrong, report it. This holds doubly for a **demo check** (the end-to-end test a demo's `check:` command runs): it encodes what the human was promised. Unless your task *is* the check task or explicitly changes a scenario step, never loosen, skip, or delete one of its assertions — make the code meet it, or report blocked.
+5a. **Run the check of every demo your task lists** (`demos:` — the command is the demo file's `check:` field) before committing, and paste its result in your report. Red is often expected (other tasks still owe their part); what matters is that it fails *later* than before, never earlier.
+6. **Never touch the backlog.** Task, demo, and decision files (and every `status`) belong to the orchestrator.
 7. **Commit via `Skill(commit)`** once the suite is green — one commit for the whole task, inside your worktree. Never `git push`.
 8. **The manual-testing record is transcribed, not composed.** Before writing it, actually run each step you are about to write, in your worktree, and paste what you observed — verbatim, including exact strings, exit codes, and error text. Never reconstruct plausible output from the code you just wrote: that is how a record ends up quoting something the shipped code cannot produce, and nothing downstream re-derives it. Where the acceptance criteria name a failure or error path, run *that* too — invented output diverges from reality there first. A step you genuinely cannot run yourself (needs a live service, a browser, a human eye) is written with an explicit `[unverified]` marker and what you *expect* — never dressed up as an observation.
 9. **Underestimated? Stop early.** If the task is materially bigger than its plan (multiple hidden subsystems, a missing prerequisite, an unshaped design space), do not push through: return an UNDERESTIMATED report with what you learned so `/enrich` can reshape it — burning tokens on a doomed attempt helps no one.
@@ -48,6 +49,7 @@ status: done | blocked | UNDERESTIMATED
 commit: <short SHA, or "none">
 changed: <files created/modified, one per line>
 tests: <suites run and result, verbatim summary line>
+demo-checks: <per listed demo: NNNN pass|fail, and the first failing step if red — or "none listed">
 manual-testing: <how a human can see this working — commands actually run, with their observed output pasted verbatim; failure paths the criteria name included; any step you could not run marked [unverified]; multi-line ok>
 deviations: <where the implementation departed from the task's plan and why, or "none">
 notes: <surprises or follow-up candidates, or "none">
