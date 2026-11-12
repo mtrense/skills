@@ -31,7 +31,7 @@ That sizing call is the one clean closed question here — pose it with `AskUser
 Per task, assemble the same material as `/enrich`:
 
 - **Plan** — concrete steps, files to touch where possible (grounded in the codebase, not guessed).
-- **References** — relevant decision ids (`decisions:`; read the `documentation/<topic>.md` digests, and never encode a change that contradicts an accepted decision — route that to `/decide`) and documents (`documents:`).
+- **References** — relevant decision ids (`decisions:`; read the `documentation/<topic>.md` digests, and never encode a change that contradicts an accepted decision — route that to `/decide`) and documents (`documents:` — including the record of any example whose pinned facts the change must honor; a change that would contradict a settled example routes to `/example` first).
 - **Complexity** — `low | medium | high` (abstract reasoning difficulty; `/burn`'s routing hint).
 - **Dependencies** — `depends_on` edges to open tasks where ordering is real.
 - **Acceptance criteria** — externally observable, testable; the grader's referent. For a bug: the reproduction that must stop reproducing.

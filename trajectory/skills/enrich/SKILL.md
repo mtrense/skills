@@ -29,6 +29,8 @@ The user's argument, if any: `$ARGUMENTS` — a demo id, or a task id to re-shap
 
 Read the demo file. If any `## Decisions to make` **or** `## Needs proving` item is unchecked (no `decision: NNNN` back-reference), **refuse to break the demo down** and route the items to `/decide` — a task written against an unmade decision just encodes a guess, and a needs-proving item that never became a `proof: pending` decision can't be wired into any task's `proves` list, so the obligation silently evaporates. This is a hard gate; the user overriding it should be rare and explicit. When overridden, the step the blocked item covers simply gets no task yet — the demo's check will fail on it, the demo will stall once everything else lands, and the stall brings you back here. Say that plainly: *"minting N tasks now; step 3 stays unbuilt until the logging decision is made — the demo will stall there"*.
 
+The same gate covers the demo's **examples**: a listed example that is still `draft` (`backlog.sh demo-state <id>` reports it as an open item) routes to `/example <id>` first — breaking a demo down against bytes nobody agreed to encodes a guess just as surely.
+
 **Verdict items** (`— after: NNNN`) are the strongest form of this gate: they wait for the user to *see* demo NNNN, so the route is `/land NNNN` first, then `/decide`. Don't offer the override for them — breaking a demo down before the verdict it depends on is exactly the work this marker exists to hold back. `backlog.sh demo-state <id>` reports such a demo as **WAITING**; when invoked argless, skip it.
 
 ## The check task comes first
@@ -39,6 +41,7 @@ Every demo is built outside-in: **the first task of a fresh breakdown is the dem
 - Name that command in the demo's frontmatter `check:` field now (e.g. `cargo test --test demo_0003`, `just demo-0003`, `./scripts/demo-0003.sh`) — before it exists, `demo-check` simply reports red.
 - Keep it hermetic: ephemeral ports, temp directories, local fixtures. A check that needs the network or a fixed port will fail under a sandbox for reasons unrelated to the code.
 - Its acceptance criteria name **what the check must not do**: weaken a scenario step to make it pass. Later tasks make the check pass by building the outcome, never by editing the check's expectations — a changed expectation is a scenario change, which goes through the user.
+- **The demo's examples are the check's fixtures, read in place.** For every id in the demo's `examples:`, the check feeds the artifact at `documentation/examples/NNNN-slug/` to the entry point directly — never a copy, never an inline restatement — so the check and the spec cannot drift apart, and revising an example re-checks the code against the new bytes. A transcript example is replayed: run each `$` command, compare output and exit code, masking only what the example's `## Left open` names as varying. Put the example records in the check task's `documents:` and name this in its acceptance criteria.
 - The steps in `## Human check` are not automated — they are the human's part of `/land`.
 
 The remaining tasks may `depends_on` the check task when they extend it, but need not: the check task is first in the breakdown, not a barrier.
@@ -48,7 +51,7 @@ The remaining tasks may `depends_on` the check task when they extend it, but nee
 Walk the demo's `## Scenario` step by step with the user and propose the tasks that make each step's observation come true. For each proposed task, assemble:
 
 - **Plan** — concrete implementation steps, including the files to touch if possible (ground this in the actual codebase — targeted Reads/Greps or a quick scout, not guesswork).
-- **References** — the relevant decisions (ids into `decisions:`) and other documentation/examples (`documents:`). Read the `documentation/<topic>.md` digests, not the full records.
+- **References** — the relevant decisions (ids into `decisions:`) and other documentation (`documents:`). Read the `documentation/<topic>.md` digests, not the full records. A task that implements part of a surface an example pins (a parser for the definition format, one CLI subcommand) lists the example record (`documentation/examples/NNNN-slug.md`) in `documents:`, and its acceptance criteria name the pinned facts it must honor — read the record's `## Pinned facts`, not the artifact.
 - **Demos** — `demos: ["<this demo>"]`, plus any other demo the task plainly serves. This is a scheduling hint (`/burn` re-runs those demos' checks after merging the task, and `burn demo:<id>` scopes on it), never a definition of done.
 - **Complexity** — `low | medium | high`, an abstract reasoning-difficulty estimate (never a model name); `/burn` dispatches its model tiers on it.
 - **Dependencies** — `depends_on` edges to other tasks (existing or in this batch).
@@ -81,7 +84,7 @@ A demo is STALLED when it is red and no live task lists it: every known piece of
 1. Run `bash ../_shared/scripts/backlog.sh demo-check <id>` to get a fresh result at HEAD (the board's may be stale), then read `.trajectory/demo-<id>.log`. Find the **first failing step** and why it fails. If there is no check command or the check task was never written, the gap is the check itself — mint it (above).
 2. Rule out the environment before blaming the code: a sandbox-blocked port bind, a missing network, a missing tool is not a gap in the product. Say so to the user and stop instead of minting tasks against it.
 3. Diagnose in prose with the user — what is missing between the done tasks and the failing step — then shape the missing work exactly like a fresh breakdown (same gate, linker, vocabulary, proves wiring). New tasks list the demo; never reopen a done task — its record stands, the new task builds on it.
-4. If the failure means the scenario itself was wrong (the expectation, not the code), that is the user's call: ask *fix the code to meet the step* / *revise the scenario step (and the check) to what we now know is right* / *drop the step from this demo*. A revised step is edited in the demo file and the check task carrying it is a new task.
+4. If the failure means the scenario itself was wrong (the expectation, not the code), that is the user's call: ask *fix the code to meet the step* / *revise the scenario step (and the check) to what we now know is right* / *drop the step from this demo*. A revised step is edited in the demo file and the check task carrying it is a new task. When the expectation that was wrong lives in an example's bytes, the revision goes through `/example <id>` — never an in-place edit here.
 
 ## Persist
 

@@ -21,6 +21,7 @@ You are the reconnaissance pass behind `/aim`. The orchestrator gives you a demo
 1. **Current state** — which parts of the codebase the idea touches, what relevant capability already exists, and how far the existing code carries toward the idea. Cite files (`path:line` where useful).
 2. **Backlog context** — run `bash <skills-root>/_shared/scripts/backlog.sh board` (the orchestrator tells you the exact path) and note demos, open tasks, or decisions that overlap or conflict with the idea. Read `documentation/DECISIONS.md` and any obviously relevant `documentation/<topic>.md` digests — never page full decision records unless one is directly implicated.
 3. **Entry points** — the real surfaces a demo of this idea would be driven through (binary and its subcommands, HTTP endpoints, UI routes) and how the existing tests start them, if they do. A demo's executable check drives these, so name them concretely; say so plainly when none exists yet.
+3a. **Examples** — the EXAMPLES section of the board: settled examples the idea's scenario could drive as-is (read only their `## Pinned facts`), and inputs or surfaces the idea needs whose exact shape nothing pins down yet (a definition format, a config, CLI output) — each a candidate for `/example`.
 4. **Unknowns** — design or product calls the idea forces that nothing in the repo settles: each one is a candidate "decision to make" item for the demo. Only forks that would genuinely change what gets built — not choices any competent agent would make the same way.
 5. **Risky assumptions** — things the idea takes for granted that running code has not demonstrated: each is a candidate "needs proving" item.
 6. **Blockers** — anything that must exist or be decided before a breakdown could even start.
@@ -28,7 +29,7 @@ You are the reconnaissance pass behind `/aim`. The orchestrator gives you a demo
 ## Rules
 
 - Read-only: never edit, write, or commit anything.
-- Query the backlog only through `backlog.sh`; never glob or scan `tasks/`, `demos/`, or `documentation/decisions/` bodies yourself, except the specific files your findings implicate.
+- Query the backlog only through `backlog.sh`; never glob or scan `tasks/`, `demos/`, `documentation/decisions/`, or `documentation/examples/` bodies yourself, except the specific files your findings implicate.
 - Report facts and cite them; where you infer, say so.
 
 ## Report format (exact structure)
@@ -39,6 +40,8 @@ current-state:
 - <fact, with file citations>
 entry-points:
 - <surface a scenario can drive, with how it is started — or "none yet">
+examples:
+- <example id — settled, can drive step X as-is> | <candidate: input/surface whose bytes nothing pins down yet> — or "none"
 overlaps:
 - <demo/task/decision id — how it overlaps, or "none">
 unknowns:

@@ -33,7 +33,7 @@ The user's argument, if any: `$ARGUMENTS` — `<target>@<workers>` (e.g. `5@2`, 
 
 `<workers>` is the parallel worker width.
 
-**You are the orchestrator, and you own the backlog.** Workers never touch task/demo/decision files or any `status` — they implement, commit code via `/commit` in their worktree, and report. Every status flip goes through `bash ../_shared/scripts/backlog.sh …` (relative to this skill's directory), and grader-feedback appends are yours; the one delegated backlog write is the closing record, written by the serialized `burn-scribe` on your behalf. Demo statuses are never yours to set: `backlog.sh demo-check` runs each demo's check and flips it.
+**You are the orchestrator, and you own the backlog.** Workers never touch task/demo/decision/example files (example artifact bytes included) or any `status` — they implement, commit code via `/commit` in their worktree, and report. Every status flip goes through `bash ../_shared/scripts/backlog.sh …` (relative to this skill's directory), and grader-feedback appends are yours; the one delegated backlog write is the closing record, written by the serialized `burn-scribe` on your behalf. Demo statuses are never yours to set: `backlog.sh demo-check` runs each demo's check and flips it.
 
 **Pass pointers, not content.** Never read a task body, decision digest, or worker report into your own context: workers and graders self-brief from the task file and `documentation/` inside the worktree, workers park their full report at `.burn/REPORT.md` in the worktree (returning only a compact control block), and the scribe reads that file directly. You handle ids, paths, statuses, and one-line results.
 

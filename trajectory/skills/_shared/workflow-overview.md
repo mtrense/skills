@@ -15,7 +15,7 @@ Read this to understand where the current skill sits in the family. Trajectory i
 
 A stalled demo loops `/burn` back to `/enrich`; test-cycle feedback loops `/land` back to `/burn`.
 
-`/supplement` captures small tasks that serve no demo (bugs, chores, improvements) with the same rigor as `/enrich`. `/decide` is also invoked out-of-band whenever a decision is made, challenged, or contradicted by evidence.
+`/supplement` captures small tasks that serve no demo (bugs, chores, improvements) with the same rigor as `/enrich`. `/decide` is also invoked out-of-band whenever a decision is made, challenged, or contradicted by evidence. `/example` pins a scenario's input or surface down in bytes — usually offered by `/aim`, also invoked directly.
 
 ## Demos, not milestones
 
@@ -33,6 +33,14 @@ A demo is a point worth calling the human over for: something that can really be
 **Verdicts are decisions, so they gate breakdown, not scheduling.** "Nothing waits for a group" stays true; what waits is work nobody can shape yet. When a demo builds on a direction the human has not yet seen, `/aim` writes the open judgment as a **verdict item** — a `## Decisions to make` item marked with the demo it waits on (`- [ ] <what the verdict settles> — after: NNNN`). `/decide` will not take it before demo NNNN is `shown`, so `/enrich`'s open-decision gate holds the waiting demo's breakdown back; the board reports it as **WAITING** (not stalled — nothing is missing, a judgment is pending). At `/land NNNN` the user has just formed that judgment, and the skill offers to decide each waiting item on the spot (`backlog.sh waiting-on NNNN`), grounded in the showing record. `hold` stops the *machine* at a demo; verdict items stop the *planning* that depends on it — the two compose, and verdict items are the precise one.
 
 Demo statuses: `red` (being built) → `green` (ready for the human test cycle) → `shown` (the human ran `/land` and accepted it); `dropped` is the human tombstone. Showing a demo never reopens finished tasks: feedback from the test cycle becomes new tasks (and, when an expectation changed, new scenario steps plus an extended check — which turns the demo red again until they land).
+
+## Examples: the spec in bytes
+
+An **example** is the data twin of a decision: a sample definition, config, payload, or CLI transcript that pins a piece of the spec down in actual bytes, written *ahead* of the code. `/example` drafts a fully filled-in strawman (via `example-drafter`) and settles every invented value with the user — *agreed*, *decided* (routed to `/decide`, ticked `— decision: NNNN`), or *left open* (incidental detail, and for a transcript the output that varies between runs). The record `documentation/examples/NNNN-slug.md` carries `## Pinned facts` (what tasks and graders read instead of the bytes) and `## Open values` (the unticked ones keep it `draft` — `set-status example … settled` refuses); the bytes sit beside it in `documentation/examples/NNNN-slug/`, in their native format.
+
+**The code decides here too.** A demo lists the examples its scenario drives (`examples: [...]`); the demo's check reads the artifact **in place**, never a copy, and a transcript is replayed and diffed. So an example binds exactly as far as running code is checked against it — the board shows it **demonstrated** once a demo listing it is green. A draft example listed by a red demo is an open item, so `/enrich` will not break that demo down on bytes nobody agreed to. Examples are read-only for the whole `/burn` crew; changing one is a scenario change that goes through `/example` with the user, and the next `demo-check` re-tests the code against the new bytes (a demo turned red with nothing left to fix it is STALLED — `/enrich` mints the work).
+
+Prefer a **transcript** for a CLI surface: it is the documentation *and* the assertion. A prose flag reference may sit beside it, but only the transcript is checked.
 
 ## The proving loop (the signature move)
 
@@ -53,6 +61,7 @@ A task's closing record (`## Manual testing`) is not a note — it is evidence `
 | `tasks/NNNN-slug.md` | One task: plan, acceptance criteria, refs; closing record after landing | `/enrich`/`/supplement`/`/land` create, `/burn` orchestrator updates |
 | `documentation/decisions/NNNN-slug.md` | One decision record (context, decision, rationale, consequences, and a `## Proof` claim list when it carries a proof obligation) | `/decide` writes, `/land` ticks the claims |
 | `documentation/DECISIONS.md` | One-line-per-decision index (the "this exists" lookup) | `/decide` |
+| `documentation/examples/NNNN-slug.md` + `NNNN-slug/` | One example: the record (what it pins, pinned facts, open values, left open; frontmatter `status: draft\|settled\|retired`, `decisions`, `artifacts`, `source`) and the artifact bytes beside it | `/example` writes, `/decide` ticks decided values, demo checks read the bytes in place |
 | `documentation/<topic>.md` | Derived per-topic digests (e.g. `tech-stack.md`, `testing.md`) — the crisp "what the rules are" form agents read instead of paging full records. **Never authored by hand**: the `decision-summarizer` agent rewrites them after every decision change | `decision-summarizer` (spawned by `/decide`) |
 | `.trajectory/demo-NNNN.log` | The last `demo-check` output per demo — what `/enrich` reads for a stalled demo and `/land` for a green one. Scratch state: keep `.trajectory/` in `.gitignore` | `backlog.sh demo-check` |
 
@@ -61,16 +70,16 @@ A task's closing record (`## Manual testing`) is not a note — it is evidence `
 An item's canonical id is the 4-digit `NNNN-` **filename prefix** — never duplicated into frontmatter (two sources of truth drift, and YAML parses bare `0042` as octal). Frontmatter carries only the mechanical attributes:
 
 ```yaml
-# task                              # demo                         # decision
-title: …                            title: …                       title: …
-status: todo|in-progress|done|      status: red|green|shown|       status: proposed|accepted|
-        rejected                            dropped                        rejected|superseded
-complexity: low|medium|high         gate: flag|hold                proof: none|pending|proven
-demos: ["0001", …]                  check: "<shell command>"       superseded_by: "0007"|null
-depends_on: []                      checked_at: "<short sha>"|null
-decisions: []
+# task                              # demo                         # decision                      # example
+title: …                            title: …                       title: …                        title: …
+status: todo|in-progress|done|      status: red|green|shown|       status: proposed|accepted|      status: draft|settled|
+        rejected                            dropped                        rejected|superseded             retired
+complexity: low|medium|high         gate: flag|hold                proof: none|pending|proven      decisions: []
+demos: ["0001", …]                  check: "<shell command>"       superseded_by: "0007"|null      artifacts: ["hello.json"]
+depends_on: []                      checked_at: "<short sha>"|null                              source: "<origin>"|null
+decisions: []                       examples: ["0001", …]
 proves: []        # decisions whose proof this task delivers
-documents: []     # docs, examples, …
+documents: []     # docs, example records, …
 ```
 
 Task `rejected` means the human decided not to do it — a terminal tombstone. Grader rejection during `/burn` is NOT a status; it returns the task to `todo`. Tasks are never split after persistence: `/enrich` and `/supplement` shape the breakdown before writing files, so a persisted task is by definition clear and well shaped, and its id stays live for its whole life.
@@ -91,10 +100,10 @@ Every mechanical question — listing, retrieval, status flips, demo checks, str
 
 ## Commits
 
-**The foreground skills never commit.** `/kickoff`, `/aim`, `/decide`, `/enrich`, `/supplement`, and `/land` run interactively with the user present: they write their backlog files, run `backlog.sh check`, name what they wrote, and stop — the user reviews the diff and commits it themselves (`/commit`). Committing on the user's behalf in a session they are watching takes the review step away from them.
+**The foreground skills never commit.** `/kickoff`, `/aim`, `/decide`, `/example`, `/enrich`, `/supplement`, and `/land` run interactively with the user present: they write their backlog files, run `backlog.sh check`, name what they wrote, and stop — the user reviews the diff and commits it themselves (`/commit`). Committing on the user's behalf in a session they are watching takes the review step away from them.
 
 Committing only happens inside `/burn`, where the work runs unattended and a landed task must be a durable unit: `burn-worker` commits its code via the common `/commit` skill (one commit per task, inside its worktree), and `burn-scribe` / `merger` / `doc-syncer` commit the closing record, the merge, and the doc sync respectively; the orchestrator commits status flips, including the demo files `demo-check` rewrites. Each of those always uses an explicit pathspec (`git add <files> && git commit -m "…" -- <files>`, only the files it just wrote), so a bookkeeping commit can never sweep unrelated working-tree changes along.
 
 ## Subagents
 
-Subagents are used wherever possible to parallelize work and keep tokens off the main thread: `aim-scout` (read-only project recon for `/aim`), `task-linker` (read-only duplicate/link scan for `/enrich`/`/supplement`), `decision-summarizer` (rewrites the `documentation/<topic>.md` digests for `/decide`), and the `/burn` crew — `burn-worker` (TDD in a worktree, self-briefed from the task file, full report parked at `.burn/REPORT.md`, commits via `/commit`), `grader` (strict acceptance-criteria review, self-briefed), `burn-scribe` (serialized closing-record writer), `merger` (sequential merge-back, bounce on conflict), `doc-syncer` (post-merge doc refresh, serialized).
+Subagents are used wherever possible to parallelize work and keep tokens off the main thread: `aim-scout` (read-only project recon for `/aim`), `example-drafter` (read-only example strawman / annotation for `/example`), `task-linker` (read-only duplicate/link scan for `/enrich`/`/supplement`), `decision-summarizer` (rewrites the `documentation/<topic>.md` digests for `/decide`), and the `/burn` crew — `burn-worker` (TDD in a worktree, self-briefed from the task file, full report parked at `.burn/REPORT.md`, commits via `/commit`), `grader` (strict acceptance-criteria review, self-briefed), `burn-scribe` (serialized closing-record writer), `merger` (sequential merge-back, bounce on conflict), `doc-syncer` (post-merge doc refresh, serialized).

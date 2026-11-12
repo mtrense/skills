@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Deterministic query-and-bookkeeping surface over a trajectory project's backlog.
 #
-# The backlog is three directories of markdown files whose YAML frontmatter is the
-# query index: tasks/NNNN-slug.md, demos/NNNN-slug.md, and
-# documentation/decisions/NNNN-slug.md. The backlog can grow large, so NO skill or
+# The backlog is four directories of markdown files whose YAML frontmatter is the
+# query index: tasks/NNNN-slug.md, demos/NNNN-slug.md,
+# documentation/decisions/NNNN-slug.md, and documentation/examples/NNNN-slug.md
+# (an example's artifact bytes live next to its record, in
+# documentation/examples/NNNN-slug/). The backlog can grow large, so NO skill or
 # subagent ever scans the file bodies — every mechanical question is answered here
 # and returns only ids / paths / small JSON. Prose bodies are read only by the one
 # agent working that one item.
@@ -11,8 +13,8 @@
 # ── Identity ──────────────────────────────────────────────────────────────────
 # An item's canonical id is the 4-digit `NNNN` filename prefix — it is NEVER
 # duplicated into frontmatter (two sources of truth drift, and YAML parses bare
-# 0042 as octal). Each kind (task/demo/decision) has its own id sequence.
-# List references (`depends_on`, `demos`, `decisions`, `proves`) are normalized
+# 0042 as octal). Each kind (task/demo/decision/example) has its own id sequence.
+# List references (`depends_on`, `demos`, `decisions`, `proves`, `examples`) are normalized
 # to 4-digit strings however the frontmatter wrote them.
 #
 # ── Frontmatter fields ────────────────────────────────────────────────────────
@@ -20,9 +22,24 @@
 #   task          status (todo|in-progress|done|rejected), complexity (low|medium|high),
 #                 demos [], depends_on [], decisions [], proves [], documents []
 #   demo          status (red|green|shown|dropped), gate (flag|hold),
-#                 check (shell command, run from the project root), checked_at (sha|null)
+#                 check (shell command, run from the project root), checked_at (sha|null),
+#                 examples [] (examples whose bytes the scenario and check drive)
 #   decision      status (proposed|accepted|rejected|superseded),
 #                 proof (none|pending|proven), superseded_by (id or null)
+#   example       status (draft|settled|retired), decisions [],
+#                 artifacts [] (file names inside documentation/examples/NNNN-slug/),
+#                 source (where an ingested artifact came from, or null)
+#
+# ── Examples ──────────────────────────────────────────────────────────────────
+# An example pins a piece of the spec down in bytes: a sample workflow
+# definition, a config file, a payload, a CLI transcript. It is born `draft` (a
+# strawman whose invented values are listed under `## Open values`) and becomes
+# `settled` once every open value is ticked (set-status refuses earlier). A demo
+# lists the examples its scenario drives (`examples: [...]`); a draft example
+# listed by a red/green demo is an open item, so /enrich will not break the demo
+# down on a guess. The demo's check reads the artifact bytes in place, so the
+# example binds exactly as far as the code is checked against it: the board
+# shows a settled example as DEMONSTRATED once a demo listing it is green/shown.
 #
 # ── Demos ─────────────────────────────────────────────────────────────────────
 # A demo is a checkpoint worth calling the human over for: a scenario plus an
@@ -44,9 +61,10 @@
 # something — a knowledge dependency on breakdown, never a scheduling barrier.
 #
 # ── Commands ──────────────────────────────────────────────────────────────────
-#   backlog.sh new <task|demo|decision> <slug> <title...>
+#   backlog.sh new <task|demo|decision|example> <slug> <title...>
 #                                mint the next id, write the frontmatter + body
-#                                skeleton, print the created path
+#                                skeleton, print the created path (an example
+#                                also gets its empty artifact directory)
 #   backlog.sh next-id <kind>    next free 4-digit id for that kind
 #   backlog.sh ready [--demo <id>]
 #                                todo tasks whose every depends_on is done (the
@@ -59,7 +77,11 @@
 #   backlog.sh blockers <id>     task <id>'s depends_on that are NOT yet done
 #   backlog.sh dependents <id>   tasks that depend_on task <id> (reverse edges)
 #   backlog.sh provers <id>      tasks whose `proves` lists decision <id>
-#   backlog.sh set-status <kind> <id> <status>    flip a status (validated per kind)
+#   backlog.sh by-example <id>   demos listing example <id>, `NNNN <status>`
+#   backlog.sh open-values <id>  example <id>'s unticked `## Open values` lines,
+#                                prefixed OPEN (exit 1 if any)
+#   backlog.sh set-status <kind> <id> <status>    flip a status (validated per kind;
+#                                `example … settled` is refused while open values remain)
 #   backlog.sh set-proof <id> <none|pending|proven> [--force]
 #                                flip a decision's proof field; `proven` is
 #                                refused while any `## Proof` claim is unticked
@@ -99,7 +121,8 @@
 #                                kind's header; legend last
 #
 # All commands accept optional trailing `--tasks-dir D` / `--demos-dir D` /
-# `--decisions-dir D` (defaults: ./tasks ./demos ./documentation/decisions).
+# `--decisions-dir D` / `--examples-dir D` (defaults: ./tasks ./demos
+# ./documentation/decisions ./documentation/examples).
 #
 # Requires: yj (YAML->JSON, invoked as `yj -yj`) and jq.
 set -euo pipefail
@@ -107,6 +130,7 @@ set -euo pipefail
 TASKS_DIR="tasks"
 DEMOS_DIR="demos"
 DECISIONS_DIR="documentation/decisions"
+EXAMPLES_DIR="documentation/examples"
 LOG_DIR=".trajectory"
 
 args=()
@@ -115,6 +139,7 @@ while [ $# -gt 0 ]; do
     --tasks-dir) TASKS_DIR="$2"; shift 2 ;;
     --demos-dir) DEMOS_DIR="$2"; shift 2 ;;
     --decisions-dir) DECISIONS_DIR="$2"; shift 2 ;;
+    --examples-dir) EXAMPLES_DIR="$2"; shift 2 ;;
     *) args+=("$1"); shift ;;
   esac
 done
@@ -128,7 +153,8 @@ _dir_for() {
     task) echo "$TASKS_DIR" ;;
     demo) echo "$DEMOS_DIR" ;;
     decision) echo "$DECISIONS_DIR" ;;
-    *) echo "backlog.sh: unknown kind '$1' (want task|demo|decision)" >&2; exit 2 ;;
+    example) echo "$EXAMPLES_DIR" ;;
+    *) echo "backlog.sh: unknown kind '$1' (want task|demo|decision|example)" >&2; exit 2 ;;
   esac
 }
 
@@ -174,7 +200,13 @@ _load() {
           {status: (.status // "red"),
            gate: (.gate // "flag"),
            check: ((.check // "") | tostring),
-           checked_at: (if .checked_at == null then null else (.checked_at|tostring) end)}
+           checked_at: (if .checked_at == null then null else (.checked_at|tostring) end),
+           examples: ids("examples")}
+        elif $kind=="example" then
+          {status: (.status // "draft"),
+           decisions: ids("decisions"),
+           artifacts: ((.artifacts // []) | if type=="array" then map(tostring) else [tostring] end),
+           source: (if .source == null then null else (.source|tostring) end)}
         else
           {status: (.status // "proposed"),
            proof: (.proof // "none"),
@@ -214,11 +246,32 @@ _section_bullets() {
   _section_lines "$1" "$2" | grep -E '^[[:space:]]*-[[:space:]]' || true
 }
 
+# An example's unticked `## Open values` lines (invented values nobody agreed to).
+_example_open_values() {
+  _section_bullets "$1" "Open values" | grep -E '^[[:space:]]*-[[:space:]]*\[[[:space:]]?\]' || true
+}
+
 # A demo's UNSETTLED checklist items: not ticked, or ticked without the
 # `decision: NNNN` back-reference /decide writes (either way, no decision record
-# exists, so nothing downstream can wire or clear it).
+# exists, so nothing downstream can wire or clear it). A listed example that is
+# not settled counts too: the scenario would drive bytes nobody agreed to.
 _demo_open_items() {
-  local f="$1" h line
+  local f="$1" h line ex
+  ex="$(_fm_json "$f" | jq -r '(.examples // []) | if type=="array" then . else [.] end
+        | .[] | (if type=="number" then (floor|tostring) else tostring end) | gsub("[^0-9]";"")
+        | select(length>0) | ("0000"+.)[-4:]')"
+  if [ -n "$ex" ]; then
+    local exjson e est
+    exjson="$(_load example)"
+    for e in $ex; do
+      est="$(printf '%s' "$exjson" | jq -r --arg id "$e" 'map(select(._id==$id))|.[0].status // "missing"')"
+      case "$est" in
+        settled) ;;
+        missing) printf 'Examples: example %s does not exist\n' "$e" ;;
+        *) printf 'Examples: example %s is %s — settle it first (/example %s)\n' "$e" "$est" "$e" ;;
+      esac
+    done
+  fi
   for h in "Decisions to make" "Needs proving"; do
     while IFS= read -r line; do
       [ -n "$line" ] || continue
@@ -273,6 +326,17 @@ _fm_set() {
     { print }' "$file" > "$tmp"
   cat "$tmp" > "$file"
   rm -f "$tmp"
+}
+
+# Derived display rows of all examples, `NNNN<TAB>state<TAB>demos<TAB>title`:
+# a settled example listed by a green/shown demo is DEMONSTRATED — the code has
+# been checked against its bytes.
+_example_rows() { # $1 examples json, $2 demos json
+  printf '%s' "$1" | jq -r --argjson ds "$2" 'sort_by(._id)|.[] | ._id as $e
+    | ([$ds[]|select(.examples|index($e))]) as $by
+    | (if .status=="settled" and ([$by[]|select(.status|IN("green","shown"))]|length>0)
+       then "demonstrated" else .status end) as $st
+    | "\(._id)\t\($st)\t\(if ($by|length)>0 then ($by|map("\(._id)(\(.status))")|join(",")) else "-" end)\t\(.title)"'
 }
 
 # Derived display state of one demo (JSON object in, word out): with no live
@@ -438,6 +502,15 @@ _warnings() {
       [ -z "$(_decision_claims "$dfile")" ] \
         && echo "decision $did is proof: pending with no ## Proof claims — nothing states what a proving task must demonstrate (/decide)"
     done
+  # live demos driving examples nobody settled, or that were retired
+  local examples_json; examples_json="$(_load example)"
+  printf '%s' "$demos_json" | jq -r --argjson ex "$examples_json" '
+    (reduce $ex[] as $e ({}; .[$e._id]=$e.status)) as $st
+    | .[] | select(.status|IN("red","green")) | ._id as $d | .examples[]
+    | (select(($st[.] // "")=="draft")
+        | "demo \($d) drives draft example \(.) — settle it before breakdown (/example \(.))"),
+      (select(($st[.] // "")=="retired")
+        | "demo \($d) drives retired example \(.) — re-point the scenario (/aim) or revive the example (/example \(.))")'
   # superseded decision missing its superseded_by pointer
   printf '%s' "$decisions_json" | jq -r '
     .[] | select(.status=="superseded" and .superseded_by==null)
@@ -498,8 +571,8 @@ cmd="${1:-}"; shift || true
 
 case "$cmd" in
   new)
-    kind="${1:?usage: backlog.sh new <task|demo|decision> <slug> <title...>}"
-    slug="${2:?usage: backlog.sh new <task|demo|decision> <slug> <title...>}"
+    kind="${1:?usage: backlog.sh new <task|demo|decision|example> <slug> <title...>}"
+    slug="${2:?usage: backlog.sh new <task|demo|decision|example> <slug> <title...>}"
     shift 2
     title="$*"
     [ -n "$title" ] || { echo "usage: backlog.sh new <kind> <slug> <title...>" >&2; exit 2; }
@@ -536,6 +609,7 @@ status: red
 gate: flag
 check: ""
 checked_at: null
+examples: []
 ---
 
 ## Outcome
@@ -570,12 +644,32 @@ superseded_by: null
 ## Proof
 EOF
       ;;
+      example)
+        mkdir -p "$dir/$nnnn-$slug"
+        cat > "$file" <<EOF
+---
+title: $title
+status: draft
+decisions: []
+artifacts: []
+source: null
+---
+
+## What this pins down
+
+## Pinned facts
+
+## Open values
+
+## Left open
+EOF
+      ;;
     esac
     echo "$file"
     ;;
 
   next-id)
-    kind="${1:?usage: backlog.sh next-id <task|demo|decision>}"
+    kind="${1:?usage: backlog.sh next-id <task|demo|decision|example>}"
     _load "$kind" | jq -r 'if length==0 then "0001"
       else (map(._id|tonumber)|max+1|tostring|("0000"+.)[-4:]) end'
     ;;
@@ -634,6 +728,20 @@ EOF
       |.[]|"\(._id) \(.status)"'
     ;;
 
+  by-example)
+    want="$(_pad4 "${1:?usage: backlog.sh by-example <id>}")"
+    _load demo | jq -r --arg e "$want" 'map(select(.examples|index($e)))|sort_by(._id)
+      |.[]|"\(._id) \(.status)"'
+    ;;
+
+  open-values)
+    want="$(_pad4 "${1:?usage: backlog.sh open-values <example-id>}")"
+    file="$(_load example | jq -r --arg id "$want" 'map(select(._id==$id))|.[0]._file // empty')"
+    [ -n "$file" ] || { echo "no such example: $want" >&2; exit 1; }
+    ov="$(_example_open_values "$file")"
+    [ -z "$ov" ] || { printf '%s\n' "$ov" | sed -E 's/^[[:space:]]*-[[:space:]]*\[[[:space:]]?\][[:space:]]*/OPEN /'; exit 1; }
+    ;;
+
   set-status)
     kind="${1:?usage: backlog.sh set-status <kind> <id> <status>}"
     id="$(_pad4 "${2:?usage: backlog.sh set-status <kind> <id> <status>}")"
@@ -643,6 +751,7 @@ EOF
       demo:red | demo:shown | demo:dropped) ;;
       demo:green) echo "refusing: only \`backlog.sh demo-check\` turns a demo green — run its check" >&2; exit 2 ;;
       decision:proposed | decision:accepted | decision:rejected | decision:superseded) ;;
+      example:draft | example:settled | example:retired) ;;
       *) echo "invalid status '$new' for kind '$kind'" >&2; exit 2 ;;
     esac
     file="$(_load "$kind" | jq -r --arg id "$id" 'map(select(._id==$id))|.[0]._file // empty')"
@@ -650,6 +759,15 @@ EOF
     if [ "$kind:$new" = "demo:shown" ]; then
       cur="$(_load demo | jq -r --arg id "$id" 'map(select(._id==$id))|.[0].status')"
       [ "$cur" = "green" ] || { echo "refusing: demo $id is $cur — only a green demo can be shown (backlog.sh demo-check $id)" >&2; exit 1; }
+    fi
+    if [ "$kind:$new" = "example:settled" ]; then
+      ov="$(_example_open_values "$file")"
+      if [ -n "$ov" ]; then
+        echo "refusing: example $id still has open values —" >&2
+        printf '%s\n' "$ov" | sed 's/^/  /' >&2
+        echo "settle each (agree a value, or /decide it) and tick it in $file" >&2
+        exit 1
+      fi
     fi
     _fm_set "$file" status "$new"
     echo "$file -> status: $new"
@@ -765,7 +883,7 @@ EOF
     # 1. canonical filenames in all three dirs (a file the loader cannot glob is
     #    invisible to every other command — never scheduled, counted, or checked)
     shopt -s nullglob
-    for d in "$TASKS_DIR" "$DEMOS_DIR" "$DECISIONS_DIR"; do
+    for d in "$TASKS_DIR" "$DEMOS_DIR" "$DECISIONS_DIR" "$EXAMPLES_DIR"; do
       [ -d "$d" ] || continue
       for f in "$d"/*.md; do
         b="$(basename "$f")"
@@ -777,6 +895,7 @@ EOF
     tasks_json="$(_load task)"
     demos_json="$(_load demo)"
     decisions_json="$(_load decision)"
+    examples_json="$(_load example)"
 
     # 2. dangling references + live deps on rejected tasks
     problems="$(printf '%s' "$tasks_json" | jq -r \
@@ -804,6 +923,34 @@ EOF
         (select(.gate|IN("flag","hold")|not)
           | "FAIL demo \(._id): invalid gate \(.gate) (want flag|hold)")')"
     if [ -n "$bad" ]; then echo "$bad"; fail=1; fi
+
+    # 3a. examples: demo refs resolve, field values, artifacts on disk, and
+    #     settled means no open value is left
+    bad="$(printf '%s' "$demos_json" | jq -r --argjson ex "$examples_json" '
+      ([$ex[]._id]) as $eids
+      | .[] | ._id as $d | .examples[] | select(($eids|index(.))|not)
+      | "FAIL demo \($d): example \(.) does not exist"')"
+    if [ -n "$bad" ]; then echo "$bad"; fail=1; fi
+    bad="$(printf '%s' "$examples_json" | jq -r --argjson decs "$decisions_json" '
+      ([$decs[]._id]) as $dids
+      | .[] | ._id as $e
+      | (select(.status|IN("draft","settled","retired")|not)
+          | "FAIL example \($e): invalid status \(.status) (want draft|settled|retired)"),
+        (.decisions[] | select(($dids|index(.))|not)
+          | "FAIL example \($e): decision \(.) does not exist")')"
+    if [ -n "$bad" ]; then echo "$bad"; fail=1; fi
+    while IFS=$'\t' read -r eid efile estatus; do
+      [ -n "$eid" ] || continue
+      edir="${efile%.md}"
+      [ -d "$edir" ] || { echo "FAIL example $eid: artifact directory $edir/ does not exist"; fail=1; }
+      while IFS= read -r a; do
+        [ -n "$a" ] || continue
+        [ -e "$edir/$a" ] || { echo "FAIL example $eid: artifact $edir/$a does not exist"; fail=1; }
+      done <<< "$(printf '%s' "$examples_json" | jq -r --arg id "$eid" 'map(select(._id==$id))|.[0].artifacts[]')"
+      if [ "$estatus" = "settled" ] && [ -n "$(_example_open_values "$efile")" ]; then
+        echo "FAIL example $eid: settled with open values left (tick them, or set-status example $eid draft)"; fail=1
+      fi
+    done <<< "$(printf '%s' "$examples_json" | jq -r '.[]|"\(._id)\t\(._file)\t\(.status)"')"
 
     # 4. dependency cycles (Kahn peel over non-rejected tasks)
     cycle="$(printf '%s' "$tasks_json" | jq -r '
@@ -857,11 +1004,11 @@ EOF
       if [ "$color" -ne 1 ]; then cat; return; fi
       local pre='^([^ ]+ +)' post='( )'
       sed -E \
-        -e "s/${pre}(done|shown|proven)${post}/\1${esc}[32m\2${esc}[0m\3/" \
-        -e "s/${pre}(todo|accepted)${post}/\1${esc}[94m\2${esc}[0m\3/" \
-        -e "s/${pre}(in-progress|proposed|pending|waiting)${post}/\1${esc}[33m\2${esc}[0m\3/" \
+        -e "s/${pre}(done|shown|proven|demonstrated)${post}/\1${esc}[32m\2${esc}[0m\3/" \
+        -e "s/${pre}(todo|accepted|settled)${post}/\1${esc}[94m\2${esc}[0m\3/" \
+        -e "s/${pre}(in-progress|proposed|pending|waiting|draft)${post}/\1${esc}[33m\2${esc}[0m\3/" \
         -e "s/${pre}(red|stalled)${post}/\1${esc}[31m\2${esc}[0m\3/" \
-        -e "s/${pre}(rejected|superseded|dropped)${post}/\1${esc}[90m\2${esc}[0m\3/" \
+        -e "s/${pre}(rejected|superseded|dropped|retired)${post}/\1${esc}[90m\2${esc}[0m\3/" \
         -e "s/${pre}(green)${post}/\1${esc}[92m\2${esc}[0m\3/"
     }
 
@@ -909,6 +1056,15 @@ EOF
       printf '%s\n' "$ds" | column -t -s "$(printf '\t')" | colorize_status
     fi
 
+    echo
+    echo "EXAMPLES"
+    es="$(_example_rows "$(_load example)" "$demos_json")"
+    if [ -z "$es" ]; then
+      echo "  (none)"
+    else
+      printf '%s\n' "$es" | column -t -s "$(printf '\t')" | colorize_status
+    fi
+
     warns="$(_warnings)"
     if [ -n "$warns" ]; then
       printf '\nWARNINGS\n'
@@ -949,6 +1105,10 @@ EOF
         none)        echo '· 90' ;;
         pending)     echo '◐ 33' ;;
         proven)      echo '✔ 32' ;;
+        draft)       echo '○ 33' ;;
+        settled)     echo '● 94' ;;
+        demonstrated) echo '✔ 32' ;;
+        retired)     echo '~ 90' ;;
         *)           echo '? 90' ;;
       esac
     }
@@ -1020,13 +1180,16 @@ EOF
     _dense_kind P \
       "$(printf '%s' "$decisions_json" | jq -r 'sort_by(._id)|.[]|"\(._id) \(.proof)"')" \
       "none pending proven"
+    _dense_kind E \
+      "$(_example_rows "$(_load example)" "$demos_json" | cut -f1,2 | tr '\t' ' ')" \
+      "draft settled demonstrated retired"
 
     warns="$(_warnings)"
     if [ -n "$warns" ]; then
       printf '⚠ %s  (backlog.sh check)\n' "$(printf '%s\n' "$warns" | wc -l | tr -d ' ')"
     fi
 
-    printf 'T ○ready ◦blocked ◐wip ●done ✕rejected | S demo ○red ‖waiting !stalled ◆green ●shown ✕dropped | D ○proposed ●accepted ✕rejected ~superseded | P proof ·none ◐pending ✔proven | ·gap\n'
+    printf 'T ○ready ◦blocked ◐wip ●done ✕rejected | S demo ○red ‖waiting !stalled ◆green ●shown ✕dropped | D ○proposed ●accepted ✕rejected ~superseded | P proof ·none ◐pending ✔proven | E example ○draft ●settled ✔demonstrated ~retired | ·gap\n'
     ;;
 
   ""|help|-h|--help)

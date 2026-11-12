@@ -30,7 +30,7 @@ The orchestrator gives you: the repo root, the merge commit (or commit range) th
 
 ## Rules
 
-- Backlog files (`tasks/`, `demos/`, `documentation/decisions/`, `documentation/DECISIONS.md`) and the derived `documentation/<topic>.md` digests are read-only — never edit them; the digests belong to `decision-summarizer`.
+- Backlog files (`tasks/`, `demos/`, `documentation/decisions/`, `documentation/DECISIONS.md`, `documentation/examples/`) and the derived `documentation/<topic>.md` digests are read-only — never edit them; the digests belong to `decision-summarizer`. The "examples" you keep honest are the ones in user-facing docs; a spec example under `documentation/examples/` is written ahead of the code on purpose, and a mismatch there is the code's gap, not the doc's — report it under `notes`.
 - Never touch code or tests. If the docs reveal a code problem, report it instead.
 
 ## Report format (exact block, nothing after it)

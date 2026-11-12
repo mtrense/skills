@@ -48,6 +48,8 @@ Create the record: `bash ../_shared/scripts/backlog.sh new decision <slug> <titl
 - From `## Decisions to make`: tick the item and append the back-reference: `- [x] <item> — decision: NNNN` (a verdict item keeps its marker: `- [x] <item> — after: MMMM — decision: NNNN`).
 - From `## Needs proving`: the record is persisted with **`proof: pending`** (`backlog.sh set-proof <id> pending`) and the demo item gets the same `— decision: NNNN` back-reference. This wires the proving loop: `/enrich` will attach the id to a proving task's `proves` list, and `/land` clears it after consulting the user.
 
+**Example-spawned decisions:** when `/example` routes an open value here (the value commits more than that one artifact), decide it as usual, then tick the example's `## Open values` line with `— decision: NNNN`, add the id to the example's `decisions:` frontmatter, and hand back to `/example`, which pins the decided value in the bytes. Where the alternatives are competing snippets of the artifact, they are exactly what the `preview` field is for.
+
 ### The proof claims
 
 Every `proof: pending` decision gets a **`## Proof` claim list** — one checklist line per thing a running system has to demonstrate before the obligation is discharged:
@@ -72,7 +74,7 @@ For an existing decision, the dialog identifies **what needs to change and why**
 - **Revision** — the decision stands, its record was wrong or incomplete: edit the record in place, note the revision and its trigger in the body, refresh the index line.
 - **Supersession** — the decision itself changes: create the new record (as above, carrying the old one's proof obligation if evidence hasn't settled it), then `backlog.sh set-superseded <old-id> <new-id>` and update both index lines. Never edit the superseded record's content — it stays as the historical account.
 
-If tasks link the old decision (`backlog.sh` — check `decisions`/`proves` via `get` on ids the user suspects, or grep DECISIONS.md discussion), point open ones out so the user can decide whether their plans still hold.
+If examples carry the old decision in their `decisions:` (`backlog.sh board`, EXAMPLES section, then `get example <id>`), their bytes may now be wrong: name them and route each to `/example <id>` for revision. If tasks link the old decision (`backlog.sh` — check `decisions`/`proves` via `get` on ids the user suspects, or grep DECISIONS.md discussion), point open ones out so the user can decide whether their plans still hold.
 
 ## Derived digests + wrap-up
 

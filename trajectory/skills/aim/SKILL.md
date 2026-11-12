@@ -33,6 +33,7 @@ Synthesize the idea + scout report and confirm with the user — one focused exc
 
 - **Outcome** — what this demo shows and why it matters, in vision vocabulary.
 - **Scenario** — numbered steps a person (or the check) performs through the real entry point, each with the observation that proves it: `1. <action> → <what you see>`. Concrete commands, requests, or clicks, with concrete expected output. Example-first: a step with a real sample value beats an abstract description. This is the contract the check command will automate and the script `/land` will walk the user through.
+- **Examples** — does a scenario step feed the entry point an input with a shape nobody has written down yet (a definition file, a config, a payload), or does the demo show a surface whose exact output matters (CLI commands and their output)? Then the step should drive a concrete **example** (`documentation/examples/NNNN-slug/`), not a description. Reuse a settled example where one fits (board, EXAMPLES section). Otherwise offer `/example` — one `AskUserQuestion` per candidate: *sketch it now via `/example`* (recommended when the bytes are the open question) / *list it as a draft to settle before breakdown* / *no example — the scenario's prose is precise enough*. Listed examples go into the demo's `examples:` frontmatter, and the scenario step names the artifact path. A draft example listed by the demo is an open item: `/enrich` will not break the demo down until it is settled.
 - **Human check** — what only a person can judge (does the flow feel right, is the wording clear, is it fast enough to not annoy). Short; it may be empty for a purely mechanical demo.
 - **Gate** — `flag` (default: a green demo is queued for the human while burning continues) or `hold` (an unattended run stops when it turns green, because the next work depends on the human's verdict — a UX direction, an architecture bet). Ask this as a closed question only when the answer is not obvious.
 - **Decisions to make** — the decisions the user needs to make before breakdown can start (from the scout's unknowns + your own reading). Each as a one-line checkbox item. Keep this to forks that would genuinely change what gets built; a choice an agent can make sensibly and the user would rubber-stamp is not an item.
@@ -43,7 +44,7 @@ Surface scout-reported overlaps with existing demos/tasks now — the user may w
 
 ## Step 3: Persist
 
-Create the file: `bash ../_shared/scripts/backlog.sh new demo <slug> <title>`, set `gate:` in the frontmatter if it is `hold`, then fill the body via Edit:
+Create the file: `bash ../_shared/scripts/backlog.sh new demo <slug> <title>`, set `gate:` in the frontmatter if it is `hold` and `examples:` to the ids of the examples the scenario drives, then fill the body via Edit. For an example that does not exist yet, invoke `Skill(example)` with the intent and this demo's id — it mints and wires it; whatever it leaves unsettled stays an open item on this demo:
 
 ```markdown
 ## Outcome
@@ -73,4 +74,4 @@ Run `bash ../_shared/scripts/backlog.sh check`. Do **not** commit — this skill
 
 ## Wrap-up
 
-Show the board (`backlog.sh board`). Point at the next move: `/decide` if the demo has open decision items (that gate blocks `/enrich`), otherwise `/enrich` directly. If it carries verdict items, say what it waits on: `/land NNNN` for the awaited demo comes first, and the items decidable now can be settled meanwhile.
+Show the board (`backlog.sh board`). Point at the next move: `/decide` if the demo has open decision items, `/example <id>` for a listed example still `draft` (both gates block `/enrich`), otherwise `/enrich` directly. If it carries verdict items, say what it waits on: `/land NNNN` for the awaited demo comes first, and the items decidable now can be settled meanwhile.

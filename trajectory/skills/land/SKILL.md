@@ -40,7 +40,7 @@ Read the demo file, the check log (`.trajectory/demo-<id>.log`), and the closing
 Compose the demo as a script the user will follow literally, and present it:
 
 - **Setup** — what to build, start, or seed, as exact commands.
-- **The scenario** — the demo's `## Scenario` steps, numbered, each with the exact command or action and the observation to expect. Synthesis means composing verified records and the scenario into one sequence, never inventing the glue between them: a step you had to make up to connect two records is a step to run first. A wrong line costs more than a missing one.
+- **The scenario** — the demo's `## Scenario` steps, numbered, each with the exact command or action and the observation to expect. Where a step drives one of the demo's examples, point at the artifact path — the user tries the very bytes the spec was settled on, and may want to edit a copy to probe beyond it. Synthesis means composing verified records and the scenario into one sequence, never inventing the glue between them: a step you had to make up to connect two records is a step to run first. A wrong line costs more than a missing one.
 - **Your part** — the `## Human check` items, phrased as what to look at while walking through.
 - **Known caveats** — deviations from the records, `[unverified]` steps you could not observe here, scenario steps the check does not reach.
 
@@ -56,7 +56,7 @@ Then settle each finding's disposition — closed calls, batched into one `AskUs
 - **Follow-up** — worth doing, not a reason to withhold acceptance. It becomes a task serving no demo, or the next demo (name it).
 - **Not a problem** — explained, or out of scope. Recorded in the showing record, nothing minted.
 
-Shape every task a finding produces with full rigor — plan, acceptance criteria, linker scan, vocabulary check: invoke `Skill(supplement)` with the finding and, for a fix-before-showing finding, the demo id to list. A finding that contradicts an accepted decision is never just a task: route it to `/decide <id>`. Showing never reopens a done task — its record stands, and new tasks build on it.
+Shape every task a finding produces with full rigor — plan, acceptance criteria, linker scan, vocabulary check: invoke `Skill(supplement)` with the finding and, for a fix-before-showing finding, the demo id to list. A finding that contradicts an accepted decision is never just a task: route it to `/decide <id>`. A finding that changes what an example pins (the definition should look different, the CLI output should read differently) is never just a task either: revise the example via `Skill(example)` first — the check reads its bytes, so the demo turns red on the new expectation — then capture the fix as a task listing the demo. Showing never reopens a done task — its record stands, and new tasks build on it.
 
 ## Step 5: Clear the proofs (with the user)
 
